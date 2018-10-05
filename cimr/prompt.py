@@ -29,8 +29,7 @@ class Netwas():
 
 
 def parse_arguments():
-    """parse command line arguments for subprocesses of cimr.
-    """
+    """parse command line arguments for subprocesses of cimr."""
     parser = argparse.ArgumentParser(
         description='cimr: continuous integration for twas')
     parser.add_argument('--version', action='version', version=f'v{cimr.__version__}')

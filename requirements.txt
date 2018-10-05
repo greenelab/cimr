@@ -1,6 +1,0 @@
-numpy
-pandas
-pytest
-scikit-learn
-pathlib
-logging

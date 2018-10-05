@@ -6,6 +6,7 @@
 continuous analyses of gwas and eqtl summary statistics using mendelian randomization and other transcriptome-wide association study methods
 
 <!--ts-->
+
 * [installation](#installation)
   * [install miniconda/anaconda](#install-miniconda-or-anaconda)
 * [install git lfs](#install-git-lfs)
@@ -13,6 +14,8 @@ continuous analyses of gwas and eqtl summary statistics using mendelian randomiz
 * [contributing to cimr](#contributing-to-cimr)
   * [summary statistics](#summary-statistics)
 * [analyses](#analyses)
+* [cimr python module](#cimr-python-module)
+
 <!--te-->
 
 ## installation
@@ -81,6 +84,8 @@ rs1172981 chr1_100230197_T_C T 0.06069 0.0057 0.0103 0.7688
 
 you may contribute to downstream analyses using summary statistics. currently incorporated methods are as follows:
 
+
+### cimr python module
 
 
 

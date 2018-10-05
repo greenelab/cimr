@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-"""checks input file from contirbuters flagged as eqtl.
-t
-"""
+"""checks input file from contributors flagged as eqtl."""
 
 # could delete imports once incorporated into continuous_mr.py
 import os

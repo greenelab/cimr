@@ -1,0 +1,34 @@
+# byte-compiled
+__pycache__/
+*.pyc
+
+#emacs
+.venv
+
+# distributions
+.eggs/
+eggs/
+lib/
+lib64/
+*.egg-info/
+*.egg
+
+# tests
+*.pytest_cache/
+.cache
+
+# oauth token
+.httr-oauth
+
+# tox
+.tox
+
+# notebook cache
+*.ipynb_checkpoints/
+
+# rmarkdown
+*.utf8.md
+*.knit.md
+
+# osx
+.DS_Store

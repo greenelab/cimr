@@ -5,9 +5,13 @@ python:
   - "3.6"
 services:
   - docker
+branches:
+  only:
+  - master
+if: branch = master
+  script:
+    - python setup.py build
+    - python setup.py install
 script:
-  - python setup.py build
-  - python setup.py install
-after_success:
-  - git checkout master
-  - bash update_repo.sh
+   - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then bach ./check_pull_request.sh; fi'
+#   - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./cimr/; fi'

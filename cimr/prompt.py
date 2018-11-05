@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """provides general options for summary-based medelian randomization 
 and other transcriptome-wide association study (twas) methods.
@@ -14,6 +14,7 @@ __status__ = "production"
 import os
 import sys
 import argparse
+import pathlib
 import logging
 import warnings
 import importlib
@@ -40,9 +41,15 @@ def parse_arguments():
     for subparser in subparsers.choices.values():
         subparser.add_argument(
             '--outdir',
-            default='output',
+            default='outdir',
             help='path to directory where output files will be written to',
-        )   
+        )
+        subparser.add_argument(
+            '--log',
+            default='WARNING',
+            choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+            help='logging level for stderr logging',
+        )      
     subparsers.required = True
     subparsers.dest = 'subcommand'
     add_subparser_processor(subparsers)
@@ -57,17 +64,18 @@ def add_subparser_processor(subparsers):
         description='process pull requests containing new association summary statistics '
                     'or new annotation files',
     )
-    parser.add_argument(
+    pargs = parser.add_mutually_exclusive_group()
+    pargs.add_argument(
         '--eqtl', 
         help='process association summary statistics file from expression- '
              'quantitative trait loci mapping',
     )
-    parser.add_argument(
+    pargs.add_argument(
         '--gwas', 
         help='process association summary statistics file from genome-wide '
               'association studies mapping',
     )
-    parser.add_argument(
+    pargs.add_argument(
         '--tad', 
         help='process annotations for topologically associated domains',
     )
@@ -79,11 +87,12 @@ def add_subparser_twas(subparsers):
         description='run gene-based analyses or transcriptome-wide association analysis '
                     'before network-wide association studies'
     )
-    parser.add_argument(
+    targs = parser.add_mutually_exclusive_group()
+    targs.add_argument(
         '--mr', action='store_true',
-        help='transcriptome-wide association study using mendelian randomization',
+        help='transcriptome-wide association study using 2-sample-based mendelian randomization',
     )
-    parser.add_argument(
+    targs.add_argument(
         '--abf', action='store_true',
         help='transcriptome-wide association study using approximate bayes factor',
     )
@@ -95,11 +104,12 @@ def add_subparser_netwas(subparsers):
         description='run network association study tools '
                     'include options --svm and --rwr',        
     )
-    parser.add_argument(
+    nargs = parser.add_mutually_exclusive_group()
+    nargs.add_argument(
         '--svm', action='store_true',
         help='network-association study analysis using support vector machines',
     )
-    parser.add_argument(
+    nargs.add_argument(
         '--rwr', action='store_true',
         help='network-assication study analysis using random walk with restarts',
     )

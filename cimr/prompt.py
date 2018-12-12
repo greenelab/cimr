@@ -25,7 +25,7 @@ class Twas():
     pass
 
 
-class Netwas():
+class Network():
     pass
 
 
@@ -54,7 +54,7 @@ def parse_arguments():
     subparsers.dest = 'subcommand'
     add_subparser_processor(subparsers)
     add_subparser_twas(subparsers)
-    add_subparser_netwas(subparsers)
+    add_subparser_network(subparsers)
     args = parser.parse_args()
     return args
 
@@ -89,31 +89,68 @@ def add_subparser_twas(subparsers):
     )
     targs = parser.add_mutually_exclusive_group()
     targs.add_argument(
-        '--mr', action='store_true',
+        '--mr', default=False,
+        action='store_true',
         help='transcriptome-wide association study using 2-sample-based mendelian randomization',
     )
     targs.add_argument(
-        '--abf', action='store_true',
+        '--abf', default=False,
+        action='store_true',
         help='transcriptome-wide association study using approximate bayes factor',
     )
     parser.set_defaults(function='cimr.twas.twas_prompt.twas_cli')
 
-def add_subparser_netwas(subparsers):
+def add_subparser_network(subparsers):
     parser = subparsers.add_parser(
-        name='netwas', help='netwas using cimr data',
-        description='run network association study tools '
+        name='network', help='network analysis using cimr data',
+        description='run network analysis tools '
                     'include options --svm and --rwr',        
     )
     nargs = parser.add_mutually_exclusive_group()
     nargs.add_argument(
-        '--svm', action='store_true',
-        help='network-association study analysis using support vector machines',
+        '--random', default=False,
+        action='store_true',
+        help='select random edges from a network. '
+             'use --randomcount to indicate number of edges to select',
+    )
+    parser.add_argument(
+        '--randomcount', default=100000,
+        dest='randomcount',
+        nargs=1,
+        type=int,
+        help='select indicated number of random edges from a network'
+             'use when --random is selected',
+    )
+    parser.add_argument(
+        '--celltype',
+        dest='celltype',
+        default='global',
+        nargs=1,
+        type=str,
+        help='cell or tissue type that both represents the specificity '
+             'of the given network and the file name'
+             'e.g. for giant2, file name is assumed to be celltype.dat',
+    )
+    parser.add_argument(
+        '--filesize',
+        dest='filesize',
+        default=10000000,
+        nargs=1,
+        type=int,
+        help='size of the file containing the network in the format of '
+             'edge0 edge1 weight',
     )
     nargs.add_argument(
-        '--rwr', action='store_true',
-        help='network-assication study analysis using random walk with restarts',
+        '--svm', default=False,
+        action='store_true',
+        help='network analysis using support vector machines',
     )
-    parser.set_defaults(function='cimr.netwas.netwas_prompt.netwas_cli')
+    nargs.add_argument(
+        '--rwr', default=False,
+        action='store_true',
+        help='network analysis using random walk with restarts',
+    )
+    parser.set_defaults(function='cimr.network.network_prompt.network_cli')
 
 def main():
     """main prompt of cimr"""

@@ -16,6 +16,7 @@ lib64/
 # tests
 *.pytest_cache/
 .cache
+test/
 
 # oauth token
 .httr-oauth

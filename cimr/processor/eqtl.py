@@ -10,6 +10,7 @@ import pandas
 import pathlib
 import logging
 
+import util
 
 # gene : gene id in 
 # rsnum : rs id of the variant
@@ -20,16 +21,6 @@ import logging
 # beta : beta coefficient estimate for the association effect of the variant on the gene 
 # se : standard error of the beta
 # pval : p-value of the beta estimate
-
-
-def findfile(filename):
-    """find the file indicated in the prompt"""
-    if(pathlib.Path(filename).resolve()):
-        filename = str(filename)
-        return sumdata
-    else:
-        logging.error(f'no file {filename} found for processing.')
-        exit()
 
 
 def getpos(sumdata):
@@ -88,7 +79,8 @@ def check_numeric(sumdata):
                 return numdata
         except:
             logging.error(f'the format of %s is not testable.'%(col,))
-            exit()
+            sys.exit()
+
 
 def check_header(sumdata):
     """check header of the input file then return matches
@@ -128,7 +120,7 @@ def check_header(sumdata):
 
 def readfile(filename):
     """read the input file as a pandas dataframe. check if empty"""
-    filename = findfile(filename)
+    filename = util.findfile(filename)
     sumdata = pandas.read_csv(filename, sep='\t', header=0)
     if not sumdata.empty:
         sumdata = check_chrom(getpos(sumdata))

@@ -23,7 +23,6 @@ def select_random_edges(celltype, filesize, offsets):
     net = open(celltype+'.dat')
     offset = random.randrange(filesize)
     net.seek(offset)
-    # net.readline()
     random_edge = net.readline()
     if len(random_edge) == 0:
         net.seek(0)
@@ -68,7 +67,6 @@ def cosinesim(cellfile, suffix):
     resulting file can be used for a heatmap"""
     from scipy import spatial
     import pandas
-    # import seaborn
     import itertools
     celltypelist = pandas.read_csv(cellfile, sep='\t', header=0, names=['celltype', 'network'])
     celltypelist = celltypelist.celltype.tolist()
@@ -81,9 +79,7 @@ def cosinesim(cellfile, suffix):
         cellmat.loc[cell1,cell0] = cellsim
         print(cell0, cell1)
     outfile = cellfile.split('.')[0] + '_cossim.tsv'
-    # pngfile = outfile.replace('.tsv','.png')
     cellmat.to_csv(outfile, sep='\t', index=True, header=True)
-    # seaborn.clustermap(cellmat, cmap='Blues').savefig(pngfile)
     return 0
 
 def parse_arguments():

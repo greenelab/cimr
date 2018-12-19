@@ -57,7 +57,6 @@ setuptools.setup(
         'numpy',
         'pandas',
         'pathlib',
-        'logging',
     ],
 
     # Additional groups of dependencies

@@ -12,6 +12,7 @@ lib/
 lib64/
 *.egg-info/
 *.egg
+build/
 
 # tests
 *.pytest_cache/

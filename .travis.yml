@@ -8,7 +8,6 @@ services:
 branches:
   only:
   - master
-if: branch = master
-  script:
-    - python setup.py build
-    - python setup.py install
+script:
+  - python setup.py build
+  - python setup.py install

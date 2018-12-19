@@ -1,13 +1,13 @@
 language: python
-sudo: false
+sudo: true
 warnings_are_errors: false
 python:
   - "3.6"
 services:
   - docker
+branches:
+  only:
+  - master
 script:
   - python setup.py build
   - python setup.py install
-after_success:
-  - git checkout master
-  - bash update_repo.sh

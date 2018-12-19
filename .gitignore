@@ -12,10 +12,13 @@ lib/
 lib64/
 *.egg-info/
 *.egg
+build/
 
 # tests
 *.pytest_cache/
 .cache
+test/
+test/*
 
 # oauth token
 .httr-oauth

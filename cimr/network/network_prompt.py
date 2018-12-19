@@ -13,5 +13,3 @@ def network_cli(args):
             network_similarity.write_subset(celltype, filesize, randomselect)
     pass
 
-
-if __name__ == '__main__':

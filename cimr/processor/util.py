@@ -18,8 +18,3 @@ def findfile(filename):
         exit()
 
 
-def readfile(filename):
-    sumdata = open(filename).readlines()
-    return sumdata
-
-

@@ -21,27 +21,26 @@ import importlib
 
 import cimr
 
-class Twas():
-    pass
-
-
-class Network():
-    pass
-
 
 def parse_arguments():
     """parse command line arguments for subprocesses of cimr."""
     parser = argparse.ArgumentParser(
-        description='cimr: continuous integration for twas')
+        description='cimr: continuous integration of summary statistics files for network analysis')
     parser.add_argument('--version', action='version', version=f'v{cimr.__version__}')
     subparsers = parser.add_subparsers(
         title='subcommands',
         description='cimr subcommands:',
     )
+    subparsers.required = True
+    subparsers.dest = 'subcommand'
+    add_subparser_processor(subparsers)
+    add_subparser_gene(subparsers)
+    add_subparser_network(subparsers)
     for subparser in subparsers.choices.values():
         subparser.add_argument(
             '--outdir',
             default='outdir',
+            type=pathlib.Path,
             help='path to directory where output files will be written to',
         )
         subparser.add_argument(
@@ -50,11 +49,6 @@ def parse_arguments():
             choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
             help='logging level for stderr logging',
         )      
-    subparsers.required = True
-    subparsers.dest = 'subcommand'
-    add_subparser_processor(subparsers)
-    add_subparser_twas(subparsers)
-    add_subparser_network(subparsers)
     args = parser.parse_args()
     return args
 
@@ -67,7 +61,7 @@ def add_subparser_processor(subparsers):
     pargs = parser.add_mutually_exclusive_group()
     pargs.add_argument(
         '--eqtl', 
-        help='process association summary statistics file from expression- '
+        help='process association summary statistics file from expression-'
              'quantitative trait loci mapping',
     )
     pargs.add_argument(
@@ -81,30 +75,29 @@ def add_subparser_processor(subparsers):
     )
     parser.set_defaults(function='cimr.processor.processor_prompt.process_cli')
 
-def add_subparser_twas(subparsers):
+def add_subparser_gene(subparsers):
     parser = subparsers.add_parser(
-        name='twas', help='twas using cimr data',
+        name='gene', help='wrapper for gene-based analysis',
         description='run gene-based analyses or transcriptome-wide association analysis '
-                    'before network-wide association studies'
+                    'and generate gene-based scores'
     )
     targs = parser.add_mutually_exclusive_group()
     targs.add_argument(
         '--mr', default=False,
         action='store_true',
-        help='transcriptome-wide association study using 2-sample-based mendelian randomization',
+        help='association study using two-sample-based mendelian randomization',
     )
     targs.add_argument(
         '--abf', default=False,
         action='store_true',
-        help='transcriptome-wide association study using approximate bayes factor',
+        help='colocalization test using approximate bayes factor',
     )
-    parser.set_defaults(function='cimr.twas.twas_prompt.twas_cli')
+    parser.set_defaults(function='cimr.gene.gene_prompt.gene_cli')
 
 def add_subparser_network(subparsers):
     parser = subparsers.add_parser(
         name='network', help='network analysis using cimr data',
-        description='run network analysis tools '
-                    'include options --svm and --rwr',        
+        description='run network analysis tools ',        
     )
     nargs = parser.add_mutually_exclusive_group()
     nargs.add_argument(

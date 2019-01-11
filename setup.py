@@ -26,7 +26,7 @@ setuptools.setup(
     name='cimr',
     version=version,
     url='https://github.com/greenelab/cimr',
-    description='continuous integration of association summary statistics and network analysis tool',
+    description='continuous integration of association summary statistics for network analysis',
     long_description_content_type='text/markdown',
     long_description=long_description,
     license='BSD 3-Clause',

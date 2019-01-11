@@ -6,10 +6,17 @@ import sys
 import pathlib
 import logging
 
-from cimr.processor.util import readfile
+
+class Gwas:
+    """
+    """
+
+    def __init__(self, filename):
+        self.filename = filename
+    
+    def trait_exits(self, trait_reference):
+        self.trait_reference = trait_reference
+        pass
 
 
-if __name__ == '__main__':
-    filename = sys.argv[1]
-    sumdata = readfile(filename)
 

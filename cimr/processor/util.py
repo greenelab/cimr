@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 """utilities and common file checks used across different functions in
-processor subunits"""
+processor subunits
+"""
 
 import sys
 import pandas
 import pathlib
 import logging
+
 
 def findfile(filename):
     """find the file indicated in the prompt"""
@@ -14,7 +16,7 @@ def findfile(filename):
         filename = str(filename)
         return filename
     else:
-        logging.error(f'no file {filename} found for processing.')
+        logging.error(f' no file {filename} found for processing.')
         exit()
 
 
@@ -36,28 +38,34 @@ def checkchrom(summary_data):
     - change if different from the specified format
     - discard non-autosomal chromosomes from main input
     """
-    chromdict = {str(i):'chr'+str(i) for i in range(1,23)}
-    chromstr = ['chr'+str(i) for i in range(1,23)]
-    chromint = [i for i in range(1,23)]
+    maxchrom = 23
+    chromdict = {str(i):'chr'+str(i) for i in range(1,maxchrom)}
+    chromstr = ['chr'+str(i) for i in range(1,maxchrom)]
+    chromint = [i for i in range(1,maxchrom)]
     chroms = summary_data.chrom.drop_duplicates().values
-    if len(chroms) > 21 and len(chroms) < 27:
+
+    if len(chroms) > (maxchrom-2) and len(chroms) < (maxchrom+2):
+        logging.info(f' {len(chroms)} chromosome(s) included in the file provided.')
         pass
-    elif len(chroms) <= 21:
-        logging.warning(f'input file does not include all autosomal chromosomes.')
-        logging.warning(f'chromosome(s) included in the input file: %s'%(chroms,))
+    elif len(chroms) <= (maxchrom-2):
+        logging.warning(f' input file does not include all autosomal chromosomes.')
+        logging.warning(f' chromosome(s) included in the input file: %s'%(chroms,))
     else:
-        logging.warning(f'input file more than 22 chromosomes.')
-        logging.warning(f'chromosome(s) included in the input file: %s'%(chroms,))    
+        logging.warning(f' input file more than {maxchrom} chromosomes.')
+        logging.warning(f' chromosome(s) included in the input file: %s'%(chroms,))    
+
     if len(set(chroms) & set(chromstr)) > 1:
         summary_data = summary_data[summary_data['chrom'].isin(chromstr)]
     elif len(set(chroms) & set(chromint)) > 1:
         summary_data['chrom'] = summary_data['chrom'].map(chromdict)
         summary_data = summary_data[summary_data['chrom'].isin(chromstr)]
     else:
-        logging.error(f'chromosome id needs to be checked.')
+        logging.error(f' chromosome id needs to be checked.')
+
     remainder = list(set(chroms) - set(chromstr) - set(chromint))
     if len(remainder) > 0:
-        logging.warning(f'chromosome(s) not used for analysis using the current version of cimr: %s'%(remainder,))
+        logging.warning(f' chromosome(s) not used for analysis using the current version of cimr: %s'%(remainder,))
+
     return summary_data
 
 
@@ -94,7 +102,7 @@ def checkhead(summary_header):
 def checkrs(summary_data):
     from pkg_resources import resource_filename
     reference_file = resource_filename('cimr', 'data/annotation/variant_grch37_annotation_test.txt.gz')
-    logging.info(f'using {reference_file} to check variant information.')
+    logging.info(f' using {reference_file} to check variant information.')
     reference = pandas.read_csv(reference_file, sep='\t', header=0, dtype={'chr':'str'})
     reference.columns = [x+'_reference' for x in reference.columns]
     rsnum_with_reference = summary_data.loc[summary_data['rsnum'].isin(reference['rs_id_dbSNP147_GRCh37p13_reference']),:]
@@ -104,7 +112,7 @@ def checkrs(summary_data):
     samplecount = len(merged.index)
     rsrefcount = len(rsnum_with_reference.index)
     nomatchcount = len(variant_nomatch.index)
-    logging.info(f'out of {samplecount} sampled variants from {rsrefcount} total variants with RS IDs, {nomatchcount} variants do not match the reference.')
+    logging.info(f' out of {samplecount} sampled variants from {rsrefcount} total variants with RS IDs, {nomatchcount} variants do not match the reference.')
     return summary_data
 
 
@@ -113,17 +121,17 @@ def check_numeric(summary_data, col):
     from pandas.api.types import is_numeric_dtype
     try:
         if is_numeric_dtype(summary_data[col]):
-            print(col+' is numeric')
+            logging.info(f' {col} is numeric. good to go!')
             return summary_data
         else:
             numdata = (summary_data
                         .drop([col], axis=1)
                         .join(summary_data[col].apply(pandas.to_numeric, errors='coerce')))
             numcol = numdata[col].isnull().values().sum()
-            logging.error(f'%s rows in %s are non-numeric'%(numcol,col,))
+            logging.error(f' %s rows in %s are non-numeric'%(numcol,col,))
             return numdata
     except:
-        logging.error(f'the format of %s is not testable.'%(col,))
+        logging.error(f' the format of %s is not testable.'%(col,))
         print(summary_data.head(n=2))
         sys.exit()
 
@@ -139,21 +147,24 @@ def readfile(filename):
         summary_data.rename(columns=betaeffect, inplace=True)
         summary_header = summary_data.columns
         included_header = checkhead(summary_header)
+        logging.info(f' following headers are included: {included_header}')
+        summary_data = summary_data[included_header]
     else:
-        logging.error(f'no content in uploaded file {filename}.')    
+        logging.error(f' no content in uploaded file {filename}.')    
         sys.exit()
 
     # check each column
     if 'variant_id' in included_header:
         summary_data = checkchrom(getpos(summary_data))
-        logging.info(f'chromosome information is checked.')
+        logging.info(f' chromosome information is checked.')
     else:
-        logging.error(f'variant_id column is not provided')
+        logging.error(f' variant_id column is not provided')
         pass
+
     if 'rsnum' in included_header:
         summary_data = checkrs(summary_data)
     else:
-        logging.error(f'rsnum column is not provided.')
+        logging.error(f' rsnum column is not provided.')
         pass
     if ('effect_size' and 'standard_error') in included_header:
         summary_data = check_numeric(check_numeric(summary_data, 'effect_size'), 'standard_error')
@@ -162,6 +173,13 @@ def readfile(filename):
     return summary_data
 
 
+def writefile(summary_data, outfile):
+    """write a checked file into a format used for cimr gene subprocess"""
+    try:
+        summary_data.to_csv(outfile, header=True, index=False, sep='\t')
+    except:
+        logging.error(f' file {outfile} cannot be written.')
+    return 0
 
 
 

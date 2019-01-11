@@ -31,23 +31,37 @@ def parse_arguments():
         title='subcommands',
         description='cimr subcommands:',
     )
+
     subparsers.required = True
     subparsers.dest = 'subcommand'
     add_subparser_processor(subparsers)
     add_subparser_gene(subparsers)
     add_subparser_network(subparsers)
+
     for subparser in subparsers.choices.values():
         subparser.add_argument(
             '--outdir',
             default='outdir',
+            dest='outdir',
+            nargs='?',
             type=pathlib.Path,
             help='path to directory where output files will be written to',
         )
         subparser.add_argument(
+            '--out',
+            default='cimr',
+            dest='out',
+            nargs='?',
+            type=pathlib.Path,
+            help='prefix for output files',
+        )
+        subparser.add_argument(
             '--log',
-            default='WARNING',
-            choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
-            help='logging level for stderr logging',
+            default='info',
+            dest='loglevel',
+            nargs='?',
+            choices=['debug', 'info', 'warning', 'error', 'critical'],
+            help='logging level for stderr logging.',
         )      
     args = parser.parse_args()
     return args
@@ -60,20 +74,26 @@ def add_subparser_processor(subparsers):
     )
     pargs = parser.add_mutually_exclusive_group()
     pargs.add_argument(
-        '--eqtl', 
+        '--eqtl',
+        default=None,
+        dest='eqtlfile',
         help='process association summary statistics file from expression-'
              'quantitative trait loci mapping',
     )
     pargs.add_argument(
         '--gwas', 
+        default=None,
+        dest='gwasfile',
         help='process association summary statistics file from genome-wide '
               'association studies mapping',
     )
     pargs.add_argument(
         '--tad', 
+        default=None,
+        dest='tadfile',
         help='process annotations for topologically associated domains',
     )
-    parser.set_defaults(function='cimr.processor.processor_prompt.process_cli')
+    parser.set_defaults(function='cimr.processor.processor_prompt.processor_cli')
 
 def add_subparser_gene(subparsers):
     parser = subparsers.add_parser(
@@ -109,7 +129,7 @@ def add_subparser_network(subparsers):
     parser.add_argument(
         '--randomcount', default=100000,
         dest='randomcount',
-        nargs=1,
+        nargs='?',
         type=int,
         help='select indicated number of random edges from a network'
              'use when --random is selected',
@@ -118,7 +138,7 @@ def add_subparser_network(subparsers):
         '--celltype',
         dest='celltype',
         default='global',
-        nargs=1,
+        nargs='?',
         type=str,
         help='cell or tissue type that both represents the specificity '
              'of the given network and the file name'
@@ -128,7 +148,7 @@ def add_subparser_network(subparsers):
         '--filesize',
         dest='filesize',
         default=10000000,
-        nargs=1,
+        nargs='?',
         type=int,
         help='size of the file containing the network in the format of '
              'edge0 edge1 weight',
@@ -148,6 +168,16 @@ def add_subparser_network(subparsers):
 def main():
     """main prompt of cimr"""
     args = parse_arguments()
+    loglevel = args.loglevel
+    numeric_level = getattr(logging, loglevel.upper(), None)
+    if loglevel in ['debug', 'info', 'warning', 'error', 'critical']:
+        logging.basicConfig(level=numeric_level)
+        if not isinstance(numeric_level, int):
+            raise ValueError(' invalid log level: %s' % loglevel)
+        logging.basicConfig(level=numeric_level)
+    else:
+        logging.error(f' --log argument must be debug, info, warning, error, or critical.')
+        logging.error(f' --log level is set to \'warning\' by default.')
     module_name, function_name = args.function.rsplit('.', 1)
     module = importlib.import_module(module_name)
     function = getattr(module, function_name)

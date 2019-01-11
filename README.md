@@ -3,7 +3,7 @@
 ## YoSon Park
 
 
-continuous analyses of gwas and eqtl summary statistics using mendelian randomization and other transcriptome-wide association study methods
+continuous analyses of gwas, eqtl or other summary statistics
 
 <!--ts-->
 
@@ -41,7 +41,17 @@ conda install -c conda-forge git-lfs && git lfs install
 
 ## install cimr
 
-installation instructions to be added
+
+### cimr as a python package
+
+you may clone the repository from git and using as a python module:
+
+```
+git clone https://github.com/ypar/cimr.git
+cd cimr
+python3 setup.py build
+python3 setup.py install
+```
 
 
 ## contributing to cimr

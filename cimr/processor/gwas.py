@@ -14,7 +14,7 @@ class Gwas:
     def __init__(self, filename):
         self.filename = filename
     
-    def trait_exits(self, trait_reference):
+    def set_trait_reference(self, trait_reference):
         self.trait_reference = trait_reference
         pass
 

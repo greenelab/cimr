@@ -2,10 +2,6 @@
 
 """checks input file flagged as eqtl."""
 
-import logging
-
-from cimr.processor.util import readfile
-
 
 def checkgene(summary_data):
     """for input files flagged as an eqtl file, 

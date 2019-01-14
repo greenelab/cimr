@@ -21,7 +21,7 @@ continuous analyses of gwas, eqtl or other summary statistics
 ## installation
 
 ### install miniconda or anaconda
-cimr requires python3 and conda to manage dependencies. we recommend you have either miniconda ([download page](https://conda.io/miniconda.html)) or anaconda ([download page](https://www.anaconda.com/download/)) installed. 
+cimr requires python >= 3.6 and conda to manage dependencies. we recommend you have either miniconda ([download page](https://conda.io/miniconda.html)) or anaconda ([download page](https://www.anaconda.com/download/)) installed. 
 
 ## install git lfs
 

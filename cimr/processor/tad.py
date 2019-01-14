@@ -3,7 +3,6 @@
 
 import logging
 
-from cimr.processor.util import findfile
 
 def annotatetad(filename):
     """read the annotation file to integrate into the cimr database
@@ -16,7 +15,6 @@ def annotatetad(filename):
     e.g.
     chr1	1960001	2400000	tad0|hg19|chr1:1960001-2400000	1000"""
     import pandas
-    filename = findfile(filename)
     annotdf = pandas.read_csv(filename, sep='\t', header=0)
     return annotdf
 

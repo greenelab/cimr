@@ -2,10 +2,12 @@
 
 """checks input file flagged as eqtl."""
 
+import logging
 
-def checkgene(summary_data):
+
+def checkgene():
     """for input files flagged as an eqtl file, 
     the format and reference of the gene_id column is checked """
-    return summary_data
+    pass
 
     

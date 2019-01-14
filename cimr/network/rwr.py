@@ -18,6 +18,8 @@ class Rwalker:
 
     Notes:
     ------
+    adopted from https://github.com/greenelab/netwas_rebooted.git
+    
     """
 
     def __init__(self, delim):

@@ -26,7 +26,7 @@ setuptools.setup(
     name='cimr',
     version=version,
     url='https://github.com/greenelab/cimr',
-    description='continuous integration of association summary statistics for twas',
+    description='continuous integration of association summary statistics for network analysis',
     long_description_content_type='text/markdown',
     long_description=long_description,
     license='BSD 3-Clause',
@@ -35,7 +35,7 @@ setuptools.setup(
     author='YoSon Park',
 
     # topics
-    keywords='mr ci twas netwas',
+    keywords='gene network ci',
     classifiers=[
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
@@ -57,6 +57,7 @@ setuptools.setup(
         'numpy',
         'pandas',
         'pathlib',
+        'setuptools',
     ],
 
     # Additional groups of dependencies

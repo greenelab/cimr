@@ -2,7 +2,7 @@
 
 import logging
 
-def twas_cli(args):
+def gene_cli(args):
     pass
 
 

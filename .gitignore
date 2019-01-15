@@ -5,6 +5,9 @@ __pycache__/
 #emacs
 .venv
 
+#vscode
+.vscode
+
 # distributions
 .eggs/
 eggs/

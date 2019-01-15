@@ -1,6 +1,8 @@
 
-from .util import Infiler
+from .utils import Infiler
 
 __all__ = [
     'Infiler',
 ]
+
+

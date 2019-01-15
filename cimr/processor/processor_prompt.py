@@ -1,24 +1,33 @@
 #!/usr/bin/env python3
 
 import logging
-from .util import Infiler
+from .utils import Infiler
+from .eqtl import checkgene
+from .tad import annotatetad
+    
 
-
-def process_cli(args):
+def processor_cli(args):
     outdir = args.outdir 
     outdir.mkdir(exist_ok=True)
-    from .eqtl import checkgene
-    from .tad import annotatetad
+    logging.info(f' directory {str(outdir)} will be used for cimr jobs.')
+    outfile = str(outdir) + '/' + str(args.out) + '_'
+    logging.info(f' file prefix {str(args.out)} will be used for output files')
+
     """input files are checked for both type-dependant conditions and common formats"""
-    if args.eqtl is not None:
-        infile = Infiler('eqtl', args.eqtl)
-        infile.readfile()
+    if args.eqtlfile is not None:
+        outfile = outfile + 'eqtl.txt'
+        infile = Infiler('eqtl', args.eqtlfile, args.genome_build)
         checkgene()
-    elif args.gwas is not None:
-        infile = Infiler('gwas', args.gwas)
         infile.readfile()
-    elif args.tad is not None:
-        annotatetad(args.tad)
+        infile.writefile(outfile)
+    elif args.gwasfile is not None:
+        outfile = outfile + 'gwas.txt'
+        infile = Infiler('gwas', args.gwasfile, args.genome_build)
+        infile.readfile()
+        infile.writefile(outfile)
+    elif args.tadfile is not None:
+        outfile = outfile + 'tad.txt'
+        annotatetad(args.tadfile)
     else:
-        logging.info(f'nothing to do')
+        logging.info(f' nothing to do.')
 

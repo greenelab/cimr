@@ -20,6 +20,7 @@ dist/
 .cache
 test/
 test/*
+outdir/
 
 # oauth token
 .httr-oauth

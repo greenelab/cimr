@@ -66,6 +66,7 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
+
 def add_subparser_processor(subparsers):
     parser = subparsers.add_parser(
         name='processor', help='process and integrate new data',
@@ -93,7 +94,21 @@ def add_subparser_processor(subparsers):
         dest='tadfile',
         help='process annotations for topologically associated domains',
     )
+    parser.add_argument(
+        '--genome-build',
+        default='b38',
+        dest='genome_build',
+        help='human genome build used for the input file mapping',
+    )
+    parser.add_argument(
+        '--integrate',
+        default=False,
+        dest='integrate',
+        action='store_true',
+        help='integration of the input data into cimr-adb',
+    )
     parser.set_defaults(function='cimr.processor.processor_prompt.processor_cli')
+
 
 def add_subparser_gene(subparsers):
     parser = subparsers.add_parser(
@@ -103,16 +118,19 @@ def add_subparser_gene(subparsers):
     )
     targs = parser.add_mutually_exclusive_group()
     targs.add_argument(
-        '--mr', default=False,
+        '--mr', 
+        default=False,
         action='store_true',
         help='association study using two-sample-based mendelian randomization',
     )
     targs.add_argument(
-        '--abf', default=False,
+        '--abf', 
+        default=False,
         action='store_true',
         help='colocalization test using approximate bayes factor',
     )
     parser.set_defaults(function='cimr.gene.gene_prompt.gene_cli')
+
 
 def add_subparser_network(subparsers):
     parser = subparsers.add_parser(
@@ -121,13 +139,15 @@ def add_subparser_network(subparsers):
     )
     nargs = parser.add_mutually_exclusive_group()
     nargs.add_argument(
-        '--random', default=False,
+        '--random', 
+        default=False,
         action='store_true',
         help='select random edges from a network. '
              'use --randomcount to indicate number of edges to select',
     )
     parser.add_argument(
-        '--randomcount', default=100000,
+        '--randomcount', 
+        default=100000,
         dest='randomcount',
         nargs='?',
         type=int,
@@ -154,16 +174,19 @@ def add_subparser_network(subparsers):
              'edge0 edge1 weight',
     )
     nargs.add_argument(
-        '--svm', default=False,
+        '--svm', 
+        default=False,
         action='store_true',
         help='network analysis using support vector machines',
     )
     nargs.add_argument(
-        '--rwr', default=False,
+        '--rwr', 
+        default=False,
         action='store_true',
         help='network analysis using random walk with restarts',
     )
     parser.set_defaults(function='cimr.network.network_prompt.network_cli')
+
 
 def main():
     """main prompt of cimr"""
@@ -177,11 +200,12 @@ def main():
         logging.basicConfig(level=numeric_level)
     else:
         logging.error(f' --log argument must be debug, info, warning, error, or critical.')
-        logging.error(f' --log level is set to \'warning\' by default.')
+        logging.error(f' --log level is set to \'info\' by default.')
     module_name, function_name = args.function.rsplit('.', 1)
     module = importlib.import_module(module_name)
     function = getattr(module, function_name)
     function(args)
+
 
 if __name__ == '__main__':
     main()

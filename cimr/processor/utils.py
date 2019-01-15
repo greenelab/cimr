@@ -59,17 +59,22 @@ class Infiler:
     """
 
     DATATYPES = ('gwas', 'eqtl', 'sqtl', 'pqtl')
+    GENOMEBUILDS = ('b37', 'b38')
     HEADERS = ['gene_id', 'rsnum', 'variant_id', 'pvalue', 
                'effect_size', 'standard_error', 'zscore', 'tss_distance', 
                'ma_samples', 'maf', 'chrom', 'pos', 'ref', 'alt', 
-               'build', 'inc_allele', 'inc_afrq'
+               'build', 'inc_allele', 'inc_afrq', 'imputation_status', 'n_cases', 'frequency'
                ]
 
-    def __init__(self, datatype, filename):
+
+    def __init__(self, datatype, filename, genome_build):
         if datatype not in self.DATATYPES:
             raise ValueError(' %s is not a valid datatype supported by cimr.' % datatype)
+        if genome_build not in self.GENOMEBUILDS:
+            raise ValueError(' %s is not a valid genome_build supported by cimr.' % genome_build)
         self.datatype = datatype
         self.filename = filename
+        self.genome_build = genome_build
     
 
     def getpos(self):
@@ -122,26 +127,35 @@ class Infiler:
 
     def checkrs(self):
         from pkg_resources import resource_filename
+        
+        variant_reference_file = 'data/annotation/' + self.variant_reference_file
+        reference_id = self.variant_reference_id
         reference_file = resource_filename(
-            'cimr', 'data/annotation/variant_grch37_annotation_test.txt.gz'
+            'cimr', variant_reference_file
             )
-        logging.info(f'using {reference_file} to check variant information.')
+        logging.info(f' using {reference_file} to check variant information.')
+        logging.info(f' rs id reference is {reference_id}')
         reference = pandas.read_csv(
             reference_file, sep='\t', header=0, dtype={'chr':'str'}
             )
         reference.columns = [x+'_reference' for x in reference.columns]
         sumdata = self.summary_data
-        rsnum_with_reference = sumdata.loc[summary_data['rsnum'].isin(reference['rs_id_dbSNP147_GRCh37p13_reference']),:]
-        samples = rsnum_with_reference.sample(frac=0.2, replace=False)
-        merged = samples.merge(
-            reference, left_on='rsnum', right_on='rs_id_dbSNP147_GRCh37p13_reference', 
-            left_index=False, right_index=False, how='left'
-            )
-        variant_nomatch = merged.loc[~(merged['variant_id']==merged['variant_id_reference'])]
-        samplecount = len(merged.index)
-        rsrefcount = len(rsnum_with_reference.index)
-        nomatchcount = len(variant_nomatch.index)
-        logging.info(f' {samplecount} sampled variants from {rsrefcount} total variants with RS IDs, {nomatchcount} variants do not match the reference.')
+        rsnum_with_reference = sumdata.loc[sumdata['rsnum'].isin(reference[reference_id+'_reference']),:]
+        if not rsnum_with_reference.empty:
+            samples = rsnum_with_reference.sample(frac=0.1, replace=False)
+            merged = samples.merge(
+                reference, left_on='rsnum', right_on=reference_id+'_reference', 
+                left_index=False, right_index=False, how='left'
+                )
+            merged.drop_duplicates(inplace=True)
+            variant_nomatch = merged.loc[~(merged['variant_id']==merged['variant_id_reference'])]
+            samplecount = len(samples.index)
+            rsrefcount = len(rsnum_with_reference.index)
+            nomatchcount = len(variant_nomatch.index)
+            logging.info(f' {samplecount} sampled variants from {rsrefcount} total variants with rs ids, {nomatchcount} variants do not match the reference.')
+        else:
+            logging.error(f' there are no matching rs ids.')
+            pass
 
 
     def check_numeric(self, col):
@@ -149,19 +163,31 @@ class Infiler:
         from pandas.api.types import is_numeric_dtype
         try:
             if is_numeric_dtype(self.summary_data[col]):
-                print(col+' is numeric')
-                return self
+                logging.info(f' {col} is numeric.')
             else:
                 numdata = (self.summary_data
                             .drop([col], axis=1)
                             .join(self.summary_data[col].apply(pandas.to_numeric, errors='coerce')))
                 numcol = numdata[col].isnull().values().sum()
-                logging.error(f' %s rows in %s are non-numeric'%(numcol,col,))
+                logging.error(f' %s rows in %s are non-numeric' %(numcol,col,))
                 return numdata
         except:
             logging.error(f' the format of %s is not testable.'%(col,))
             print(self.summary_data.head(n=2))
             sys.exit()
+            
+
+    def find_reference(self):
+        """find variant and gene references for map checking"""
+        if self.genome_build == 'b37':
+            self.gene_reference_file = 'gene_grch37_gencode_v29.txt.gz'
+            self.variant_reference_file = 'variant_grch37_subset.txt.gz'
+            self.variant_reference_id = 'rs_id_dbSNP147_GRCh37p13'
+        else:
+            self.gene_reference_file = 'gene_grch38_gencode_v26.txt.gz'
+            self.variant_reference_file = 'variant_grch38_subset.txt.gz'
+            self.variant_reference_id = 'rs_id_dbSNP150_GRCh38p7'
+        return 0
 
 
     def readfile(self):
@@ -181,9 +207,12 @@ class Infiler:
             betaeffect = {'beta':'effect_size', 'se':'standard_error', 'pval':'pvalue'}
             sumdata.rename(columns=betaeffect, inplace=True)
             self.included_header = list(set(self.HEADERS) & set(self.summary_data.columns))
+            sumdata = sumdata[self.included_header]
         else:
-            logging.error(f'no content in uploaded file {self.filename}.')    
+            logging.error(f' no content in uploaded file {self.filename}.')    
             sys.exit()
+        
+        self.find_reference()
 
         # check each column
         if 'variant_id' in self.included_header:
@@ -204,10 +233,25 @@ class Infiler:
             self.check_numeric('effect_size') 
             self.check_numeric('standard_error')
         else:
+            logging.error(f' effect_size and standard_error columns are not provided.')
             pass
+        
+        if 'pvalue' in self.included_header:
+            self.check_numeric('pvalue')
+        else:
+            logging.error(f' pvalue column is not provided.')
+            pass
+        
 
-
-
+    def writefile(self, outfile):
+        """write a checked file into a format used for cimr gene subprocess"""
+        self.outfile = outfile
+        
+        try:
+            self.summary_data.to_csv(self.outfile, header=True, index=False, sep='\t')
+        except:
+            logging.error(f' file {self.outfile} cannot be written.')
+        return 0
 
 
 

@@ -299,7 +299,7 @@ class Integrator:
             logging.info(f' downloaded the existing database for Integrator')
         except OSError as e:
             print(e.errno)
-            print(e.stderror)
+            print(e.strerror)
         except:
             print(sys.exc_info()[0])
         return 0

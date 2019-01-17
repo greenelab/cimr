@@ -57,6 +57,7 @@ setuptools.setup(
         'numpy',
         'pandas',
         'pathlib',
+        'subprocess',
         'setuptools',
     ],
 

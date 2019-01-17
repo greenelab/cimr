@@ -9,16 +9,20 @@ import sys
 import pandas
 import pathlib
 import logging
+import subprocess
 
 
 class Infiler:
-    """cimr processor base class
+    """this is the cimr processor base class. functions regarding 
+    automated checks for contributed summary statistics files are
+    included in this class.
 
     Parameters
     ----------
 
     datatype: {'gwas', 'eqtl', 'sqtl', 'pqtl'}
     filename: name of the file to read in summary statistics
+    genome_build: human genome reference id {'b37', 'b38'}
 
 
     Notes:
@@ -252,6 +256,54 @@ class Infiler:
         except:
             logging.error(f' file {self.outfile} cannot be written.')
         return 0
+
+
+
+class Integrator:
+    """ cimr integrator class connecting contributed data to cimr-adb
+
+    Parameters:
+    -----------
+
+    filename: name of the file containing the data
+    datatype = {'gwas', 'eqtl', 'tad'}
+    can_be_public: boolean variable indicating whether the contributed data
+                   can be release as a part of the public archive.
+                   for cimr >= 0.2.3, can_be_public parameter will determine
+                   the destination repository of the contributed data
+
+    Notes:
+    ------
+
+    """
+
+    def __init__(self, filename, dataype, can_be_public=True):
+        """file will be saved in cimr-adb"""
+        self.filename = filename
+        self.datatype = datatype
+        self.can_be_public = can_be_public
+
+    def make_local_db(self, tempdir='cimr-adb-temp'):
+        """temporarily download a local copy of the cimr-adb"""
+        # TODO: change into public repo after testing
+        self.tempdir = tempdir 
+        try:
+            clonercmd = 'git clone git@github.com:ypar/cimr-adb.git '+self.tempdir
+            cloner = subprocess.Popen(
+                clonercmd.split(), 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE, 
+                shell=True, 
+                executable='/bin/bash'
+            )
+            logging.info(f' downloaded the existing database for Integrator')
+        except OSError as e:
+            print(e.errno)
+            print(e.stderror)
+        except:
+            print(sys.exc_info()[0])
+        return 0
+
 
 
 

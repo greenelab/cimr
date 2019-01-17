@@ -9,21 +9,28 @@ continuous analyses of gwas, eqtl or other summary statistics
 
 * [installation](#installation)
   * [install miniconda/anaconda](#install-miniconda-or-anaconda)
-* [install git lfs](#install-git-lfs)
-* [install cimr](#install-cimr)
-* [contributing to cimr](#contributing-to-cimr)
-  * [summary statistics](#summary-statistics)
+  * [install git lfs](#install-git-lfs)
+  * [install cimr](#install-cimr)
+
 * [analyses](#analyses)
 * [cimr python module](#cimr-python-module)
+
+* [contributing to cimr](#contributing-to-cimr)
+  * [summary statistics](#summary-statistics)
 
 <!--te-->
 
 ## installation
 
+prior to installing cimr: python >= 3.6 is used for cimr. additionally, in order to use cimr integrator functions or cimr-db, you may need git lfs installed.
+
+
 ### install miniconda or anaconda
+
 cimr requires python >= 3.6 and conda to manage dependencies. we recommend you have either miniconda ([download page](https://conda.io/miniconda.html)) or anaconda ([download page](https://www.anaconda.com/download/)) installed. 
 
-## install git lfs
+
+### install git lfs
 
 cimr uses git and [git large file storage (LFS)](https://git-lfs.github.com/). See how to install git [here](https://www.atlassian.com/git/tutorials/install-git). To install git-lfs on Ubuntu, run:
 
@@ -39,19 +46,25 @@ alternatively, you can install git-lfs through conda:
 conda install -c conda-forge git-lfs && git lfs install
 ```
 
-## install cimr
+### install cimr
 
-
-### cimr as a python package
-
-you may clone the repository from git and using as a python module:
+you may clone the repository from git and use cimr as a python module or a standalone package:
 
 ```
-git clone https://github.com/ypar/cimr.git
+git clone https://github.com/greenelab/cimr.git
 cd cimr
 python3 setup.py build
 python3 setup.py install
 ```
+
+
+## analyses
+
+
+
+### 
+
+[processor](cimr/processor/README_processor.md)
 
 
 ## contributing to cimr
@@ -94,8 +107,6 @@ rs1172981 chr1_100230197_T_C T 0.06069 0.0057 0.0103 0.7688
 
 you may contribute to downstream analyses using summary statistics. currently incorporated methods are as follows:
 
-
-### cimr python module
 
 
 

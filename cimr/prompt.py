@@ -73,26 +73,17 @@ def add_subparser_processor(subparsers):
         description='process pull requests containing new association summary statistics '
                     'or new annotation files',
     )
-    pargs = parser.add_mutually_exclusive_group()
-    pargs.add_argument(
-        '--eqtl',
-        default=None,
-        dest='eqtlfile',
-        help='process association summary statistics file from expression-'
-             'quantitative trait loci mapping',
+    parser.add_argument(
+        '--filename',
+        default=pathlib.Path,
+        dest='filename',
+        help='file containing summary statistics or annotation data',
     )
-    pargs.add_argument(
-        '--gwas', 
+    parser.add_argument(
+        '--datatype',
         default=None,
-        dest='gwasfile',
-        help='process association summary statistics file from genome-wide '
-              'association studies mapping',
-    )
-    pargs.add_argument(
-        '--tad', 
-        default=None,
-        dest='tadfile',
-        help='process annotations for topologically associated domains',
+        dest='datatype',
+        help='currently supported datatypes include \{\'gwas\', \'eqtl\'\}',
     )
     parser.add_argument(
         '--genome-build',
@@ -100,12 +91,21 @@ def add_subparser_processor(subparsers):
         dest='genome_build',
         help='human genome build used for the input file mapping',
     )
-    parser.add_argument(
+    
+    pargs = parser.add_mutually_exclusive_group()
+    pargs.add_argument(
+        '--process',
+        default=True,
+        dest='process',
+        action='store_true',
+        help='automated checks of the input data to be used for --integreate',
+    )
+    pargs.add_argument(
         '--integrate',
         default=False,
         dest='integrate',
         action='store_true',
-        help='integration of the input data into cimr-adb',
+        help='integration of the input data into the data repository',
     )
     parser.set_defaults(function='cimr.processor.processor_prompt.processor_cli')
 

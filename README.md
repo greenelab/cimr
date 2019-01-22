@@ -3,36 +3,44 @@
 ## YoSon Park
 
 
-continuous analyses of gwas, eqtl or other summary statistics
+continuous analyses of gwas, eqtl or other summary statistics. 
+
+\* cimr is currently not released for public use.
+\* cimr is a convenience tool to process, integrate and maintain data in [cimr-d](https://github.com/greenelab/cimr-d).
+
 
 <!--ts-->
 
 * [installation](#installation)
-  * [install miniconda/anaconda](#install-miniconda-or-anaconda)
+  * [install python via miniconda/anaconda](#install-python-via-miniconda-or-anaconda)
   * [install git lfs](#install-git-lfs)
   * [install cimr](#install-cimr)
 
 * [analyses](#analyses)
+
 * [cimr python module](#cimr-python-module)
 
 * [contributing to cimr](#contributing-to-cimr)
-  * [summary statistics](#summary-statistics)
+  * [contributing data](#contributing-data)
+  * [contributing to cimr python module](#contributing-to-cimr-python-module)
 
 <!--te-->
 
+
 ## installation
 
-prior to installing cimr: python >= 3.6 is used for cimr. additionally, in order to use cimr integrator functions or cimr-db, you may need git lfs installed.
+python >= 3.6 is used for cimr. additionally, in order to use cimr integrator functions or cimr-d, you may need git lfs installed.
 
 
-### install miniconda or anaconda
+### install python via miniconda or anaconda
 
-cimr requires python >= 3.6 and conda to manage dependencies. we recommend you have either miniconda ([download page](https://conda.io/miniconda.html)) or anaconda ([download page](https://www.anaconda.com/download/)) installed. 
+cimr requires python >= 3.6. I recommend you have either miniconda ([download page](https://conda.io/miniconda.html)) or anaconda ([download page](https://www.anaconda.com/download/)) installed. however, all required python packages will be downloaded and install as you build cimr using setup.py or requirements.txt provided here.
 
 
 ### install git lfs
 
 cimr uses git and [git large file storage (LFS)](https://git-lfs.github.com/). See how to install git [here](https://www.atlassian.com/git/tutorials/install-git). To install git-lfs on Ubuntu, run:
+
 
 ```
 curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
@@ -48,7 +56,13 @@ conda install -c conda-forge git-lfs && git lfs install
 
 ### install cimr
 
-you may clone the repository from git and use cimr as a python module or a standalone package:
+you can use pip to install the latest stable release of cimr.
+
+```
+pip3 install cimr
+```
+
+if you want to try out the nightly build of cimr at your own risk, you may clone the repository from git.
 
 ```
 git clone https://github.com/greenelab/cimr.git

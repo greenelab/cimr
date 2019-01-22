@@ -33,9 +33,18 @@ def processor_cli(args):
     else:
         logging.error(f' datatype or filename is not recognized. nothing to do.')
     
-    if process:
+    if args.process:
         logging.info(f' in order to contribute to the cimr database, use --integrate option.')
-    elif integrate:
+    elif args.integrate:
         if datatype in datatypes:
-            
+            integrating = Integrator(
+                datatype, 
+                args.filename, 
+                can_be_public=args.can_be_public, 
+                genome_build=args.genome_build
+            )
+            integrating.make_local_db(args.tempdir)
+    else:
+        logging.error(f' did the command include either --process or --integrate functions?')
+        
 

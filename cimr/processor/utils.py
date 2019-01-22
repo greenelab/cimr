@@ -277,13 +277,16 @@ class Integrator:
 
     """
 
-    def __init__(self, filename, dataype=None, can_be_public=True):
-        """file will be saved in cimr-adb"""
-        self.filename = filename
-        self.datatype = datatype
-        self.can_be_public = can_be_public
 
-    def make_local_db(self, tempdir='cimr-adb-temp'):
+    def __init__(self, datatype, filename, can_be_public, genome_build):
+        """file will be saved in cimr-adb"""
+        self.datatype = datatype
+        self.filename = filename
+        self.can_be_public = can_be_public
+        self.genome_build = genome_build
+
+
+    def make_local_db(self, tempdir):
         """temporarily download a local copy of the cimr-adb"""
         # TODO: change into public repo after testing
         self.tempdir = tempdir 
@@ -306,7 +309,6 @@ class Integrator:
             print(sys.exc_info()[0])
         return 0
     
-    def 
 
 
 

@@ -69,7 +69,7 @@ python3 setup.py install
 
 ## contributing to cimr
 
-### contributing summary statistics
+### contributing data
 
 you may contribute summary statistics from gwas, eqtl and other association studies. cimr currently expects hg20/grch38 reference for genomic position mapping.
 
@@ -103,10 +103,9 @@ rs1172982 chr1_100230111_T_C T 0.3219 0.0043 0.0055 0.4689
 rs1172981 chr1_100230197_T_C T 0.06069 0.0057 0.0103 0.7688  
 ```
 
-### contributing to twas methods
+### contributing to cimr python module
 
-you may contribute to downstream analyses using summary statistics. currently incorporated methods are as follows:
-
+read []()
 
 
 

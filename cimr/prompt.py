@@ -73,6 +73,24 @@ def add_subparser_processor(subparsers):
         description='process pull requests containing new association summary statistics '
                     'or new annotation files',
     )
+
+    pargs = parser.add_mutually_exclusive_group()
+    pargs.add_argument(
+        '--process',
+        default=False,
+        dest='process',
+        action='store_true',
+        help='automated checks of the input data to be used for --integreate',
+    )
+    pargs.add_argument(
+        '--integrate',
+        default=False,
+        dest='integrate',
+        action='store_true',
+        help='integration of the input data into the data repository',
+    )
+
+    # common processor arguments
     parser.add_argument(
         '--filename',
         default=pathlib.Path,
@@ -92,21 +110,21 @@ def add_subparser_processor(subparsers):
         help='human genome build used for the input file mapping',
     )
     
-    pargs = parser.add_mutually_exclusive_group()
-    pargs.add_argument(
-        '--process',
+    # integrate-specific arguments
+    parser.add_argument(
+        '--can-be-public',
         default=True,
-        dest='process',
-        action='store_true',
-        help='automated checks of the input data to be used for --integreate',
+        dest='can_be_public',
+        help='a boolean variable indicating whether the integrated data can '
+             'be made public. default is True.',
     )
-    pargs.add_argument(
-        '--integrate',
-        default=False,
-        dest='integrate',
-        action='store_true',
-        help='integration of the input data into the data repository',
+    parser.add_argument(
+        '--tempdir',
+        default='cimr-adb-temp',
+        dest='tempdir',
+        help='temporary directory name to clone cimr database into.',
     )
+    
     parser.set_defaults(function='cimr.processor.processor_prompt.processor_cli')
 
 
@@ -137,14 +155,7 @@ def add_subparser_network(subparsers):
         name='network', help='network analysis using cimr data',
         description='run network analysis tools ',        
     )
-    nargs = parser.add_mutually_exclusive_group()
-    nargs.add_argument(
-        '--random', 
-        default=False,
-        action='store_true',
-        help='select random edges from a network. '
-             'use --randomcount to indicate number of edges to select',
-    )
+
     parser.add_argument(
         '--randomcount', 
         default=100000,
@@ -173,6 +184,15 @@ def add_subparser_network(subparsers):
         help='size of the file containing the network in the format of '
              'edge0 edge1 weight',
     )
+
+    nargs = parser.add_mutually_exclusive_group()
+    nargs.add_argument(
+        '--random', 
+        default=False,
+        action='store_true',
+        help='select random edges from a network. '
+             'use --randomcount to indicate number of edges to select',
+    )
     nargs.add_argument(
         '--svm', 
         default=False,
@@ -185,6 +205,7 @@ def add_subparser_network(subparsers):
         action='store_true',
         help='network analysis using random walk with restarts',
     )
+
     parser.set_defaults(function='cimr.network.network_prompt.network_cli')
 
 

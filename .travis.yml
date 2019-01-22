@@ -1,13 +1,25 @@
 language: python
 sudo: true
+
 warnings_are_errors: false
+
 python:
   - "3.6"
+  - "3.7-dev"
+
 services:
   - docker
+
 branches:
   only:
-  - master
+    - master
+    - integrator
+    - /^release-.*$/
+    
+install:
+  - pip install -r requirements.txt
+
 script:
-  - python setup.py build
-  - python setup.py install
+  - ./.travis/install.sh cimr
+
+  

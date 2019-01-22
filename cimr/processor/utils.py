@@ -252,7 +252,7 @@ class Infiler:
         self.outfile = outfile
         
         try:
-            self.summary_data.to_csv(self.outfile, header=True, index=False, sep='\t')
+            self.summary_data.to_csv(self.outfile, header=True, index=False, sep='\t', na_reps='NA')
         except:
             logging.error(f' file {self.outfile} cannot be written.')
         return 0
@@ -277,7 +277,7 @@ class Integrator:
 
     """
 
-    def __init__(self, filename, dataype, can_be_public=True):
+    def __init__(self, filename, dataype=None, can_be_public=True):
         """file will be saved in cimr-adb"""
         self.filename = filename
         self.datatype = datatype
@@ -296,6 +296,8 @@ class Integrator:
                 shell=True, 
                 executable='/bin/bash'
             )
+            cloned = cloner.communicate()
+            logging.info(f' {cloned}')
             logging.info(f' downloaded the existing database for Integrator')
         except OSError as e:
             print(e.errno)
@@ -303,6 +305,8 @@ class Integrator:
         except:
             print(sys.exc_info()[0])
         return 0
+    
+    def 
 
 
 

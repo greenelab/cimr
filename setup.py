@@ -33,6 +33,7 @@ setuptools.setup(
 
     # author
     author='YoSon Park',
+    author_email='yoson.park@gmail.com',
 
     # topics
     keywords='gene network ci',

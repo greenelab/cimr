@@ -18,5 +18,3 @@ branches:
 
 script:
   - ./.travis/install.sh cimr
-
-  

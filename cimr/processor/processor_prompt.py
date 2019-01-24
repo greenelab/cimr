@@ -3,7 +3,7 @@
 import logging
 from .utils import Infiler
 from .utils import Integrator
-from .eqtl import checkgene
+from .eqtl import check_gene
 from .tad import annotatetad
     
 
@@ -22,10 +22,10 @@ def processor_cli(args):
     if datatype in datatypes:
         outfile = outfile + datatype + '.txt'
         infile = Infiler(datatype, args.filename, args.genome_build)
-        infile.readfile()
+        infile.read_file()
         if datatype == 'eqtl':
-            checkgene()
-        infile.writefile(outfile)
+            check_gene()
+        infile.write_file(outfile)
 
     elif datatype in annotations:
         annotatetad(args.filename)

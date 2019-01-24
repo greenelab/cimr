@@ -2,10 +2,10 @@
 __pycache__/
 *.pyc
 
-#emacs
+# emacs
 .venv
 
-#vscode
+# vscode
 .vscode
 
 # distributions

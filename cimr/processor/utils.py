@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""utilities and common file checks used across different 
+"""Utilities and common file checks used across different 
 processor classes
 (c) YoSon Park
 """
@@ -13,7 +13,7 @@ import subprocess
 
 
 class Infiler:
-    """this is the cimr processor base class. functions regarding 
+    """This is the cimr processor base class. functions regarding 
     automated checks for contributed summary statistics files are
     included in this class.
 
@@ -81,8 +81,8 @@ class Infiler:
         self.genome_build = genome_build
     
 
-    def getpos(self):
-        """check variant_id column and make 
+    def get_pos(self):
+        """Check variant_id column and make 
         chrom, pos, ref, alt, build columns"""
         sumdata = self.summary_data
         temp = sumdata['variant_id'].str.split('_', expand=True)
@@ -94,30 +94,30 @@ class Infiler:
             sumdata['build'] = temp[4]
     
 
-    def checkchrom(self, maxchrom=23):
-        """assumes chr+number
+    def check_chrom(self, maxchrom=23):
+        """Assumes chr+number
         - check for autosomal chromosomes
         - change if different from the specified format
         - discard non-autosomal chromosomes from main input
         """
         sumdata = self.summary_data
-        chromdict = {str(i):'chr'+str(i) for i in range(1,maxchrom)}
-        chromstr = ['chr'+str(i) for i in range(1,maxchrom)]
-        chromint = [i for i in range(1,maxchrom)]
+        chromdict = {str(i):'chr' + str(i) for i in range(1, maxchrom)}
+        chromstr = ['chr' + str(i) for i in range(1, maxchrom)]
+        chromint = [i for i in range(1, maxchrom)]
         chroms = sumdata['chrom'].drop_duplicates().values
         
-        if len(chroms) > (maxchrom-2) and len(chroms) < (maxchrom+2):
+        if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
             logging.info(f' there are {len(chroms)} chromosomes in the file provided.')
         elif len(chroms) <= (maxchrom-2):
             logging.warning(f' input file does not include {maxchrom} chromosome(s).')
             logging.warning(f' chromosome(s) included in the input file: %s'%(chroms,))
         else:
-            logging.warning(f' input file more than {maxchrom-1} chromosomes.')
+            logging.warning(f' input file more than {maxchrom - 1} chromosomes.')
             logging.warning(f' chromosome(s) included in the input file: %s'%(chroms,))
 
-        if len(set(chroms) & set(chromstr)) > (maxchrom-2):
+        if len(set(chroms) & set(chromstr)) > (maxchrom - 2):
             pass
-        elif len(set(chroms) & set(chromint)) > (maxchrom-2):
+        elif len(set(chroms) & set(chromint)) > (maxchrom - 2):
             sumdata['chrom'] = sumdata['chrom'].map(chromdict)
             sumdata = sumdata[sumdata['chrom'].isin(chromstr)]
             logging.info(f' chromosome ids have been updated.')
@@ -129,7 +129,7 @@ class Infiler:
             logging.warning(f' chromosome(s) not used for analysis: %s'%(remainder,))
 
 
-    def checkrs(self):
+    def check_ref(self):
         from pkg_resources import resource_filename
         
         variant_reference_file = 'data/annotation/' + self.variant_reference_file
@@ -142,9 +142,9 @@ class Infiler:
         reference = pandas.read_csv(
             reference_file, sep='\t', header=0, dtype={'chr':'str'}
             )
-        reference.columns = [x+'_reference' for x in reference.columns]
+        reference.columns = [x + '_reference' for x in reference.columns]
         sumdata = self.summary_data
-        rsnum_with_reference = sumdata.loc[sumdata['rsnum'].isin(reference[reference_id+'_reference']),:]
+        rsnum_with_reference = sumdata.loc[sumdata['rsnum'].isin(reference[reference_id + '_reference']),:]
         if not rsnum_with_reference.empty:
             samples = rsnum_with_reference.sample(frac=0.1, replace=False)
             merged = samples.merge(
@@ -163,7 +163,7 @@ class Infiler:
 
 
     def check_numeric(self, col):
-        """check for numeric columns"""
+        """Check for numeric columns"""
         from pandas.api.types import is_numeric_dtype
         try:
             if is_numeric_dtype(self.summary_data[col]):
@@ -182,7 +182,7 @@ class Infiler:
             
 
     def find_reference(self):
-        """find variant and gene references for map checking"""
+        """Find variant and gene references for map checking"""
         if self.genome_build == 'b37':
             self.gene_reference_file = 'gene_grch37_gencode_v29.txt.gz'
             self.variant_reference_file = 'variant_grch37_subset.txt.gz'
@@ -194,9 +194,9 @@ class Infiler:
         return 0
 
 
-    def readfile(self):
-        """read the input file as a pandas dataframe. check if empty"""
-        if(pathlib.Path(self.filename).resolve()):
+    def read_file(self):
+        """Read the input file as a pandas dataframe. check if empty"""
+        if (pathlib.Path(self.filename).resolve()):
             self.filename = str(self.filename)
             logging.info(f' processing {self.filename}.')
         else:
@@ -220,15 +220,15 @@ class Infiler:
 
         # check each column
         if 'variant_id' in self.included_header:
-            self.getpos()
-            self.checkchrom()
+            self.get_pos()
+            self.check_chrom()
             logging.info(f' chromosome information is checked.')
         else:
             logging.error(f' variant_id column is not provided')
             pass
 
         if 'rsnum' in self.included_header:
-            self.checkrs()
+            self.check_ref()
         else:
             logging.error(f' rsnum column is not provided.')
             pass
@@ -247,8 +247,8 @@ class Infiler:
             pass
         
 
-    def writefile(self, outfile):
-        """write a checked file into a format used for cimr gene subprocess"""
+    def write_file(self, outfile):
+        """Write a checked file into a format used for cimr gene subprocess"""
         self.outfile = outfile
         
         try:
@@ -260,7 +260,7 @@ class Infiler:
 
 
 class Integrator:
-    """ cimr integrator class connecting contributed data to cimr-adb
+    """cimr integrator class connecting contributed data to cimr-adb
 
     Parameters:
     -----------
@@ -279,7 +279,7 @@ class Integrator:
 
 
     def __init__(self, datatype, filename, can_be_public, genome_build):
-        """file will be saved in cimr-adb"""
+        """File will be saved in cimr-adb"""
         self.datatype = datatype
         self.filename = filename
         self.can_be_public = can_be_public
@@ -287,7 +287,7 @@ class Integrator:
 
 
     def make_local_db(self, tempdir):
-        """temporarily download a local copy of the cimr-adb"""
+        """Temporarily download a local copy of the cimr-adb"""
         # TODO: change into public repo after testing
         self.tempdir = tempdir 
         try:

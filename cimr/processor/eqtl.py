@@ -5,7 +5,7 @@
 import logging
 
 
-def checkgene():
+def check_gene():
     """for input files flagged as an eqtl file, 
     the format and reference of the gene_id column is checked """
     pass

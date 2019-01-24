@@ -1,5 +1,5 @@
 
-""" utility functions for cimr network subprocess
+"""Utility functions for cimr network subprocess
 
 (c) YoSon Park
 """
@@ -10,8 +10,8 @@ import logging
 
 
 class EdgeNetworker:
-    """
-    
+    """Utilities for edge list input files
+
     Parameters:
     -----------
 
@@ -26,7 +26,7 @@ class EdgeNetworker:
 
 
     def transform_edgelist(self):
-        """reads a list of edges and returns a numpy binary 
+        """Reads a list of edges and returns a numpy binary 
         Parameters:
         -----------
         node1\tnode2\t(weight)
@@ -51,6 +51,7 @@ class EdgeNetworker:
                         self.edgetype = 'binary'
                     else:
                         logging.error(f' not correct number of columns in the file.')
+                        sys.exit()
                     
                     if g1 not in self.nodemap:
                         self.nodemap[g1] = current_node
@@ -74,8 +75,8 @@ class EdgeNetworker:
             sys.exit()
 
 
-    def make_adjmatrix(self, outfile):
-        """make numpy array from the edgelist"""
+    def make_adj_matrix(self, outfile):
+        """Make numpy array from the edgelist"""
         self.outfile = outfile
         matrixscale = len(self.nodes)
         self.adjmatrix = numpy.zeros(matrixscale, matrixscale)
@@ -92,7 +93,8 @@ class EdgeNetworker:
     
 
 class BaseNetworker:
-    """
+    """Utilities for matrix input files used in network analysis
+
     Parameters:
     -----------
 

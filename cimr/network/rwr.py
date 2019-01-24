@@ -1,5 +1,5 @@
 
-""" random walk with restarts for cimr network subprocess"""
+"""Random walk with restarts for cimr network subprocess"""
 
 import sys
 import csv
@@ -7,7 +7,7 @@ import numpy
 from sklearn.preprocessing import normalize
 
 class Rwalker:
-    """ class for multi-graph walk to convergence, 
+    """Class for multi-graph walk to convergence, 
     using matrix computation
      
     Attributes:

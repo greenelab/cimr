@@ -4,7 +4,7 @@ import logging
 from .utils import Infiler
 from .utils import Integrator
 from .eqtl import check_gene
-from .tad import annotatetad
+from .tad import annotate_tad
     
 
 def processor_cli(args):
@@ -20,15 +20,16 @@ def processor_cli(args):
     datatype = args.datatype
 
     if datatype in datatypes:
-        outfile = outfile + datatype + '.txt'
-        infile = Infiler(datatype, args.filename, args.genome_build)
-        infile.read_file()
-        if datatype == 'eqtl':
-            check_gene()
-        infile.write_file(outfile)
+        if args.filename is not None:
+            outfile = outfile + datatype + '.txt'
+            infile = Infiler(datatype, args.filename, args.genome_build)
+            infile.read_file()
+            if datatype == 'eqtl':
+                check_gene()
+            infile.write_file(outfile)
 
     elif datatype in annotations:
-        annotatetad(args.filename)
+        annotate_tad(args.filename)
 
     else:
         logging.error(f' datatype or filename is not recognized. nothing to do.')

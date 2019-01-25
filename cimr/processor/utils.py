@@ -173,12 +173,21 @@ class Infiler:
                             .drop([col], axis=1)
                             .join(self.summary_data[col].apply(pandas.to_numeric, errors='coerce')))
                 numcol = numdata[col].isnull().values().sum()
-                logging.error(f' %s rows in %s are non-numeric' %(numcol,col,))
+                logging.error(f' %s rows in %s are non-numeric' % (numcol, col,))
                 return numdata
         except:
-            logging.error(f' the format of %s is not testable.'%(col,))
+            logging.error(f' the format of %s is not testable.' % (col,))
             print(self.summary_data.head(n=2))
             sys.exit()
+    
+
+    def check_probability(self, col):
+        """Check whether probability is between 0 and 1"""
+        if self.summary_data[col].between(0, 1, inclusive=True).any():
+            logging.info(f' {str(col)} only contains values between 0 and 1.')
+        else:
+            logging.error(f' {str(col)} should only contain values between 0 and 1.')
+        return 0
             
 
     def find_reference(self):
@@ -233,15 +242,21 @@ class Infiler:
             logging.error(f' rsnum column is not provided.')
             pass
 
-        if ('effect_size' and 'standard_error') in self.included_header:
+        if 'effect_size' in self.included_header:
             self.check_numeric('effect_size') 
-            self.check_numeric('standard_error')
         else:
-            logging.error(f' effect_size and standard_error columns are not provided.')
+            logging.error(f' effect_size column is not provided.')
             pass
-        
+
+        if 'standard_error' in self.included_header:
+            self.check_numeric('standard_error') 
+        else:
+            logging.error(f' standard_error column is not provided.')
+            pass
+
         if 'pvalue' in self.included_header:
             self.check_numeric('pvalue')
+            self.check_probability('pvalue')
         else:
             logging.error(f' pvalue column is not provided.')
             pass

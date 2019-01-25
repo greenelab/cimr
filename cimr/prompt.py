@@ -93,7 +93,8 @@ def add_subparser_processor(subparsers):
     # common processor arguments
     parser.add_argument(
         '--filename',
-        default=pathlib.Path,
+        default=None,
+        type=pathlib.Path,
         dest='filename',
         help='file containing summary statistics or annotation data',
     )

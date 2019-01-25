@@ -4,7 +4,7 @@
 import logging
 
 
-def annotatetad(filename):
+def annotate_tad(filename):
     """read the annotation file to integrate into the cimr database
     expects the following information:
     chrom: chromosome id in the format of chr+number
@@ -15,7 +15,7 @@ def annotatetad(filename):
     e.g.
     chr1	1960001	2400000	tad0|hg19|chr1:1960001-2400000	1000"""
     import pandas
-    annotdf = pandas.read_csv(filename, sep='\t', header=0)
-    return annotdf
+    return pandas.read_csv(filename, sep='\t', header=0)
+
 
 

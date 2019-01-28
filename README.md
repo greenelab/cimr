@@ -15,9 +15,8 @@ pre-analysis processing steps convenient, providing standardized input
 files and example scripts to run various downstream methods seamlessly.
 
 
-\* cimr is currently not released for public use.
-\* cimr is a convenience tool to process, integrate and maintain 
-data in [cimr-d](https://github.com/greenelab/cimr-d).
+*cimr is currently not released for public use.*
+
 
 
 <!--ts-->
@@ -38,6 +37,10 @@ data in [cimr-d](https://github.com/greenelab/cimr-d).
 <!--te-->
 
 
+cimr is a convenience tool to process, integrate and maintain 
+data in [cimr-d](https://github.com/greenelab/cimr-d).
+
+
 ## Installation
 
 Python >= 3.6 is used for cimr. Additionally, in order to use cimr integrator 
@@ -48,7 +51,7 @@ functions or cimr-d, you may need git lfs installed.
 
 cimr requires python >= 3.6. I recommend you have either miniconda ([download page](https://conda.io/miniconda.html)) 
 or anaconda ([download page](https://www.anaconda.com/download/)) installed. However, all required python 
-packages will be downloaded and install as you build cimr using setup.py 
+packages will be downloaded and installed as you build cimr using setup.py 
 or requirements.txt provided here.
 
 
@@ -80,7 +83,8 @@ You can use pip to install the latest stable release of cimr.
 pip3 install cimr
 ```
 
-If you want to try out the nightly build of cimr at your own risk, you may clone the repository from git.
+If you want to try out the nightly build of cimr at your own risk, 
+clone the repository from git.
 
 ```
 git clone https://github.com/greenelab/cimr.git

@@ -2,8 +2,11 @@
 __pycache__/
 *.pyc
 
-#emacs
+# emacs
 .venv
+
+# vscode
+.vscode
 
 # distributions
 .eggs/
@@ -20,6 +23,7 @@ dist/
 .cache
 test/
 test/*
+outdir/
 
 # oauth token
 .httr-oauth

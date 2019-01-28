@@ -1,33 +1,51 @@
 #!/usr/bin/env python3
 
 import logging
+from .utils import Infiler
+from .utils import Integrator
+from .eqtl import check_gene
+from .tad import annotate_tad
+    
 
 def processor_cli(args):
-    from cimr.processor.util import readfile
-    from cimr.processor.util import writefile
-    from cimr.processor.eqtl import checkgene
-    from cimr.processor.tad import annotatetad
     
+    datatypes = {'gwas', 'eqtl'}
+    annotations = {'tad'}
     outdir = args.outdir 
     outdir.mkdir(exist_ok=True)
     logging.info(f' directory {str(outdir)} will be used for cimr jobs.')
-
     outfile = str(outdir) + '/' + str(args.out) + '_'
     logging.info(f' file prefix {str(args.out)} will be used for output files')
-    
-    """input files are checked for both type-dependant conditions and common formats"""
-    if args.eqtlfile is not None:
-        outfile = outfile + 'eqtl.txt'
-        summary_data = readfile(args.eqtl)
-        summary_data = checkgene(summary_data)
-        writefile(summary_data, outfile)
-    elif args.gwasfile is not None:
-        outfile = outfile + 'gwas.txt'
-        summary_data = readfile(args.gwasfile)
-        writefile(summary_data, outfile)
-    elif args.tadfile is not None:
-        outfile = outfile + 'tad.txt'
-        annotatetad(args.tad)
+
+    datatype = args.datatype
+
+    if datatype in datatypes:
+        if args.filename is not None:
+            outfile = outfile + datatype + '.txt'
+            infile = Infiler(datatype, args.filename, args.genome_build)
+            infile.read_file()
+            if datatype == 'eqtl':
+                check_gene()
+            infile.write_file(outfile)
+
+    elif datatype in annotations:
+        annotate_tad(args.filename)
+
     else:
-        logging.info(f' nothing to do')
+        logging.error(f' datatype or filename is not recognized. nothing to do.')
+    
+    if args.process:
+        logging.info(f' in order to contribute to the cimr database, use --integrate option.')
+    elif args.integrate:
+        if datatype in datatypes:
+            integrating = Integrator(
+                datatype, 
+                args.filename, 
+                can_be_public=args.can_be_public, 
+                genome_build=args.genome_build
+            )
+            integrating.make_local_db(args.tempdir)
+    else:
+        logging.error(f' did the command include either --process or --integrate functions?')
+        
 

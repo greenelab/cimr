@@ -1,31 +1,67 @@
 
 # cimr
+## continuous integration for mendelian randomization
 ## YoSon Park
 
 
-continuous analyses of gwas, eqtl or other summary statistics
+cimr is a convenience tool for continuous analyses of variant-based 
+association results from GWAS (genome-wide association studies), eQTL 
+(expression-quantitative trait loci mapping) or other association studies. 
+cimr began as a python module to run large-scale Mendelian randomization 
+analysis (hence the name). As the project developed, it became more 
+evident that there are many parts preceding the analyses that require 
+pipelining. So the current incarnation of cimr aims to streamline the 
+pre-analysis processing steps convenient, providing standardized input 
+files and example scripts to run various downstream methods seamlessly.
+
+
+*cimr is currently not released for public use.*
+
+
 
 <!--ts-->
 
-* [installation](#installation)
-  * [install miniconda/anaconda](#install-miniconda-or-anaconda)
-* [install git lfs](#install-git-lfs)
-* [install cimr](#install-cimr)
-* [contributing to cimr](#contributing-to-cimr)
-  * [summary statistics](#summary-statistics)
-* [analyses](#analyses)
+* [Installation](#installation)
+  * [Installing python](#installing-python)
+  * [Installing git lfs](#installing-git-lfs)
+  * [Installing cimr](#installing-cimr)
+
+* [Analyses](#Analyses)
+
 * [cimr python module](#cimr-python-module)
+
+* [Contributing to cimr](#contributing-to-cimr)
+  * [Contributing data](#contributing-data)
+  * [Contributing to cimr python module](#contributing-to-cimr-python-module)
 
 <!--te-->
 
-## installation
 
-### install miniconda or anaconda
-cimr requires python >= 3.6 and conda to manage dependencies. we recommend you have either miniconda ([download page](https://conda.io/miniconda.html)) or anaconda ([download page](https://www.anaconda.com/download/)) installed. 
+cimr is a convenience tool to process, integrate and maintain 
+data in [cimr-d](https://github.com/greenelab/cimr-d).
 
-## install git lfs
 
-cimr uses git and [git large file storage (LFS)](https://git-lfs.github.com/). See how to install git [here](https://www.atlassian.com/git/tutorials/install-git). To install git-lfs on Ubuntu, run:
+## Installation
+
+Python >= 3.6 is used for cimr. Additionally, in order to use cimr integrator 
+functions or cimr-d, you may need git lfs installed.
+
+
+### Installing python
+
+cimr requires python >= 3.6. I recommend you have either miniconda ([download page](https://conda.io/miniconda.html)) 
+or anaconda ([download page](https://www.anaconda.com/download/)) installed. However, all required python 
+packages will be downloaded and installed as you build cimr using setup.py 
+or requirements.txt provided here.
+
+
+### Installing git lfs
+
+cimr-d and some functionalities in cimr may use [git large file storage (LFS)](https://git-lfs.github.com/). 
+See how to install git [here](https://www.atlassian.com/git/tutorials/install-git). 
+
+To install git-lfs on Ubuntu, run:
+
 
 ```
 curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
@@ -33,35 +69,53 @@ sudo apt-get install -y git git-lfs
 git-lfs install
 ```
 
-alternatively, you can install git-lfs through conda:
+Alternatively, you can install git-lfs through conda:
 
 ```
 conda install -c conda-forge git-lfs && git lfs install
 ```
 
-## install cimr
+### Installing cimr
 
-
-### cimr as a python package
-
-you may clone the repository from git and using as a python module:
+You can use pip to install the latest stable release of cimr.
 
 ```
-git clone https://github.com/ypar/cimr.git
+pip3 install cimr
+```
+
+If you want to try out the nightly build of cimr at your own risk, 
+clone the repository from git.
+
+```
+git clone https://github.com/greenelab/cimr.git
 cd cimr
 python3 setup.py build
 python3 setup.py install
 ```
 
 
-## contributing to cimr
+## Analysis examples
 
-### contributing summary statistics
+### Quality assurance and processing of association summary statistics files
 
-you may contribute summary statistics from gwas, eqtl and other association studies. cimr currently expects hg20/grch38 reference for genomic position mapping.
+cimr contains various functionalities in [processor](cimr/processor/README_processor.md) for
+processing summary statistics files for downstream analysis.
 
 
-following columns are expected for association summary statistics files
+## Contributing to cimr
+
+### Contributing data
+
+You may contribute summary statistics from GWAS, eQTL and other similar studies. 
+cimr currently expects hg20/GRCh38 reference for genomic position mapping.
+However, variants mapped to hg19/GRCh37 may be used if updated using the
+following command:
+
+```
+cimr processor --datatype {datatype} --filename {filename} --update-map
+```
+
+Following columns are expected for association summary statistics files
 
 ```
 gene : gene id in ensembl format
@@ -75,28 +129,24 @@ se : standard error of the beta
 pval : p-value of the beta estimate
 ```
 
-eqtl input file example   
+Here is an eQTL input file example   
 
 ```
-gene rsnum constant_id inc_allele inc_afrq beta se pval  
-GPR17 rs17262104 chr2_128747549_G_T G 0.06456953 0.736983583560685 0.11432743 5.541546921310881e-10  
-HAX1 rs12749691 chr1_154251259_T_A T 0.27152318 0.280817746771117 0.05622703 1.08387876813775e-06  
+gene_id rsnum constant_id inc_allele inc_afrq beta se pval  
+GPR17 rs17262104 chr2_128747549_G_T G 0.06457 0.73698 0.11432743 5.5415e-10
 ```
-> gwas input file example  
+
+GWAS input files are not required to have gene_id column. Here is a GWAS input file example  
 
 ```
 rsnum constant_id inc_allele inc_afrq beta se pval  
 rs1172982 chr1_100230111_T_C T 0.3219 0.0043 0.0055 0.4689  
-rs1172981 chr1_100230197_T_C T 0.06069 0.0057 0.0103 0.7688  
 ```
 
-### contributing to twas methods
+### Contributing to cimr python module
 
-you may contribute to downstream analyses using summary statistics. currently incorporated methods are as follows:
-
-
-### cimr python module
-
-
+Read this [documentation regarding contributions](./CONTRIBUTING.md) for more information on contributing to cimr.
+Read this [documentation regarding contributions](https://github.com/greenelab/cimr-d/CONTRIBUTING.md) for information
+regarding contributions to cimr-d.
 
 

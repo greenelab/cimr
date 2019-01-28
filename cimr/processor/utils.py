@@ -156,7 +156,8 @@ class Infiler:
             samplecount = len(samples.index)
             rsrefcount = len(rsnum_with_reference.index)
             nomatchcount = len(variant_nomatch.index)
-            logging.info(f' {samplecount} sampled variants from {rsrefcount} total variants with rs ids, {nomatchcount} variants do not match the reference.')
+            logging.info(f' {samplecount} sampled variants from {rsrefcount} total variants with rs ids,')
+            logging.info(f' {nomatchcount} variants do not match the reference.')
         else:
             logging.error(f' there are no matching rs ids.')
             pass

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 import logging
 from .utils import Infiler
 from .utils import Integrator
@@ -24,7 +25,7 @@ def processor_cli(args):
             outfile = outfile + datatype + '.txt'
             infile = Infiler(datatype, args.filename, args.genome_build)
             infile.read_file()
-            genes = infile.list_genes()
+            genes = list(infile.list_genes())
             if datatype == 'eqtl':
                 Querier(genes)
             infile.write_file(outfile)

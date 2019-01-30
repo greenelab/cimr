@@ -142,6 +142,14 @@ class Querier:
         """
         return '+'.join(map(str, split_fields))
 
+
+    def make_string(self):
+        if type(self.genes) is list:
+            logging.info(f' converting a gene list into a queriable string.')
+            self.genestring = self.add_plus(self.genes)
+        else:
+            logging.error(f' is the input a list with gene_id\'s?')
+
     
     def check_fields(self):
         """Check if all items indicated in the fields parameter are legit.
@@ -169,9 +177,10 @@ class Querier:
             self.gene_db = 'ensembl.protein'
         else:
             logging.info(f' no human ensembl ID found in the gene_id column.')
+
         if not self.gene_db in self.subtract_plus(self.scopes):
             self.scopes = str(self.scopes) + '+' + str(self.gene_db)
-
+        
 
     @classmethod
     def from_csv(cls, features):
@@ -188,15 +197,16 @@ class Querier:
         list to the website api of the database.
         By default, only gene_ids in the format of symbol, entrez id, or
         ensembl (gene/transcript) are accepted but other options may be indicated
-        by scopes option if cimr AnnotateGene is used without cimr-d integration.
+        by scopes option if cimr Querier is used without cimr-d integration.
         """
-        params = 'q=' + str(self.genes) +\
+        
+        self.make_string()
+
+        params = 'q=' + str(self.genestring) +\
                  '&scopes=' + str(self.scopes) +\
                  '&fields=' + str(self.fields) + \
                  '&species=' + str(self.species)
-        print(self.url)
-        print(self.headers)
-        print(params)
+
         queried = requests.post(self.url, headers = self.headers, data = params)
         return queried
 

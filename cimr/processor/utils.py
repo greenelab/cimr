@@ -2,6 +2,7 @@
 
 """Utilities and common file checks used across different 
 processor classes
+
 (c) YoSon Park
 """
 
@@ -269,7 +270,8 @@ class Infiler:
         else:
             logging.error(f' pvalue column is not provided.')
             pass
-        return sumdata
+        
+        self.summary_data = sumdata
         
 
     def write_file(self, outfile):
@@ -277,7 +279,13 @@ class Infiler:
         self.outfile = outfile
         
         try:
-            self.summary_data.to_csv(self.outfile, header=True, index=False, sep='\t', na_reps='NA')
+            self.summary_data.to_csv(
+                self.outfile, 
+                header=True, 
+                index=False, 
+                sep='\t', 
+                na_reps='NA'
+                )
         except:
             logging.error(f' file {self.outfile} cannot be written.')
         return 0
@@ -299,6 +307,7 @@ class Integrator:
 
     Notes:
     ------
+    Integrator is primarily used by creating a PR with new data in cimr-d.
 
     """
 

@@ -81,6 +81,10 @@ class Querier:
     xenbase           | Xenopus l. + t. DB  | xenbase:XB-GENE-1001990&species=frog
     zfin              | Zebrafish DB   | zfin:ZDB-GENE-980526-104&species=zebrafish
 
+    Methods
+    -------
+
+    
 
     Notes
     -----
@@ -151,16 +155,32 @@ class Querier:
             else:
                 splitted.remove(field)
         self.fields = self.add_plus(splitted)
+    
+
+    def check_ensembl(self):
+        """Commonly used Ensembl ID may include a version identifier. Check for any
+        Ensembl IDs in the feature list and remove the version identifier.
+        """
+        if any('ENSG' in g for g in self.genes):
+            self.gene_db = 'ensembl.gene'
+        elif any('ENST' in g for g in self.genes):
+            self.gene_db = 'ensembl.transcript'
+        elif any('ENSP' in g for g in self.genes):
+            self.gene_db = 'ensembl.protein'
+        else:
+            logging.info(f' no human ensembl ID found in the gene_id column.')
+        if not self.gene_db in self.subtract_plus(self.scopes):
+            self.scopes = str(self.scopes) + '+' + str(self.gene_db)
 
 
     @classmethod
     def from_csv(cls, features):
         if len(features) == 1:
             feature_list = features.split(',')
-            queried = cls(feature_list).genes_for_query(feature_list)
+            queried = cls(feature_list)
             return queried
         else:
-            raise ValueError(' features appear to be already split')        
+            raise ValueError(' features appear to be already split.')        
 
 
     def form_query(self):

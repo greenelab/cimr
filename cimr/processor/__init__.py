@@ -1,7 +1,7 @@
 
 from .utils import Infiler
 from .utils import Integrator
-from .annotate import Querier
+from .query import Querier
 
 
 __all__ = [

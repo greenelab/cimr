@@ -202,6 +202,14 @@ class Infiler:
             self.variant_reference_file = 'variant_grch38_subset.txt.gz'
             self.variant_reference_id = 'rs_id_dbSNP150_GRCh38p7'
         return 0
+    
+
+    def list_genes(self):
+        """Find the list of genes from the gene_id column."""
+        if 'gene_id' in self.summary_data.columns:
+            return self.summary_data.gene_id
+        else:
+            logging.error(f' gene_id column is not provided.')
 
 
     def read_file(self):
@@ -235,13 +243,13 @@ class Infiler:
             logging.info(f' chromosome information is checked.')
         else:
             logging.error(f' variant_id column is not provided')
-            pass
+            sys.exit()
 
         if 'rsnum' in self.included_header:
             self.check_ref()
         else:
             logging.error(f' rsnum column is not provided.')
-            pass
+            sys.exit()
 
         if 'effect_size' in self.included_header:
             self.check_numeric('effect_size') 
@@ -261,6 +269,7 @@ class Infiler:
         else:
             logging.error(f' pvalue column is not provided.')
             pass
+        return sumdata
         
 
     def write_file(self, outfile):
@@ -284,7 +293,7 @@ class Integrator:
     filename: name of the file containing the data
     datatype = {'gwas', 'eqtl', 'tad'}
     can_be_public: boolean variable indicating whether the contributed data
-                   can be release as a part of the public archive.
+                   can be released as a part of the public archive.
                    for cimr >= 0.2.3, can_be_public parameter will determine
                    the destination repository of the contributed data
 

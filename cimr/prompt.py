@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
-"""provides general options for summary-based medelian randomization 
-and other transcriptome-wide association study (twas) methods.
+"""The main prompt of cimr.
+
+Options and parameters are listed for cimr subprocesses.
+
+(c) YoSon Park
 """
 
 __author__ = "YoSon Park"
@@ -23,7 +26,7 @@ import cimr
 
 
 def parse_arguments():
-    """parse command line arguments for subprocesses of cimr."""
+    """Parse command line arguments for subprocesses of cimr."""
     parser = argparse.ArgumentParser(
         description='cimr: continuous integration of summary statistics files for network analysis')
     parser.add_argument('--version', action='version', version=f'v{cimr.__version__}')
@@ -211,7 +214,7 @@ def add_subparser_network(subparsers):
 
 
 def main():
-    """main prompt of cimr"""
+    """The main CLI prompt of cimr"""
     args = parse_arguments()
     loglevel = args.loglevel
     numeric_level = getattr(logging, loglevel.upper(), None)

@@ -199,8 +199,10 @@ class Querier:
         ensembl (gene/transcript) are accepted but other options may be indicated
         by scopes option if cimr Querier is used without cimr-d integration.
         """
-        
-        self.make_string()
+        try:
+            self.make_string()
+        except:
+            raise ValueError(' An error occurred while converting the gene list.')
 
         params = 'q=' + str(self.genestring) +\
                  '&scopes=' + str(self.scopes) +\

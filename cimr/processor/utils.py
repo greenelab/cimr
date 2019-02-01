@@ -21,8 +21,8 @@ class Infiler:
     Parameters
     ----------
 
-    datatype: {'gwas', 'eqtl', 'sqtl', 'pqtl'}
-    filename: name of the file to read in summary statistics
+    data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl'}
+    file_name: name of the file to read in summary statistics
     genome_build: human genome reference id {'b37', 'b38'}
 
 
@@ -63,8 +63,8 @@ class Infiler:
 
     """
 
-    DATATYPES = ('gwas', 'eqtl', 'sqtl', 'pqtl')
-    GENOMEBUILDS = ('b37', 'b38')
+    DATA_TYPES = ('gwas', 'eqtl', 'sqtl', 'pqtl')
+    GENOME_BUILDS = ('b37', 'b38')
     HEADERS = ['gene_id', 'rsnum', 'variant_id', 'pvalue', 
                'effect_size', 'standard_error', 'zscore', 'tss_distance', 
                'ma_samples', 'maf', 'chrom', 'pos', 'ref', 'alt', 
@@ -72,13 +72,13 @@ class Infiler:
                ]
 
 
-    def __init__(self, datatype, filename, genome_build):
-        if datatype not in self.DATATYPES:
-            raise ValueError(' %s is not a valid datatype supported by cimr.' % datatype)
-        if genome_build not in self.GENOMEBUILDS:
+    def __init__(self, data_type, file_name, genome_build):
+        if data_type not in self.DATA_TYPES:
+            raise ValueError(' %s is not a valid data_type supported by cimr.' % data_type)
+        if genome_build not in self.GENOME_BUILDS:
             raise ValueError(' %s is not a valid genome_build supported by cimr.' % genome_build)
-        self.datatype = datatype
-        self.filename = filename
+        self.data_type = data_type
+        self.file_name = file_name
         self.genome_build = genome_build
     
 
@@ -215,14 +215,14 @@ class Infiler:
 
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""
-        if (pathlib.Path(self.filename).resolve()):
-            self.filename = str(self.filename)
-            logging.info(f' processing {self.filename}.')
+        if (pathlib.Path(self.file_name).resolve()):
+            self.file_name = str(self.file_name)
+            logging.info(f' processing {self.file_name}.')
         else:
-            logging.error(f' no file {self.filename} found for processing.')
+            logging.error(f' no file {self.file_name} found for processing.')
             sys.exit()
 
-        self.summary_data = pandas.read_csv(self.filename, sep='\t', header=0)
+        self.summary_data = pandas.read_csv(self.file_name, sep='\t', header=0)
         sumdata = self.summary_data
 
         # check if empty and check header
@@ -232,7 +232,7 @@ class Infiler:
             self.included_header = list(set(self.HEADERS) & set(self.summary_data.columns))
             sumdata = sumdata[self.included_header]
         else:
-            logging.error(f' no content in uploaded file {self.filename}.')    
+            logging.error(f' no content in uploaded file {self.file_name}.')    
             sys.exit()
         
         self.find_reference()
@@ -298,8 +298,8 @@ class Integrator:
     Parameters:
     -----------
 
-    filename: name of the file containing the data
-    datatype = {'gwas', 'eqtl', 'tad'}
+    file_name: name of the file containing the data
+    data_type = {'gwas', 'eqtl', 'tad'}
     can_be_public: boolean variable indicating whether the contributed data
                    can be released as a part of the public archive.
                    for cimr >= 0.2.3, can_be_public parameter will determine
@@ -312,10 +312,10 @@ class Integrator:
     """
 
 
-    def __init__(self, datatype, filename, can_be_public, genome_build):
+    def __init__(self, data_type, file_name, can_be_public, genome_build):
         """File will be saved in cimr-adb"""
-        self.datatype = datatype
-        self.filename = filename
+        self.data_type = data_type
+        self.file_name = file_name
         self.can_be_public = can_be_public
         self.genome_build = genome_build
 

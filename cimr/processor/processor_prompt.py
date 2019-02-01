@@ -10,7 +10,7 @@ from .tad import annotate_tad
 
 def processor_cli(args):
     
-    datatypes = {'gwas', 'eqtl'}
+    data_types = {'gwas', 'eqtl'}
     annotations = {'tad'}
     outdir = args.outdir 
     outdir.mkdir(exist_ok=True)
@@ -18,35 +18,35 @@ def processor_cli(args):
     outfile = str(outdir) + '/' + str(args.out) + '_'
     logging.info(f' file prefix {str(args.out)} will be used for output files')
 
-    datatype = args.datatype
+    data_type = args.data_type
 
-    if datatype in datatypes:
-        if args.filename is not None:
-            outfile = outfile + datatype + '.txt'
-            infile = Infiler(datatype, args.filename, args.genome_build)
+    if data_type in data_types:
+        if args.file_name is not None:
+            outfile = outfile + data_type + '.txt'
+            infile = Infiler(data_type, args.file_name, args.genome_build)
             infile.read_file()
             genes = list(infile.list_genes())
-            if datatype == 'eqtl':
+            if data_type == 'eqtl':
                 Querier(genes)
             infile.write_file(outfile)
 
-    elif datatype in annotations:
-        annotate_tad(args.filename)
+    elif data_type in annotations:
+        annotate_tad(args.file_name)
 
     else:
-        logging.error(f' datatype or filename is not recognized. nothing to do.')
+        logging.error(f' data_type or file_name is not recognized. nothing to do.')
     
     if args.process:
         logging.info(f' in order to contribute to the cimr database, use --integrate option.')
     elif args.integrate:
-        if datatype in datatypes:
+        if data_type in data_types:
             integrating = Integrator(
-                datatype, 
-                args.filename, 
+                data_type, 
+                args.file_name, 
                 can_be_public=args.can_be_public, 
                 genome_build=args.genome_build
             )
-            integrating.make_local_db(args.tempdir)
+            integrating.make_local_db(args.temp_dir)
     else:
         logging.error(f' did the command include either --process or --integrate functions?')
         

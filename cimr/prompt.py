@@ -102,9 +102,9 @@ def add_subparser_processor(subparsers):
         help='file containing summary statistics or annotation data',
     )
     parser.add_argument(
-        '--datatype',
+        '--data-type',
         default=None,
-        dest='datatype',
+        dest='data_type',
         help='currently supported datatypes include \{\'gwas\', \'eqtl\'\}',
     )
     parser.add_argument(
@@ -123,9 +123,9 @@ def add_subparser_processor(subparsers):
              'be made public. default is True.',
     )
     parser.add_argument(
-        '--tempdir',
+        '--temp-dir',
         default='cimr-adb-temp',
-        dest='tempdir',
+        dest='temp_dir',
         help='temporary directory name to clone cimr database into.',
     )
     
@@ -161,17 +161,17 @@ def add_subparser_network(subparsers):
     )
 
     parser.add_argument(
-        '--randomcount', 
+        '--random-count', 
         default=100000,
-        dest='randomcount',
+        dest='random_count',
         nargs='?',
         type=int,
         help='select indicated number of random edges from a network'
              'use when --random is selected',
     )
     parser.add_argument(
-        '--celltype',
-        dest='celltype',
+        '--cell-type',
+        dest='cell_type',
         default='global',
         nargs='?',
         type=str,

@@ -118,7 +118,7 @@ html_theme_options = {
     'navbar_pagenav': True,
     'globaltoc_depth': 2,
 #    'navbar_class': 'navbar navbar-inverse',
-    'bootswatch_theme': 'darkly',
+    'bootswatch_theme': 'solar',
     'bootstrap_version': '3',
 
 }

@@ -34,7 +34,7 @@ Parameters and defaults
 Following are the list of arguements available when using cimr as a standalone 
 tool::
 
-    file-name:
+    file-name: 
     
     data-type: {gwas, eqtl}
 

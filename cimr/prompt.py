@@ -92,13 +92,20 @@ def add_subparser_processor(subparsers):
         action='store_true',
         help='integration of the input data into the data repository',
     )
+    pargs.add_argument(
+        '--query',
+        default=False,
+        dest='query',
+        action='store_true',
+        help='pull down annotations for a list of gene_id\'s',
+    )
 
     # common processor arguments
     parser.add_argument(
-        '--filename',
+        '--file-name',
         default=None,
         type=pathlib.Path,
-        dest='filename',
+        dest='file_name',
         help='file containing summary statistics or annotation data',
     )
     parser.add_argument(
@@ -112,6 +119,24 @@ def add_subparser_processor(subparsers):
         default='b38',
         dest='genome_build',
         help='human genome build used for the input file mapping',
+    )
+
+    # query-specific arguments
+    parser.add_argument(
+        '--write-json',
+        default=None,
+        type=pathlib.Path,
+        dest='write_json',
+        help='write results of the gene annotation query as a json file.',
+    )
+    parser.add_argument(
+        '--write-gene',
+        default=None,
+        type=pathlib.Path,
+        dest='write_gene',
+        help='write results of the gene annotation query as a text file. '
+             'the output will include the following: '
+             'official gene symbol, entrez gene id, and ensembl gene id.',
     )
     
     # integrate-specific arguments

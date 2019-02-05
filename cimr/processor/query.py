@@ -115,10 +115,10 @@ class Querier:
                  headers = {'content-type':'application/x-www-form-urlencoded'}, 
                  url = 'https://mygene.info/v3/query', 
                  species = 9606,
-                 scopes = 'symbol+entrezgene+ensembl.gene+ensembl.transcript',
+                 scopes = 'alias+symbol+entrezgene+ensembl.gene+ensembl.transcript',
                  fields = 'name+symbol+taxid+entrezgene+ensembl+alias+refseq'
                  ):
-        """Initialize the Annotator"""
+        """Initialize the Querier"""
         self.genes = genes
         self.headers = headers
         self.url = url
@@ -144,6 +144,9 @@ class Querier:
 
 
     def make_string(self):
+        """Take the gene_id column input from the data table and turn it
+        into a string to be used in form_query
+        """
         if type(self.genes) is list:
             logging.info(f' converting a gene list into a queriable string.')
             self.genestring = self.add_plus(self.genes)
@@ -209,10 +212,70 @@ class Querier:
                  '&fields=' + str(self.fields) + \
                  '&species=' + str(self.species)
 
-        queried = requests.post(self.url, headers = self.headers, data = params)
-        return queried
+        self.queried = requests.post(self.url, headers = self.headers, data = params)
+        self.jsoned = json.loads(self.queried.text)
 
 
-        
+    def write_json(self, annot_file_out):
+        """Write the results of the query into a file.
+        The json dump indent default is set as 4.
+        """
+        try:
+            with open(annot_file_out, 'w') as outfile:
+                json.dump(self.jsoned, outfile, indent=4)
+        except:
+            raise ValueError(' an error occurred while writing the queried gene list.')
+
+
+    def write_gene(self, annot_file_out):
+        """Write official gene symbol, entrez IDs and ensembl gene IDs 
+        for each gene_id.
+        """
+        with open(annot_file_out, 'w') as outfile:
+
+            try:    
+                for gene in range(0, len(self.jsoned)):
+
+                    try:
+                        symbol = self.jsoned[gene]['symbol']
+                    except KeyError:
+                        logging.info(f' %s does not have an official gene symbol' % self.jsoned[gene]['query'])
+                        symbol = 'NA'
+                        #pass
+
+                    try:
+                        entrez = self.jsoned[gene]['entrezgene']
+                    except KeyError:
+                        logging.info(f' %s does not have an entrez ID.' % self.jsoned[gene]['query'])
+                        entrez = 'NA'
+                        #pass
+
+                    try:
+                        ensembl = self.jsoned[gene]['ensembl']['gene']
+                    except KeyError:
+                        logging.info(f' %s does not have an ensembl ID.' % self.jsoned[gene]['query'])
+                        ensembl = 'NA'
+                        #pass
+                    except TypeError:
+                        ensembl = self.jsoned[gene]['ensembl'][0]['gene']
+                    except:
+                        logging.info(f' %s has a type error' % self.jsoned[gene]['query'])
+                        ensembl = 'NA'
+                        #pass
+                    
+                    try: 
+                        alias = self.jsoned[gene]['alias']
+                    except KeyError:
+                        logging.info(f' %s does not have an alias.' % self.jsoned[gene]['query'])
+                        alias = 'NA'
+                        #pass
+
+                    print(symbol, entrez, ensembl, alias, file=outfile)
+
+            except:
+                print(self.jsoned[gene]["query"])
+                raise ValueError(' an error occurred while writing the parsed gene list')
+
+
 
 

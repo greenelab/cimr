@@ -5,7 +5,7 @@ import logging
 from .utils import Infiler
 from .utils import Integrator
 from .query import Querier
-from .tad import annotate_tad
+from .tad import Tadpole
     
 
 def processor_cli(args):
@@ -30,7 +30,6 @@ def processor_cli(args):
                 if data_type == 'eqtl':
                     queried = Querier(genes)
                     queried.form_query()
-                    print()
                 infile.write_file(outfile)
             else:
                 logging.error(f' no file_name provided. nothing to process.')
@@ -48,7 +47,11 @@ def processor_cli(args):
                 annot_gene_file = str(outdir) + '/' + str(args.write_gene)
                 queried.write_gene(annot_gene_file)
         elif data_type == 'tad':        
-            annotate_tad(args.file_name)
+            tads = Tadpole(
+                file_name=args.file_name, 
+                species=args.species, 
+                cell_type=args.cell_type
+                )
         else:
             logging.error(f' data-type is not recognized.')
 

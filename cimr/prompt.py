@@ -8,7 +8,7 @@ Options and parameters are listed for cimr subprocesses.
 """
 
 __author__ = "YoSon Park"
-__copyright__ = "Copyright 2018, YoSon Park"
+__copyright__ = "Copyright 2018-2019, YoSon Park"
 __credits__ = ["YoSon Park"]
 __license__ = "BSD"
 __maintainer__ = "YoSon Park"
@@ -28,8 +28,13 @@ import cimr
 def parse_arguments():
     """Parse command line arguments for subprocesses of cimr."""
     parser = argparse.ArgumentParser(
-        description='cimr: continuous integration of summary statistics files for network analysis')
-    parser.add_argument('--version', action='version', version=f'v{cimr.__version__}')
+        description='cimr: continuous integration + analyses of summary statistics.'
+    )
+    parser.add_argument(
+        '--version', 
+        action='version', 
+        version=f'v{cimr.__version__}'
+    )
     subparsers = parser.add_subparsers(
         title='subcommands',
         description='cimr subcommands:',
@@ -112,13 +117,31 @@ def add_subparser_processor(subparsers):
         '--data-type',
         default=None,
         dest='data_type',
-        help='currently supported datatypes include \{\'gwas\', \'eqtl\'\}',
+        help='currently supported data types include: gwas, eqtl, '
+             'tad, and gene',
     )
     parser.add_argument(
         '--genome-build',
         default='b38',
         dest='genome_build',
         help='human genome build used for the input file mapping',
+    )
+    parser.add_argument(
+        '--update-map',
+        default=False,
+        dest='update_map',
+        action='store_ture',
+        help='whether to update b37 data to b38 based on provided references',
+    )
+
+    # not required for data-type gwas
+    parser.add_argument(
+        '--cell-type',
+        default=None,
+        type=str,
+        dest='cell_type',
+        help='cell or tissue type for the contributed data. '
+             'including this info is recommended to integrate eQTL or TAD data.',
     )
 
     # query-specific arguments
@@ -135,7 +158,7 @@ def add_subparser_processor(subparsers):
         type=pathlib.Path,
         dest='write_gene',
         help='write results of the gene annotation query as a text file. '
-             'the output will include the following: '
+             'the output will include the following columns: '
              'official gene symbol, entrez gene id, and ensembl gene id.',
     )
     

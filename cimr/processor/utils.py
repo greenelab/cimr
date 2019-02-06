@@ -13,6 +13,47 @@ import logging
 import subprocess
 
 
+def find_file(file_name):
+    """Check if a file exists and exit if not."""
+    if (pathlib.Path(file_name).resolve()):
+        file_name = str(file_name)
+        logging.info(f' processing {file_name}.')
+        return(file_name)
+    else:
+        logging.error(f' no file {file_name} found for processing.')
+        sys.exit()
+
+
+def download_file(url, file_name, download_dir):
+    """Check if a file exists and download if not."""
+    import os
+    from urllib.request import urlretrieve
+    file_path = find_file(file_name)
+    if not (os.path.isfile(file_path)):
+        urlretrieve(url + file_name, file_path)
+        return 0
+
+
+def check_numeric(data, col):
+    """Check for numeric columns"""
+    from pandas.api.types import is_numeric_dtype
+    try:
+        if is_numeric_dtype(data[col]):
+            logging.info(f' {col} is numeric.')
+        else:
+            numdata = (data
+                        .drop([col], axis=1)
+                        .join(data[col].apply(pandas.to_numeric, errors='coerce'))
+                        )
+            numcol = numdata[col].isnull().values().sum()
+            logging.error(f' %s rows in %s are non-numeric' % (numcol, col,))
+            return numdata
+    except:
+        logging.error(f' the format of %s is not testable.' % (col,))
+        print(data.head(n=2))
+        sys.exit()
+
+
 class Infiler:
     """This is the cimr processor base class. functions regarding 
     automated checks for contributed summary statistics files are
@@ -63,7 +104,7 @@ class Infiler:
 
     """
 
-    DATA_TYPES = ('gwas', 'eqtl', 'sqtl', 'pqtl')
+    DATA_TYPES = ('gwas', 'eqtl', 'sqtl', 'pqtl', 'gene', 'tad')
     GENOME_BUILDS = ('b37', 'b38')
     HEADERS = ['gene_id', 'rsnum', 'variant_id', 'pvalue', 
                'effect_size', 'standard_error', 'zscore', 'tss_distance', 
@@ -162,25 +203,6 @@ class Infiler:
         else:
             logging.error(f' there are no matching rs ids.')
             pass
-
-
-    def check_numeric(self, col):
-        """Check for numeric columns"""
-        from pandas.api.types import is_numeric_dtype
-        try:
-            if is_numeric_dtype(self.summary_data[col]):
-                logging.info(f' {col} is numeric.')
-            else:
-                numdata = (self.summary_data
-                            .drop([col], axis=1)
-                            .join(self.summary_data[col].apply(pandas.to_numeric, errors='coerce')))
-                numcol = numdata[col].isnull().values().sum()
-                logging.error(f' %s rows in %s are non-numeric' % (numcol, col,))
-                return numdata
-        except:
-            logging.error(f' the format of %s is not testable.' % (col,))
-            print(self.summary_data.head(n=2))
-            sys.exit()
     
 
     def check_probability(self, col):
@@ -189,7 +211,6 @@ class Infiler:
             logging.info(f' {str(col)} only contains values between 0 and 1.')
         else:
             logging.error(f' {str(col)} should only contain values between 0 and 1.')
-        return 0
             
 
     def find_reference(self):
@@ -202,7 +223,6 @@ class Infiler:
             self.gene_reference_file = 'gene_grch38_gencode_v26.txt.gz'
             self.variant_reference_file = 'variant_grch38_subset.txt.gz'
             self.variant_reference_id = 'rs_id_dbSNP150_GRCh38p7'
-        return 0
     
 
     def list_genes(self):
@@ -215,12 +235,8 @@ class Infiler:
 
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""
-        if (pathlib.Path(self.file_name).resolve()):
-            self.file_name = str(self.file_name)
-            logging.info(f' processing {self.file_name}.')
-        else:
-            logging.error(f' no file {self.file_name} found for processing.')
-            sys.exit()
+
+        self.file_name = find_file(self.file_name)
 
         self.summary_data = pandas.read_csv(self.file_name, sep='\t', header=0)
         sumdata = self.summary_data
@@ -253,19 +269,19 @@ class Infiler:
             sys.exit()
 
         if 'effect_size' in self.included_header:
-            self.check_numeric('effect_size') 
+            check_numeric(self.summary_data, 'effect_size') 
         else:
             logging.error(f' effect_size column is not provided.')
             pass
 
         if 'standard_error' in self.included_header:
-            self.check_numeric('standard_error') 
+            check_numeric(self.summary_data, 'standard_error') 
         else:
             logging.error(f' standard_error column is not provided.')
             pass
 
         if 'pvalue' in self.included_header:
-            self.check_numeric('pvalue')
+            check_numeric(self.summary_data, 'pvalue')
             self.check_probability('pvalue')
         else:
             logging.error(f' pvalue column is not provided.')
@@ -289,7 +305,6 @@ class Infiler:
         except:
             logging.error(f' file {self.outfile} cannot be written.')
         return 0
-
 
 
 class Integrator:

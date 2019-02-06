@@ -36,9 +36,14 @@ tool::
 
     file-name: 
     
-    data-type: {gwas, eqtl}
+    data-type: {gwas, eqtl, gene, tad}
 
-    genome-build:
+    genome-build: {b37, b38}
+        Currently, cimr supports two versions of the human genome references:
+        b37 (GRCh37/HG19) and b38 (GRCh38/HG20/HG38). `cimr-d <https://github.com/greenelab/cimr-d>`_ 
+        contains data annotated to b38 and all data processed through 
+        `cimr <https://github.com/greenelab/cimr>`_ can be converted from
+        b37 to b38 using the command --update-map.
 
 
 

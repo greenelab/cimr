@@ -13,6 +13,20 @@ import logging
 import requests
 
 
+def subtract_plus(joined_fields):
+    """Split the feature list by the delimiter to run per-element checks"""
+    return joined_fields.split('+')
+
+
+def add_plus(split_fields):
+    """Insert delimiters to convert the list (or pandas Series, etc.)
+    into a suitable format to be used
+    Accepted delimiters include a comma (,), a space ( ) or a plus (+).
+    The default set by cimr is a plus (+).
+    """
+    return '+'.join(map(str, split_fields))
+
+
 class Querier:
     """The base class for annotation checks and remapping functions.
 
@@ -127,29 +141,13 @@ class Querier:
         self.fields = fields
 
 
-    @staticmethod
-    def subtract_plus(joined_fields):
-        """Split the feature list by the delimiter to run per-element checks"""
-        return joined_fields.split('+')
-    
-
-    @staticmethod
-    def add_plus(split_fields):
-        """Insert delimiters to convert the list (or pandas Series, etc.)
-        into a suitable format to be used
-        Accepted delimiters include a comma (,), a space ( ) or a plus (+).
-        The default set by cimr is a plus (+).
-        """
-        return '+'.join(map(str, split_fields))
-
-
     def make_string(self):
         """Take the gene_id column input from the data table and turn it
         into a string to be used in form_query
         """
         if type(self.genes) is list:
             logging.info(f' converting a gene list into a queriable string.')
-            self.genestring = self.add_plus(self.genes)
+            self.genestring = add_plus(self.genes)
         else:
             logging.error(f' is the input a list with gene_id\'s?')
 
@@ -159,13 +157,13 @@ class Querier:
         The list has been updated based on mygene.info documentation on
         January 2019.
         """
-        splitted = self.subtract_plus(self.fields)
+        splitted = subtract_plus(self.fields)
         for field in splitted:
             if field not in self.FIELDS:
                 raise ValueError(' %s is not a valid field supported in cimr.' % field)
             else:
                 splitted.remove(field)
-        self.fields = self.add_plus(splitted)
+        self.fields = add_plus(splitted)
     
 
     def check_ensembl(self):
@@ -181,7 +179,7 @@ class Querier:
         else:
             logging.info(f' no human ensembl ID found in the gene_id column.')
 
-        if not self.gene_db in self.subtract_plus(self.scopes):
+        if not self.gene_db in subtract_plus(self.scopes):
             self.scopes = str(self.scopes) + '+' + str(self.gene_db)
         
 
@@ -241,34 +239,30 @@ class Querier:
                     except KeyError:
                         logging.info(f' %s does not have an official gene symbol' % self.jsoned[gene]['query'])
                         symbol = 'NA'
-                        #pass
 
                     try:
                         entrez = self.jsoned[gene]['entrezgene']
                     except KeyError:
                         logging.info(f' %s does not have an entrez ID.' % self.jsoned[gene]['query'])
                         entrez = 'NA'
-                        #pass
 
                     try:
                         ensembl = self.jsoned[gene]['ensembl']['gene']
                     except KeyError:
                         logging.info(f' %s does not have an ensembl ID.' % self.jsoned[gene]['query'])
                         ensembl = 'NA'
-                        #pass
+
                     except TypeError:
                         ensembl = self.jsoned[gene]['ensembl'][0]['gene']
                     except:
                         logging.info(f' %s has a type error' % self.jsoned[gene]['query'])
                         ensembl = 'NA'
-                        #pass
                     
                     try: 
                         alias = self.jsoned[gene]['alias']
                     except KeyError:
                         logging.info(f' %s does not have an alias.' % self.jsoned[gene]['query'])
                         alias = 'NA'
-                        #pass
 
                     print(symbol, entrez, ensembl, alias, file=outfile)
 

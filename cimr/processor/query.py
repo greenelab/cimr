@@ -271,5 +271,3 @@ class Querier:
                 raise ValueError(' an error occurred while writing the parsed gene list')
 
 
-
-

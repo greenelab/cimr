@@ -13,20 +13,12 @@ metadata are available in respective documentations.
 
 **Useful links**:
 `Data repository <https://github.com/greenelab/cimr-d>`_ | 
-`Citations <https://github.com/greenelab/cimr-d/CITATIONS.rst>`_ |
-`Issues & Ideas <https://github.com/greenelab/cimr-d/CONTRIBUTIONS.rst>`_
+`Citations <https://cimr.rtfd.io>`_ |
+`Issues & Ideas <https://github.com/greenelab/cimr-d/issues>`_
 
 
 ===============================
 Genome-wide association studies
 ===============================
-
-
-
-
-=================================
-Topologically associating domains
-=================================
-
 
 

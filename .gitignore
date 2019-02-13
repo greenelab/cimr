@@ -1,6 +1,6 @@
 # byte-compiled
 __pycache__/
-*.pyc
+*.py[ocd]
 
 # emacs
 .venv
@@ -25,6 +25,11 @@ test/
 test/*
 outdir/
 
+# sphinx
+doc/source/vbench
+doc/source/vbench.rst
+doc/source/savefig/
+
 # oauth token
 .httr-oauth
 
@@ -38,5 +43,9 @@ outdir/
 *.utf8.md
 *.knit.md
 
-# osx
+# os
 .DS_Store
+Icon?
+Thumbs.db
+.directory
+

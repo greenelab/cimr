@@ -35,19 +35,6 @@ files and example scripts to run various downstream methods seamlessly.
 
 
 
-.. toctree::
-   :maxdepth: 2
-   :caption: cimr guides
-
-   install
-   processing/variant.rst
-   processing/data.rst
-   feature_analyses/gene.rst
-   citations.rst
-
-
-
-
 cimr is a convenience tool to process, integrate and maintain 
 data in [cimr-d](https://github.com/greenelab/cimr-d).
 

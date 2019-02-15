@@ -17,7 +17,7 @@ except FileNotFoundError:
     version = '0.1.0'
     print('no version file present. check your build version.')
 
-readmefile = rootdir.joinpath('README.md')
+readmefile = rootdir.joinpath('README.rst')
 with open(readmefile, 'r') as readme:
     long_description = readme.read()
 

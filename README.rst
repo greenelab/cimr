@@ -31,7 +31,7 @@ cimr began as a python module to run large-scale Mendelian randomization
 analysis (hence the name). As the project developed, it became more 
 evident that there are many parts preceding the analyses that require 
 pipelining. So the current incarnation of cimr aims to streamline the 
-pre-analysis processing steps, provid standardized input files and write 
+pre-analysis processing steps, provide standardized input files and write 
 example scripts to run various downstream methods seamlessly.
 
 

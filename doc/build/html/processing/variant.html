@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Processing variant-association files &#8212; cimr 0.1.3 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Pre-processed data" href="data.html" />
+    <link rel="prev" title="Installation" href="../install.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          cimr</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.3</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../https://gihub.com/greenelab/cimr.html">github</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption"><span class="caption-text">cimr guides</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#installing-python-and-git-lfs">Installing Python and git(-lfs)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#installing-cimr">Installing cimr</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html#contributing-to-cimr">Contributing to cimr</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#contributing-data">Contributing data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#contributing-method">Contributing method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../install.html#contributing-code">Contributing code</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Processing variant-association files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#input-file-examples">Input file examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#output-file-examples">Output (file) examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameters-and-defaults">Parameters and defaults</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-usage">Example usage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Pre-processed data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.html#genome-wide-association-studies">Genome-wide association studies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../feature_analyses/gene.html">Feature-based analyses using variant-association files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../feature_analyses/gene.html#gene-based-association-tests">Gene-based association tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../feature_analyses/gene.html#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../citations.html">Citations and references</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../citations.html#genome-wide-association-studies">Genome-wide association studies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../citations.html#expression-quantitative-trait-loci-eqtl-mapping">expression quantitative trait loci (eQTL) mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../citations.html#d-genome-organization">3D genome organization</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Processing variant-association files</a><ul>
+<li><a class="reference internal" href="#input-file-examples">Input file examples</a></li>
+<li><a class="reference internal" href="#output-file-examples">Output (file) examples</a></li>
+<li><a class="reference internal" href="#parameters-and-defaults">Parameters and defaults</a></li>
+<li><a class="reference internal" href="#example-usage">Example usage</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="../install.html" title="Previous Chapter: Installation"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Installation</span>
+    </a>
+  </li>
+  <li>
+    <a href="data.html" title="Next Chapter: Pre-processed data"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Pre-processed data &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/processing/variant.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="processing-variant-association-files">
+<h1>Processing variant-association files<a class="headerlink" href="#processing-variant-association-files" title="Permalink to this headline">¶</a></h1>
+<p>This is an introduction to processing variant-association files using cimr. See
+<a class="reference external" href="https://github.com/greenelab/cimr/doc/install.rst">guide to install</a>.</p>
+<div class="section" id="input-file-examples">
+<h2>Input file examples<a class="headerlink" href="#input-file-examples" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>genome-wide association study results</li>
+<li>expression quantitative loci mapping results</li>
+<li>splicing quantitative loci mapping results</li>
+<li>protein quantitative loci mapping results</li>
+<li>topologically associating domain annotations</li>
+</ul>
+</div>
+<div class="section" id="output-file-examples">
+<h2>Output (file) examples<a class="headerlink" href="#output-file-examples" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>uniformly formatted association results for gene tests</li>
+<li>summary of missing or mis-formatted data</li>
+<li>(recommended) integration into a public repository (cimr-d)</li>
+<li>(optional) annotated results</li>
+</ul>
+</div>
+<div class="section" id="parameters-and-defaults">
+<h2>Parameters and defaults<a class="headerlink" href="#parameters-and-defaults" title="Permalink to this headline">¶</a></h2>
+<p>Following are the list of arguements available when using cimr as a standalone
+tool:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>file-name:
+    Name of the input file. cimr processor can process variant-based association
+    summary statistis. Additionally annotation files such as genomic coordinates
+    generated from Hi-C experiments can be integrated into cimr-d for public
+    sharing and research use.
+
+data-type: {gwas, eqtl, gene, tad}
+
+genome-build: {b37, b38}
+    Currently, cimr supports two versions of the human genome references:
+    b37 (GRCh37/HG19) and b38 (GRCh38/HG20/HG38).
+    `cimr-d &lt;https://github.com/greenelab/cimr-d&gt;`_ contains data annotated to
+    b38 and all data processed through
+    `cimr &lt;https://github.com/greenelab/cimr&gt;`_ can be converted from
+    b37 to b38 using the command --update-map.
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-usage">
+<h2>Example usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">¶</a></h2>
+<p>Association files can be checked for common formatting errors.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cimr</span> <span class="n">processor</span> <span class="o">--</span><span class="n">data</span><span class="o">-</span><span class="nb">type</span> <span class="n">eqtl</span> <span class="o">--</span><span class="n">file</span><span class="o">-</span><span class="n">name</span> <span class="n">eqtl</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018-2019, YoSon Park.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

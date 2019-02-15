@@ -15,7 +15,6 @@ lib/
 lib64/
 *.egg-info/
 *.egg
-build/
 dist/
 
 # tests
@@ -26,8 +25,6 @@ test/*
 outdir/
 
 # sphinx
-doc/source/vbench
-doc/source/vbench.rst
 doc/source/savefig/
 
 # oauth token

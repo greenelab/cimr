@@ -43,9 +43,9 @@ class Querier:
 
     species : the default is 9606 or human for cimr analyses.
               for general mygene usage, the doc is available in the below site
-              docs.mygene.info/en/latest/doc/data.html#species
+              https://docs.mygene.info/en/latest/doc/data.html#species
 
-    scopes : the search space of the queired terms can be listed here.
+    scopes : the search space of the queried terms can be listed here.
              default setting includes that the query involves a gene with
              identifiers in the below described scopes
              symbol - official gene symbol (e.g. APOE)
@@ -54,8 +54,8 @@ class Querier:
              ensembl.transcript - Ensembl transcript ID starting with ENST
 
     fields : the below table is from the mygene documentation indicated below
-             docs.mygene.info/en/latest/doc/query_service.html#available-fields
-             I have reordered the table alphabetically and shortedned some
+             https://docs.mygene.info/en/latest/doc/query_service.html#available-fields
+             I have reordered the table alphabetically and shortened some
              descriptions.
              The fields and scopes parameters share the same variable names.
 
@@ -93,7 +93,7 @@ class Querier:
     uniprot           | UniProt ID          | uniprot:P24941
     wormbase          | C.elgans+nematode DB| wormbase:WBGene00057218&species=31234
     xenbase           | Xenopus l. + t. DB  | xenbase:XB-GENE-1001990&species=frog
-    zfin              | Zebrafish DB   | zfin:ZDB-GENE-980526-104&species=zebrafish
+    zfin              | Zebrafish DB        | zfin:ZDB-GENE-980526-104&species=zebrafish
 
     Methods
     -------
@@ -103,34 +103,35 @@ class Querier:
     Notes
     -----
 
-    mygene.info website documentation can be found here:
-    docs.mygene.info/en/latest/index.html
+    https://mygene.info website documentation can be found here:
+    https://docs.mygene.info/en/latest/index.html
 
-    mygene.info is a website for gene annotation queries using the biothings
+    https://mygene.info is a website for gene annotation queries using the biothings
     backend. biothings documentation is here
-    biothingsapi.readthedocs.io/en/latest
+    https://biothingsapi.readthedocs.io/en/latest
 
     cimr currently only utilizes the batch query function using direct queries
     to the website api
 
     """
 
-    FIELDS = {'accession', 'alias', 'ensembl.gene', 'ensembl.protein', 
-              'ensembl.transcript', 'entrezgene', 'flybase', 'go', 'hgnc',
-              'homologene', 'hprd', 'interpro', 'mgi', 'mim', 'mirbase', 
-              'name', 'pdb', 'pfam', 'pharmgkb', 'prosite', 'reagent',
-              'refseq', 'reporter', 'retired', 'rgd', 'summary', 'symbol',
-              'tair', 'unigene', 'uniprot', 'wormbase', 'xenbase', 'zfin'
-              }
+    FIELDS = {
+        'accession', 'alias', 'ensembl.gene', 'ensembl.protein', 
+        'ensembl.transcript', 'entrezgene', 'flybase', 'go', 'hgnc',
+        'homologene', 'hprd', 'interpro', 'mgi', 'mim', 'mirbase', 
+        'name', 'pdb', 'pfam', 'pharmgkb', 'prosite', 'reagent',
+        'refseq', 'reporter', 'retired', 'rgd', 'summary', 'symbol',
+        'tair', 'unigene', 'uniprot', 'wormbase', 'xenbase', 'zfin'
+    }
 
 
     def __init__(self, 
                  genes,
-                 headers = {'content-type':'application/x-www-form-urlencoded'}, 
-                 url = 'https://mygene.info/v3/query', 
-                 species = 9606,
-                 scopes = 'alias+symbol+entrezgene+ensembl.gene+ensembl.transcript',
-                 fields = 'name+symbol+taxid+entrezgene+ensembl+alias+refseq'
+                 headers={'content-type':'application/x-www-form-urlencoded'}, 
+                 url='https://mygene.info/v3/query', 
+                 species=9606,
+                 scopes='alias+symbol+entrezgene+ensembl.gene+ensembl.transcript',
+                 fields='name+symbol+taxid+entrezgene+ensembl+alias+refseq'
                  ):
         """Initialize the Querier"""
         self.genes = genes
@@ -205,12 +206,13 @@ class Querier:
         except:
             raise ValueError(' An error occurred while converting the gene list.')
 
-        params = 'q=' + str(self.genestring) +\
-                 '&scopes=' + str(self.scopes) +\
-                 '&fields=' + str(self.fields) + \
+        params = ('q=' + str(self.genestring) +
+                 '&scopes=' + str(self.scopes) +
+                 '&fields=' + str(self.fields) + 
                  '&species=' + str(self.species)
+        )
 
-        self.queried = requests.post(self.url, headers = self.headers, data = params)
+        self.queried = requests.post(self.url, headers=self.headers, data=params)
         self.jsoned = json.loads(self.queried.text)
 
 

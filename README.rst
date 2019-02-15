@@ -20,7 +20,8 @@ YoSon Park
 **Useful links**:
 `Source repository <https://github.com/greenelab/cimr>`_ |
 `Issues & Ideas <https://github.com/greenelab/cimr/issues>`_ | 
-`Documentation <https://cimr.readthedocs.io>`_
+`Documentation <https://cimr.readthedocs.io>`_ | 
+`cimr-d <https://github.com/greenelab/cimr-d>`_
 
 
 cimr is a convenience tool for continuous analyses of variant-based 
@@ -30,41 +31,36 @@ cimr began as a python module to run large-scale Mendelian randomization
 analysis (hence the name). As the project developed, it became more 
 evident that there are many parts preceding the analyses that require 
 pipelining. So the current incarnation of cimr aims to streamline the 
-pre-analysis processing steps convenient, providing standardized input 
-files and example scripts to run various downstream methods seamlessly.
+pre-analysis processing steps, provid standardized input files and write 
+example scripts to run various downstream methods seamlessly.
 
-
-
-cimr is a convenience tool to process, integrate and maintain 
-data in [cimr-d](https://github.com/greenelab/cimr-d).
 
 
 ============
 Installation
 ============
 
-Python >= 3.6 is used for cimr. Additionally, in order to use cimr integrator 
-functions or cimr-d, you may need git lfs installed.
-
-
-=================
+-----------------
 Installing python
-=================
+-----------------
 
-cimr requires python >= 3.6. I recommend you have either miniconda 
-([download page](https://conda.io/miniconda.html)) 
-or anaconda ([download page](https://www.anaconda.com/download/)) installed. 
-However, all required python packages will be downloaded and installed as you 
-build cimr using setup.py or requirements.txt provided here.
+cimr requires python :math: `\ge` 3.6. Installation of data analysis bundles 
+such as `miniconda <https://conda.io/miniconda.html>`_ or 
+`anaconda <https://www.anaconda.com/download/>`_ are recommended and will 
+install all python packages cimr depends on. However, all required python 
+packages can be downloaded and installed with setup.py or requirements.txt 
+provided here.
 
 
-==================
+------------------
 Installing git lfs
-==================
+------------------
 
 cimr-d and some functionalities in cimr may use 
-[git large file storage (LFS)](https://git-lfs.github.com/). 
-See how to install git [here](https://www.atlassian.com/git/tutorials/install-git). 
+`git large file storage (LFS) <https://git-lfs.github.com/>`_ . 
+See how to install `git <https://www.atlassian.com/git/tutorials/install-git>`_ .
+git-lfs is not required for using cimr as a standalone tool without cimr-d.
+
 
 To install git-lfs on Ubuntu, run:
 
@@ -79,9 +75,9 @@ Alternatively, you can install git-lfs through conda:
 >>> conda install -c conda-forge git-lfs && git lfs install
 
 
-===============
+---------------
 Installing cimr
-===============
+---------------
 
 You can use pip to install the latest stable release of cimr.
 
@@ -106,7 +102,8 @@ Analysis examples
 Quality assurance and processing of association summary statistics files
 ------------------------------------------------------------------------
 
-cimr contains various functionalities in [processor](https://cimr.readthedocs.io/cimr/processor) 
+cimr contains various functionalities in 
+`processor <https://cimr.readthedocs.io/cimr/processor>`_ 
 for processing summary statistics files for downstream analysis.
 
 
@@ -131,11 +128,11 @@ Following columns are expected for association summary statistics files::
 
   gene : gene id in ensembl format
   rsnum : rs id of the variant
-  constant_id : chromosome\_position\_referenceallele\_alternateallele\_genomebuild
+  constant_id : chromosome\_position\_referenceallele\_alternateallele\_genomebuild 
   e.g. chr2_128747549_G_T_hg19
   inc_allele : allele with respect to which variant's effect sizes are estimated
   inc_afrq : allele frequency of inc_allele
-  beta : beta coefficient estimate for the association effect of the variant on the gene 
+  beta : beta coefficient estimate for the association effect of the variant 
   se : standard error of the beta
   pval : p-value of the beta estimate
 
@@ -148,19 +145,14 @@ Here is an eQTL input file example::
 
 
 
-GWAS input files are not required to have gene_id column. Here is a GWAS input file example::
-
-  rsnum constant_id inc_allele inc_afrq beta se pval  
-  rs1172982 chr1_100230111_T_C T 0.3219 0.0043 0.0055 0.4689  
-
-
-
 ----------------------------------
 Contributing to cimr python module
 ----------------------------------
 
-Read this [documentation regarding contributions](./CONTRIBUTING.md) for more information on contributing to cimr.
-Read this [documentation regarding contributions](https://github.com/greenelab/cimr-d/CONTRIBUTING.md) for information
-regarding contributions to cimr-d.
 
+Contribute to cimr-d code or resources `here <https://github.com/greenelab/cimr-d>`_ .
+Guidelines are provided `here <https://github.com/greenelab/cimr-d/CONTRIBUTING.md>`_ .
+
+Contribute to cimr code or resources `here <https://github.com/greenelab/cimr>`_ .
+Guidelines are provided `here <https://github.com/greenelab/cimr/CONTRIBUTING.md>`_ .
 

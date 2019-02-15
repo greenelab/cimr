@@ -18,7 +18,7 @@ def find_file(file_name):
     if (pathlib.Path(file_name).resolve()):
         file_name = str(file_name)
         logging.info(f' processing {file_name}.')
-        return(file_name)
+        return file_name
     else:
         logging.error(f' no file {file_name} found for processing.')
         sys.exit()
@@ -51,7 +51,7 @@ def check_numeric(data, col):
     except:
         logging.error(f' the format of %s is not testable.' % (col,))
         print(data.head(n=2))
-        sys.exit()
+        return None
 
 
 class Infiler:
@@ -231,6 +231,7 @@ class Infiler:
             return self.summary_data.gene_id
         else:
             logging.error(f' gene_id column is not provided.')
+            return None
 
 
     def read_file(self):
@@ -308,7 +309,7 @@ class Infiler:
 
 
 class Integrator:
-    """cimr integrator class connecting contributed data to cimr-adb
+    """cimr integrator class connecting contributed data to cimr-d
 
     Parameters:
     -----------
@@ -328,7 +329,7 @@ class Integrator:
 
 
     def __init__(self, data_type, file_name, can_be_public, genome_build):
-        """File will be saved in cimr-adb"""
+        """File will be saved in cimr-d"""
         self.data_type = data_type
         self.file_name = file_name
         self.can_be_public = can_be_public
@@ -336,11 +337,11 @@ class Integrator:
 
 
     def make_local_db(self, tempdir):
-        """Temporarily download a local copy of the cimr-adb"""
+        """Temporarily download a local copy of the cimr-d"""
         # TODO: change into public repo after testing
         self.tempdir = tempdir 
         try:
-            clonercmd = 'git clone git@github.com:ypar/cimr-adb.git '+self.tempdir
+            clonercmd = 'git clone git@github.com:greenelab/cimr-d.git '+self.tempdir
             cloner = subprocess.Popen(
                 clonercmd.split(), 
                 stdout=subprocess.PIPE, 
@@ -357,6 +358,9 @@ class Integrator:
         except:
             print(sys.exc_info()[0])
         return 0
+    
+
+
     
 
 

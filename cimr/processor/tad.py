@@ -34,7 +34,7 @@ class Tadpole:
         chr1	1960001	2400000	tad0|hg19|chr1:1960001-2400000	1000
 
     cell_type: cell or tissue type wherein TAD information was measured
-    species: species. default is 9606 (homo sapiens; human)
+    species: species, default is 9606 (homo sapiens; human)
 
     Notes
     =====

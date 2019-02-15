@@ -130,7 +130,7 @@ def add_subparser_processor(subparsers):
         '--update-map',
         default=False,
         dest='update_map',
-        action='store_ture',
+        action='store_true',
         help='whether to update b37 data to b38 based on provided references',
     )
 
@@ -138,7 +138,6 @@ def add_subparser_processor(subparsers):
     parser.add_argument(
         '--cell-type',
         default=None,
-        type=str,
         dest='cell_type',
         help='cell or tissue type for the contributed data. '
              'including this info is recommended to integrate eQTL or TAD data.',

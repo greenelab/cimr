@@ -18,8 +18,17 @@ except FileNotFoundError:
     print('no version file present. check your build version.')
 
 readmefile = rootdir.joinpath('README.rst')
+
 with open(readmefile, 'r') as readme:
     long_description = readme.read()
+
+if str(readmefile).endswith('.rst'):
+    long_description_content_type = 'text/x-rst'
+elif str(readmefile).endswith('.md'):
+    long_description_content_type = 'text/markdown'
+else:
+    long_description_content_type = 'text/plain'
+
 
 setuptools.setup(
     # module detail
@@ -27,7 +36,7 @@ setuptools.setup(
     version=version,
     url='https://github.com/greenelab/cimr',
     description='continuous integration of association summary statistics for network analysis',
-    long_description_content_type='text/markdown',
+    long_description_content_type=long_description_content_type,
     long_description=long_description,
     license='BSD 3-Clause',
 

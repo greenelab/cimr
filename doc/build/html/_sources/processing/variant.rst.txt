@@ -1,6 +1,6 @@
 
 
-.. cimr documentation for processing variant-association files, created by YoSon Park
+.. doc for processing variant-association files, created by YoSon Park
 
 
 ************************************

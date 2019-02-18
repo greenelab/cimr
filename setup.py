@@ -22,9 +22,9 @@ readmefile = rootdir.joinpath('README.rst')
 with open(readmefile, 'r') as readme:
     long_description = readme.read()
 
-if readmefile.endswith('.rst'):
+if str(readmefile).endswith('.rst'):
     long_description_content_type = 'text/x-rst'
-elif readmefile.endswith('.md'):
+elif str(readmefile).endswith('.md'):
     long_description_content_type = 'text/markdown'
 else:
     long_description_content_type = 'text/plain'

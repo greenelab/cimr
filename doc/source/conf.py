@@ -72,11 +72,8 @@ exclude_patterns = ['**.ipynb_checkpoints']
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-# The suffix(es) of source filenames.
-# You can specify multiple suffix as a list of string:
-#
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
+# source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
@@ -117,7 +114,6 @@ html_theme_options = {
     'navbar_sidebarrel': True,
     'navbar_pagenav': True,
     'globaltoc_depth': 2,
-#    'navbar_class': 'navbar navbar-inverse',
     'bootswatch_theme': 'solar',
     'bootstrap_version': '3',
 

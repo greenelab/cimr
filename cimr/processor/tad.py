@@ -32,22 +32,28 @@ class Tadpole:
 
         e.g.
         chr1	1960001	2400000	tad0|hg19|chr1:1960001-2400000	1000
+    
+    Following columns can be provided with appropriate cimr arguements or
+    as a column in the file.
 
-    cell_type: cell or tissue type wherein TAD information was measured
-    species: species, default is 9606 (homo sapiens; human)
+        cell_type: cell or tissue type wherein TAD information was measured
+        species: species, default is 9606 (homo sapiens; human)
+        pub_id: PubMed ID of the publication describing the dataset.
+               DOI is also accepted.
 
     Notes
     =====
 
     """
 
-    HEADERS = ['chrom', 'start', 'end', 'id', 'comment', 'species', 'cell_type', 'pmid']
+    HEADERS = ['chrom', 'start', 'end', 'id', 'comment', 'species', 'cell_type', 'pub_id']
 
-    def __init__(self, file_name, species, cell_type):
+    def __init__(self, file_name, species, cell_type, pub_id):
         self.file_name = file_name
         self.template = pandas.DataFrame(columns=self.HEADERS)
         self.species = species
         self.cell_type = cell_type
+        self.pub_id = pub_id
 
 
     def read_file(self):

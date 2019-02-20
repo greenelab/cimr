@@ -50,7 +50,8 @@ def processor_cli(args):
             tads = Tadpole(
                 file_name=args.file_name, 
                 species=args.species, 
-                cell_type=args.cell_type
+                cell_type=args.cell_type,
+                pub_id = args.pub_id
             )
             tads.read_file()
         else:

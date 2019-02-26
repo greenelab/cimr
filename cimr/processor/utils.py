@@ -12,6 +12,25 @@ import pathlib
 import logging
 import subprocess
 
+def set_chrom_dict():
+    """Make a dictionary to standardize chromosome IDs in input files."""
+    maxchrom = 23
+    chrom_dict = {str(i):'chr' + str(i) for i in range(1, maxchrom)}
+    chrom_dict.update({'chr'+str(i):'chr' + str(i) for i in range(1, maxchrom)})
+    chrom_dict.update({
+        'X':'chr23', 
+        'Y':'chr24', 
+        'M':'chr25', 
+        'MT':'chr25', 
+        'chrX':'chr23', 
+        'chrY':'chr24', 
+        'chrM':'chr25', 
+        'chrMT':'chr25'
+    })
+    chrom_str = ['chr' + str(i) for i in range(1, maxchrom)]
+    chrom_int = [i for i in range(1, maxchrom)]
+    return chrom_dict, maxchrom, chrom_str, chrom_int
+
 
 def find_file(file_name):
     """Check if a file exists and exit if not."""
@@ -136,37 +155,35 @@ class Infiler:
             sumdata['build'] = temp[4]
     
 
-    def check_chrom(self, maxchrom=23):
+    def check_chrom(self):
         """Assumes chr+number
         - check for autosomal chromosomes
         - change if different from the specified format
         - discard non-autosomal chromosomes from main input
         """
         sumdata = self.summary_data
-        chromdict = {str(i):'chr' + str(i) for i in range(1, maxchrom)}
-        chromstr = ['chr' + str(i) for i in range(1, maxchrom)]
-        chromint = [i for i in range(1, maxchrom)]
+        chrom_dict, maxchrom, chrom_str, chrom_int = set_chrom_dict()
         chroms = sumdata['chrom'].drop_duplicates().values
         
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
             logging.info(f' there are {len(chroms)} chromosomes in the file provided.')
-        elif len(chroms) <= (maxchrom-2):
+        elif len(chroms) <= (maxchrom - 2):
             logging.warning(f' input file does not include {maxchrom} chromosome(s).')
             logging.warning(f' chromosome(s) included in the input file: %s'%(chroms,))
         else:
             logging.warning(f' input file more than {maxchrom - 1} chromosomes.')
             logging.warning(f' chromosome(s) included in the input file: %s'%(chroms,))
 
-        if len(set(chroms) & set(chromstr)) > (maxchrom - 2):
+        if len(set(chroms) & set(chrom_str)) > (maxchrom - 2):
             pass
-        elif len(set(chroms) & set(chromint)) > (maxchrom - 2):
-            sumdata['chrom'] = sumdata['chrom'].map(chromdict)
-            sumdata = sumdata[sumdata['chrom'].isin(chromstr)]
+        elif len(set(chroms) & set(chrom_int)) > (maxchrom - 2):
+            sumdata['chrom'] = sumdata['chrom'].map(chrom_dict, na_action='ignore')
+            sumdata = sumdata[sumdata['chrom'].isin(chrom_str)]
             logging.info(f' chromosome ids have been updated.')
         else:
             logging.error(f' chromosome id needs to be checked.')
 
-        remainder = list(set(chroms) - set(chromstr) - set(chromint))
+        remainder = list(set(chroms) - set(chrom_str) - set(chrom_int))
         if len(remainder) > 0:
             logging.warning(f' chromosome(s) not used for analysis: %s'%(remainder,))
 

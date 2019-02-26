@@ -11,7 +11,7 @@ from .tad import Tadpole
 def processor_cli(args):
     
     data_types = {'gwas', 'eqtl'}
-    annotations = {'gene', 'tad'}
+    
     outdir = args.outdir 
     outdir.mkdir(exist_ok=True)
     logging.info(f' directory {str(outdir)} will be used for cimr jobs.')
@@ -48,10 +48,12 @@ def processor_cli(args):
                 queried.write_gene(annot_gene_file)
         elif data_type == 'tad':        
             tads = Tadpole(
-                file_name=args.file_name, 
-                species=args.species, 
-                cell_type=args.cell_type,
-                pub_id = args.pub_id
+                file_name = args.file_name,
+                study_id = args.study_id,
+                pub_id = args.pub_id, 
+                species = args.species, 
+                cell_type = args.cell_type,
+                data_type = args.data_type
             )
             tads.read_file()
         else:

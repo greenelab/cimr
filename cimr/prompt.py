@@ -48,7 +48,7 @@ def parse_arguments():
 
     for subparser in subparsers.choices.values():
         subparser.add_argument(
-            '--outdir',
+            '-outdir',
             default='outdir',
             dest='outdir',
             nargs='?',
@@ -56,7 +56,7 @@ def parse_arguments():
             help='path to directory where output files will be written to',
         )
         subparser.add_argument(
-            '--out',
+            '-out',
             default='cimr',
             dest='out',
             nargs='?',
@@ -64,7 +64,7 @@ def parse_arguments():
             help='prefix for output files',
         )
         subparser.add_argument(
-            '--log',
+            '-log',
             default='info',
             dest='loglevel',
             nargs='?',
@@ -84,21 +84,21 @@ def add_subparser_processor(subparsers):
 
     pargs = parser.add_mutually_exclusive_group()
     pargs.add_argument(
-        '--process',
+        '-process',
         default=False,
         dest='process',
         action='store_true',
-        help='automated checks of the input data to be used for --integreate',
+        help='automated checks of the input data to be used for -integreate',
     )
     pargs.add_argument(
-        '--integrate',
+        '-integrate',
         default=False,
         dest='integrate',
         action='store_true',
         help='integration of the input data into the data repository',
     )
     pargs.add_argument(
-        '--query',
+        '-query',
         default=False,
         dest='query',
         action='store_true',
@@ -107,27 +107,27 @@ def add_subparser_processor(subparsers):
 
     # common processor arguments
     parser.add_argument(
-        '--file-name',
+        '-file-name',
         default=None,
         type=pathlib.Path,
         dest='file_name',
         help='file containing summary statistics or annotation data',
     )
     parser.add_argument(
-        '--data-type',
+        '-data-type',
         default=None,
         dest='data_type',
         help='currently supported data types include: gwas, eqtl, '
              'tad, and gene',
     )
     parser.add_argument(
-        '--genome-build',
+        '-genome-build',
         default='b38',
         dest='genome_build',
         help='human genome build used for the input file mapping',
     )
     parser.add_argument(
-        '--update-map',
+        '-update-map',
         default=False,
         dest='update_map',
         action='store_true',
@@ -136,7 +136,7 @@ def add_subparser_processor(subparsers):
 
     # not required for data-type gwas
     parser.add_argument(
-        '--cell-type',
+        '-cell-type',
         default=None,
         dest='cell_type',
         help='cell or tissue type for the contributed data. '
@@ -145,14 +145,14 @@ def add_subparser_processor(subparsers):
 
     # query-specific arguments
     parser.add_argument(
-        '--write-json',
+        '-write-json',
         default=None,
         type=pathlib.Path,
         dest='write_json',
         help='write results of the gene annotation query as a json file.',
     )
     parser.add_argument(
-        '--write-gene',
+        '-write-gene',
         default=None,
         type=pathlib.Path,
         dest='write_gene',
@@ -163,17 +163,35 @@ def add_subparser_processor(subparsers):
     
     # integrate-specific arguments
     parser.add_argument(
-        '--can-be-public',
+        '-can-be-public',
         default=True,
         dest='can_be_public',
         help='a boolean variable indicating whether the integrated data can '
              'be made public. default is True.',
     )
     parser.add_argument(
-        '--temp-dir',
+        '-temp-dir',
         default='cimr-adb-temp',
         dest='temp_dir',
         help='temporary directory name to clone cimr database into.',
+    )
+    parser.add_argument(
+        '-study_id',
+        dest='study_id',
+        help='unique identification number for the study representing the '
+             'submitted data. If left blank, cimr will generate a random ID. '
+             'An example includes a unique identifier provided by the gene '
+             'expression omnibus (GEO).'
+    )
+    parser.add_argument(
+        '-pub_id',
+        dest='pub_id',
+        help='DOI for the article describing the submitted data. '
+    )
+    parser.add_argument(
+        '-species',
+        dest='species',
+        help='species. Default is homo_sapiens (also represented as 9606 or human).'
     )
     
     parser.set_defaults(function='cimr.processor.processor_prompt.processor_cli')
@@ -271,8 +289,8 @@ def main():
             raise ValueError(' invalid log level: %s' % loglevel)
         logging.basicConfig(level=numeric_level)
     else:
-        logging.error(f' --log argument must be debug, info, warning, error, or critical.')
-        logging.error(f' --log level is set to \'info\' by default.')
+        logging.error(f' -log argument must be debug, info, warning, error, or critical.')
+        logging.error(f' -log level is set to \'info\' by default.')
     module_name, function_name = args.function.rsplit('.', 1)
     module = importlib.import_module(module_name)
     function = getattr(module, function_name)

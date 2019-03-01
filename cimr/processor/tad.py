@@ -157,10 +157,10 @@ class Tadpole:
             axis=1
         )
 
-        chrom_dict, _, _, _ = set_chrom_dict()
+        chrom_dict, _ = set_chrom_dict()
         submitted_data['chrom'] = submitted_data['chrom'].map(
             chrom_dict, na_action='ignore'
-        )
+        ).fillna(submitted_data['chrom'])
 
         self.processed_data = self.template.append(
             submitted_data, 

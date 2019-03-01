@@ -16,7 +16,6 @@ def set_chrom_dict():
     """Make a dictionary to standardize chromosome IDs in input files."""
     maxchrom = 23
     chrom_dict = {str(i):'chr' + str(i) for i in range(1, maxchrom)}
-    chrom_dict.update({'chr'+str(i):'chr' + str(i) for i in range(1, maxchrom)})
     chrom_dict.update({
         'X':'chr23', 
         'Y':'chr24', 
@@ -27,9 +26,7 @@ def set_chrom_dict():
         'chrM':'chr25', 
         'chrMT':'chr25'
     })
-    chrom_str = ['chr' + str(i) for i in range(1, maxchrom)]
-    chrom_int = [i for i in range(1, maxchrom)]
-    return chrom_dict, maxchrom, chrom_str, chrom_int
+    return chrom_dict, maxchrom
 
 
 def find_file(file_name):
@@ -162,7 +159,9 @@ class Infiler:
         - discard non-autosomal chromosomes from main input
         """
         sumdata = self.summary_data
-        chrom_dict, maxchrom, chrom_str, chrom_int = set_chrom_dict()
+        chrom_dict, maxchrom = set_chrom_dict()
+        chrom_str = list(chrom_dict.values())[0:maxchrom]
+        chrom_int = list(chrom_dict.keys())[0:maxchrom]
         chroms = sumdata['chrom'].drop_duplicates().values
         
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
@@ -177,7 +176,9 @@ class Infiler:
         if len(set(chroms) & set(chrom_str)) > (maxchrom - 2):
             pass
         elif len(set(chroms) & set(chrom_int)) > (maxchrom - 2):
-            sumdata['chrom'] = sumdata['chrom'].map(chrom_dict, na_action='ignore')
+            sumdata['chrom'] = sumdata['chrom'].map(
+                chrom_dict, na_action='ignore'
+            ).fillna(sumdata['chrom'])
             sumdata = sumdata[sumdata['chrom'].isin(chrom_str)]
             logging.info(f' chromosome ids have been updated.')
         else:

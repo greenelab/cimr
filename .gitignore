@@ -24,6 +24,9 @@ test/
 test/*
 outdir/
 
+# cimr-d clone
+cimr-d/
+
 # sphinx
 doc/source/savefig/
 

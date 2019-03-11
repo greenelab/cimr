@@ -29,23 +29,6 @@ def set_chrom_dict():
     return chrom_dict, maxchrom
 
 
-def set_chrom_dict():
-    """Make a dictionary to standardize chromosome IDs in input files."""
-    maxchrom = 23
-    chrom_dict = {str(i):'chr' + str(i) for i in range(1, maxchrom)}
-    chrom_dict.update({
-        'X':'chr23', 
-        'Y':'chr24', 
-        'M':'chr25', 
-        'MT':'chr25', 
-        'chrX':'chr23', 
-        'chrY':'chr24', 
-        'chrM':'chr25', 
-        'chrMT':'chr25'
-    })
-    return chrom_dict, maxchrom
-
-
 def find_file(file_name):
     """Check if a file exists and exit if not."""
     if (pathlib.Path(file_name).resolve()):
@@ -105,7 +88,7 @@ class Infiler:
 
     for files to be used for downstream functionalities,
 
-    following are required:
+    following are required :
     - gene_id : gene id. expected for eqtls
     - rsnum : rs id of the variant
     - variant_id : variant id in the following format
@@ -113,20 +96,30 @@ class Infiler:
     - pval / pvalue: p-value of the beta estimate
 
     following are recommended:
-    - beta / effect_size: beta coefficient estimate for the effect 
-    of the variant on the gene 
-    - se / standard_error: standard error of the beta
+    - beta / effect_size : beta coefficient estimate for the effect 
+        of the variant on the gene 
+    - se / standard_error : standard error of the beta
     - zscore: z-score if no beta/se information is present 
-    (e.g. imputed summary statistic)
+        (e.g. imputed summary statistic)
 
-    following are optional:
+    following are optional :
     - tss_distance : distance to the transcription start site of the 
-    gene_id
+        gene_id
     - ma_samples : samples with minor alleles
     - maf : minor allele frequency
-    - inc_allele : allele with respect to which variant's effect 
-    sizes are estimated
-    - inc_afrq : allele frequency of inc_allele
+    - effect_allele : allele with respect to which variant's effect 
+        sizes are estimated
+    - non_effect_allele : non-effect-allele
+    - imputation_status : imputation status of the variant. 'original' to
+        indicate that the original GWAS contained the variant. 'imputed' to
+        indicate that the data submitter has done (additional) imputation 
+        to the initial release of the data.
+    - sample_size : sample size for the variant underlying the effect_size 
+        and pvalue estimates. If not available per-variant, the total sample
+        size used for the study is accepted.
+    - n_cases : for binary phenotypic traits, n_cases are necessary for 
+        downstream analyses such as coloc colocalization.
+    - frequency : allele frequency of the effect_allele
 
     following are given by parsing variant_id column:
     - chrom : chromosome id
@@ -347,7 +340,8 @@ class Infiler:
         self.fill_effect_allele()
         
         self.summary_data.drop(
-            ['chrom', 'pos', 'ref', 'alt', 'build', 'chromosome', 'position', 'inc_allele'], 
+            ['chrom', 'pos', 'ref', 'alt', 'build', 'chromosome', 
+            'position', 'inc_allele', 'inc_freq'], 
             axis=1, 
             inplace=True
         )

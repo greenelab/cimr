@@ -1,8 +1,10 @@
 
-# Contributing to cimr
+*************************
+How to contribute to cimr
+*************************
 
-cimr is an open source project that welcomes contributions 
-from the community, including:
+cimr is an open source project that welcomes contributions from the community, 
+including:
 
 * Data contributions
   * Variant association summary statistics
@@ -13,11 +15,42 @@ from the community, including:
 * Code contributions
   * Code patches,
   * Documentation improvements,
-  * [Bug reports](https://github.com/greenelab/cimr/issues)
+  * `Bug reports <https://github.com/greenelab/cimr/issues>`_
   * Reviews for contributed patches
 
 
-## Getting started
+===================
+Did you find a bug?
+===================
+
+Ensure the bug was not already reported by searching on 
+`github issues <https://github.com/greenelab/cimr/issues>`_. If there are no 
+open issues addressing the problem(s), open a new one. Be sure to clearly 
+state a title, description and as much relevant information as possible with 
+example codes and logs.
+
+
+==================
+Did you fix a bug?
+==================
+
+Open a new github pull request (PR) with the patch. Ensure that the PR 
+describes the problem and proposed solution. Refer to relevant issues with a 
+link. PR regarding cosmetic or stylistic edits are not accepted.
+
+
+=================
+Do you have data?
+=================
+
+Ensure that the data is publicly available or contains a license to share 
+with attribution (e.g. CC BY 4.0). 
+
+
+--------------------------------------
+Genome-wide association studies (GWAS)
+--------------------------------------
+
 
 ### Method and other contributions on cimr
 

@@ -33,6 +33,7 @@ summary statistics and to conduct gene-based tests.
    :caption: cimr guides
 
    install
+   contributing
    processing/variant.rst
    processing/data.rst
    feature_analyses/gene.rst

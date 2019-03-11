@@ -68,6 +68,7 @@ trait loci (eQTL, pQTL, sQTL, etc.) have similar input formatting requirements.
 
 
 - Following are required :
+
   - gene_id : gene id. expected for eqtls. not required for gwas.
   - rsnum : rs id of the variant
   - variant_id : variant id in the following format
@@ -75,6 +76,7 @@ trait loci (eQTL, pQTL, sQTL, etc.) have similar input formatting requirements.
   - pval / pvalue: p-value of the beta estimate
 
 - Following are recommended:
+
   - beta / effect_size : beta coefficient estimate for the effect 
     of the variant on the gene 
   - se / standard_error : standard error of the beta
@@ -82,6 +84,7 @@ trait loci (eQTL, pQTL, sQTL, etc.) have similar input formatting requirements.
     (e.g. imputed summary statistic)
 
 - Following are optional :
+
   - tss_distance : distance to the transcription start site of the 
     gene_id
   - ma_samples : samples with minor alleles
@@ -101,6 +104,7 @@ trait loci (eQTL, pQTL, sQTL, etc.) have similar input formatting requirements.
   - frequency : allele frequency of the effect_allele
 
 - Following are assumed by parsing variant_id column:
+
   - chrom : chromosome id
   - pos: genomic position
   - ref : reference allele

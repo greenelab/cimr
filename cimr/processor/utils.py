@@ -12,6 +12,22 @@ import pathlib
 import logging
 import subprocess
 
+def set_chrom_dict():
+    """Make a dictionary to standardize chromosome IDs in input files."""
+    maxchrom = 23
+    chrom_dict = {str(i):'chr' + str(i) for i in range(1, maxchrom)}
+    chrom_dict.update({
+        'X':'chr23', 
+        'Y':'chr24', 
+        'M':'chr25', 
+        'MT':'chr25', 
+        'chrX':'chr23', 
+        'chrY':'chr24', 
+        'chrM':'chr25', 
+        'chrMT':'chr25'
+    })
+    return chrom_dict, maxchrom
+
 
 def set_chrom_dict():
     """Make a dictionary to standardize chromosome IDs in input files."""

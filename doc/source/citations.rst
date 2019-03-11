@@ -141,5 +141,3 @@ TAD coordinates
     `dataset <http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE87112>`_
 
 
-
-

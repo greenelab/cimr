@@ -312,6 +312,7 @@ def add_subparser_network(subparsers):
         action='store_true',
         help='network analysis using support vector machines',
     )
+    
     parser.set_defaults(function='cimr.network.network_prompt.network_cli')
 
 

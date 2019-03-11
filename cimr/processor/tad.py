@@ -132,7 +132,6 @@ class Tadpole:
             'pub_id' : self.pub_id, 
             'species' : self.species, 
             'cell_type' : self.cell_type, 
-            'data_type' : self.data_type, 
             'protocol' : self.protocol,
             'entry_count' : self.entry_count, 
             'processed_date' : self.processed_date

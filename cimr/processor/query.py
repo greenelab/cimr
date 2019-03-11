@@ -9,6 +9,7 @@ user-provided annotations such as gene IDs, gene names, etc.
 
 import sys
 import json
+import pandas
 import logging
 import requests
 
@@ -271,5 +272,53 @@ class Querier:
             except:
                 print(self.jsoned[gene]["query"])
                 raise ValueError(' an error occurred while writing the parsed gene list')
+
+
+class Snpper:
+    """Query refsnp variation database directly to update RS IDs of SNPs.
+    
+    Returns
+    -------
+    Either the original (if newest) or updated RS ID of the SNP along with
+    its position in the GRCh38.p12 reference genome.
+
+    Notes
+    -----
+    Primarily queries the refsnp variation database for the latest RS IDs of
+    GRCh38 reference genome.
+
+    """
+
+    REFSNP_URL = 'https://api.ncbi.nlm.nih.gov/variation/v0/beta/refsnp/'
+
+    def __init__(self, rsid):
+        """Initializing Snpper class"""
+        self.rsid = rsid
+
+
+    def update_rsid(self):
+        """Find updated mapping of a SNP RS ID"""
+        rsid = str(self.rsid).replace('rs','')
+        response = requests.get(self.REFSNP_URL + rsid)
+        json_data = json.loads(response.text)
+
+        if 'merged_snapshot_data' in json_data.keys():
+            updated_rsid = json_data['merged_snapshot_data']['merged_into'][0]
+        else:
+            updated_rsid = json_data['refsnp_id']
+
+        genome_build = json_data['primary_snapshot_data']['placements_with_allele'][0]['placement_annot']['seq_id_traits_by_assembly'][0]['assembly_name']
+
+        if genome_build == 'GRCh38.p12':            
+            refseq_chrom = json_data['primary_snapshot_data']['placements_with_allele'][0]['alleles'][0]['allele']['spdi']['seq_id']
+            pos = json_data['primary_snapshot_data']['placements_with_allele'][0]['alleles'][0]['allele']['spdi']['position']
+            refseq_mapping_file = '/work/drug/gwas/gwas_catalog/chromosome_to_refseq_mapping.txt'
+            refseq_mapping = pandas.read_csv(refseq_mapping_file, sep='\t', header=0, na_values=['NA'])
+            chrom = refseq_mapping[refseq_mapping['RefSeq_sequence'] == refseq_chrom]['Molecule_name'].values[0]
+        else:
+            logging.error('')
+
+        return 'rs' + str(updated_rsid), str(chrom) + ':' + str(pos)
+
 
 

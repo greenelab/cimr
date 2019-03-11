@@ -11,9 +11,25 @@ relevant information used to make cimr work.
 
 
 
+===============
+cimr and cimr-d
+===============
+
+
+* If you find cimr and cimr-d useful, please cite:
+
+  * Park Y. & Greene C., (2019). Continuous integration and analysis using cimr, 
+    In Preparation
+
+
+
 ===============================
 Genome-wide association studies
 ===============================
+
+
+* The GWAS findings used in cimr analysis are originally published in the
+  following articles:
 
 
 
@@ -28,18 +44,25 @@ Genotype-Tissue Expression project (GTEx)
 -----------------------------------------
 
 
-* The article containing the latest main analysis results:
+* The article containing the latest GTEx main analysis results:
 
-  The GTEx Consortium (2017).
-  Genetic effects on gene expression across human tissues. Nature. 550: 204–213.
-  https://www.nature.com/articles/nature24277.
+  * `The GTEx Consortium (2017) <https://www.nature.com/articles/nature24277>`_
+    Genetic effects on gene expression across human tissues. Nature. 550: 204–213
 
-* The full summary-level data are on `GTEx Portal <https://gtexportal.org>`_
+  * The full summary-level data are on `GTEx Portal <https://gtexportal.org>`_
 
-* The raw and individualized data are on 
-  dbGaP `phs000424.v7.p2 <https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs000424.v7.p2>`_ 
+  * The raw and individualized data are on 
+    dbGaP `phs000424.v7.p2 <https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs000424.v7.p2>`_ 
 
 
+* The article containing the eQTLGen main analysis results:
+
+
+
+
+===========
+Annotations
+===========
 
 
 ======================
@@ -116,5 +139,7 @@ TAD coordinates
     Active Regions in the Human Genome. Cell Reports. 2016;17(8):2042-2059.
     `pubmed <http://www.ncbi.nlm.nih.gov/pubmed/27851967>`_ | 
     `dataset <http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE87112>`_
+
+
 
 

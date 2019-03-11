@@ -31,7 +31,7 @@ def parse_arguments():
         description='cimr: continuous integration + analyses of summary statistics.'
     )
     parser.add_argument(
-        '--version', 
+        '-version', 
         action='version', 
         version=f'v{cimr.__version__}'
     )
@@ -69,9 +69,10 @@ def parse_arguments():
             dest='loglevel',
             nargs='?',
             choices=['debug', 'info', 'warning', 'error', 'critical'],
-            help='logging level for stderr logging.',
+            help='logger arguement for stderr logging level.',
         )      
     args = parser.parse_args()
+
     return args
 
 
@@ -115,8 +116,8 @@ def add_subparser_processor(subparsers):
     parser.add_argument(
         '-data-type',
         dest='data_type',
-        help='currently supported data types include: gwas, eqtl, '
-             'tad, and gene',
+        help='input file data type',
+        choices=['gwas', 'eqtl', 'snp', 'gene', 'tad'],
     )
     parser.add_argument(
         '-genome-build',
@@ -130,6 +131,13 @@ def add_subparser_processor(subparsers):
         dest='update_map',
         action='store_true',
         help='whether to update b37 data to b38 based on provided references',
+    )
+    parser.add_argument(
+        '-update-rsid',
+        default=False,
+        dest='update_rsid',
+        action='store_true',
+        help='whether to update snp rs IDs based on newest refsnp variation database',
     )
 
     # not required for data-type gwas
@@ -191,6 +199,11 @@ def add_subparser_processor(subparsers):
         dest='species',
         help='species. Default is homo_sapiens (also represented as 9606 or human).'
     )
+    parser.add_argument(
+        '-protocol',
+        dest='protocol',
+        help='name of the protocol used. For example, Hi-C for tad coordinates.'
+    )
     
     parser.set_defaults(function='cimr.processor.processor_prompt.processor_cli')
 
@@ -198,22 +211,55 @@ def add_subparser_processor(subparsers):
 def add_subparser_gene(subparsers):
     parser = subparsers.add_parser(
         name='gene', help='wrapper for gene-based analysis',
-        description='run gene-based analyses or transcriptome-wide association analysis '
-                    'and generate gene-based scores'
+        description='provide scripts for gene-based analyses and transcriptome-wide '
+                    'association analysis or provide results from pre-run analyses.',
     )
     targs = parser.add_mutually_exclusive_group()
     targs.add_argument(
-        '-mr', 
-        default=False,
-        action='store_true',
-        help='association study using two-sample-based mendelian randomization',
+        '-pull',
+        dest='pull_source',
+        help='pull down available gene-based association results.',
+        choices=['twas'],
     )
     targs.add_argument(
-        '-abf', 
-        default=False,
-        action='store_true',
-        help='colocalization test using approximate bayes factor',
+        '-write-job',
+        dest='job_dest',
+        help='write example scripts for gene-based association studies.',
+        choices=['annotation', 'enloc'],
     )
+
+    parser.add_argument(
+        '-trait',
+        default='GLGC:LDL_Cholesterol',
+        dest='trait_name',
+        help='name of the trait for -query or -write-job. '
+             'check documentation for the latest list of available traits '
+             '(https://cimr.readthedocs.io/processing/data.html)',
+        # '...' included to indicate there are more options available
+        choices=['GLGC:LDL_Cholesterol', 'CARDIoGRAM_C4D:Coronary_Artery_Disease', '...']
+    )
+    parser.add_argument(
+        '-cell-type',
+        default='GTEx:Liver',
+        dest='cell_type',
+        help='name of the cell type for -query or -write-job. '
+             'check documentation for the latest list of available tissues '
+             '(https://cimr.readthedocs.io/processing/data.html)',
+        # '...' included to indicate there are more options available
+        choices=['GTEx:Liver:cis', 'GTEx:Whole_Blood:cis', 'TCGA:LIHC:cis', '...']
+    )
+    parser.add_argument(
+        '-feature',
+        default='gene:ENSG',
+        dest='feature_name',
+        help='feature space to run combined-variant analysis in. Default is '
+             '\'gene\' for most methods. '
+             'check documentation for the latest list of available feature space. '
+             '(https://cimr.readthedocs.io/processing/data.html)',
+        # '...' included to indicate there are more options available
+        choices=['gene:ENSG', 'tad:Liver', 'tad:HepG2', 'ldblock', '...'],
+    )
+
     parser.set_defaults(function='cimr.gene.gene_prompt.gene_cli')
 
 
@@ -240,16 +286,16 @@ def add_subparser_network(subparsers):
         type=str,
         help='cell or tissue type that both represents the specificity '
              'of the given network and the file name'
-             'e.g. for giant2, file name is assumed to be celltype.dat',
+             'e.g. for giant, file name is assumed to be \{celltype\}.dat',
     )
     parser.add_argument(
-        '-filesize',
-        dest='filesize',
+        '-file-size',
+        dest='file-size',
         default=10000000,
         nargs='?',
         type=int,
         help='size of the file containing the network in the format of '
-             'edge0 edge1 weight',
+             'node1 node2 weight',
     )
 
     nargs = parser.add_mutually_exclusive_group()
@@ -266,13 +312,7 @@ def add_subparser_network(subparsers):
         action='store_true',
         help='network analysis using support vector machines',
     )
-    nargs.add_argument(
-        '-rwr', 
-        default=False,
-        action='store_true',
-        help='network analysis using random walk with restarts',
-    )
-
+    
     parser.set_defaults(function='cimr.network.network_prompt.network_cli')
 
 

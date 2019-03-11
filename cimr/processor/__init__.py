@@ -9,6 +9,7 @@ __all__ = [
     'Infiler',
     'Integrator',
     'Querier',
+    'Snpper',
     'Tadpole',
 ]
 

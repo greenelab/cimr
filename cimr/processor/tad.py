@@ -65,6 +65,7 @@ class Tadpole:
         'species', 
         'cell_type', 
         'data_type', 
+        'protocol', 
         'entry_count',
         'processed_date'
     ]
@@ -79,6 +80,7 @@ class Tadpole:
                  species, 
                  cell_type, 
                  data_type, 
+                 protocol
                  ):
         self.file_name = file_name
         self.template = pandas.DataFrame(columns=self.HEADERS)
@@ -87,6 +89,7 @@ class Tadpole:
         self.species = species
         self.cell_type = cell_type
         self.data_type = data_type
+        self.protocol = protocol
         self.processed_date = datetime.date.today().strftime('%Y-%m-%d')
         self.metafile = self.METADATA_URL + data_type + '.txt'
     
@@ -129,7 +132,7 @@ class Tadpole:
             'pub_id' : self.pub_id, 
             'species' : self.species, 
             'cell_type' : self.cell_type, 
-            'data_type' : self.data_type, 
+            'protocol' : self.protocol,
             'entry_count' : self.entry_count, 
             'processed_date' : self.processed_date
         }
@@ -174,7 +177,7 @@ class Tadpole:
         if str(self.file_name).startswith('cimr-d/submitted_data'):
             processed_file = str(self.file_name).replace('submitted_data', 'processed_data')
         else:
-            processed_file = str(self.file_name) + '.cimr'
+            processed_file = str(self.file_name) + '.cimr.txt'
 
         self.processed_data.to_csv(processed_file, sep='\t', header=False, index=False)
 

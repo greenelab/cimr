@@ -286,7 +286,7 @@ class Infiler:
         if not self.summary_data.empty:
             # make column headings more explicit
             betaeffect = {'beta':'effect_size', 'se':'standard_error', 'pval':'pvalue'}
-            gtexid = {'variant_id':'rsnum', 'gtex_variant_id':'variant_id'}
+            gtexid = {'variant_id':'rsnum', 'panel_variant_id':'variant_id'}
 
             if 'beta' in self.summary_data.columns:
                 self.summary_data.rename(columns=betaeffect, inplace=True)

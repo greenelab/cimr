@@ -291,7 +291,7 @@ class Infiler:
             if 'beta' in self.summary_data.columns:
                 self.summary_data.rename(columns=betaeffect, inplace=True)
             
-            if 'gtex_variant_id' in self.summary_data.columns:
+            if 'panel_variant_id' in self.summary_data.columns:
                 self.summary_data.rename(columns=gtexid, inplace=True)
             
             self.included_header = list(set(self.HEADERS) & set(self.summary_data.columns))
@@ -341,7 +341,7 @@ class Infiler:
         
         self.summary_data.drop(
             ['chrom', 'pos', 'ref', 'alt', 'build', 'chromosome', 
-            'position', 'inc_allele', 'inc_freq'], 
+            'position', 'inc_allele'], 
             axis=1, 
             inplace=True
         )
@@ -360,7 +360,8 @@ class Infiler:
                     index=False, 
                     sep='\t', 
                     na_rep='NA',
-                    compression='gzip'
+                    compression='gzip',
+                    float_format='%.5f'
                 )
             except:
                 logging.error(f' file {outfile} cannot be written.')

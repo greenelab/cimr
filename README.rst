@@ -5,13 +5,14 @@ cimr
 ****
 
 
-cimr is currently not released for public use.
+***************************************
+cimr is not yet released for public use
+***************************************
 
 
-
-==================================================
-continuous integration for mendelian randomization
-==================================================
+================================================================================
+continuous integration and analysis using variant association summary statistics
+================================================================================
 
 ==========
 YoSon Park

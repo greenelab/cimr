@@ -68,6 +68,7 @@ setuptools.setup(
         'pandas',
         'pathlib',
         'setuptools',
+        'requests',
     ],
 
     # Additional groups of dependencies

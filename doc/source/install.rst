@@ -55,22 +55,3 @@ Or by cloning the git repository for the nightly builds:
 >>> python3 setup.py build
 >>> python3 setup.py install
 
-
-
-********************
-Contributing to cimr
-********************
-
-=================
-Contributing data
-=================
-
-===================
-Contributing method
-===================
-
-=================
-Contributing code
-=================
-
-

@@ -29,7 +29,7 @@ def processor_cli(args):
             
             if args.file_name is not None:
                 outfile = outfile + '_' + data_type + '.txt.gz'
-                infile = Infiler(data_type, args.file_name, args.genome_build)
+                infile = Infiler(data_type, args.file_name, args.genome_build, args.update_rsid)
                 summary_data = infile.read_file()
                 
                 if data_type == 'eqtl':

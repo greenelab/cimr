@@ -141,7 +141,7 @@ class Infiler:
                ]
 
 
-    def __init__(self, data_type, file_name, genome_build):
+    def __init__(self, data_type, file_name, genome_build, update_rsid):
         if data_type not in self.DATA_TYPES:
             raise ValueError(' %s is not a valid data_type supported by cimr.' % data_type)
         if genome_build not in self.GENOME_BUILDS:
@@ -149,6 +149,7 @@ class Infiler:
         self.data_type = data_type
         self.file_name = file_name
         self.genome_build = genome_build
+        self.update_rsid = update_rsid
     
 
     def get_pos(self):
@@ -313,7 +314,8 @@ class Infiler:
             sys.exit()
 
         if 'rsnum' in self.included_header:
-            self.check_ref()
+            if self.update_rsid:
+                self.check_ref()
         else:
             logging.error(f' rsnum column is not provided.')
             sys.exit()

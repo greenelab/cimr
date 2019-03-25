@@ -270,9 +270,8 @@ class Infiler:
 
     def fill_effect_allele(self):
         """Fill NA in effect_allele column with inc_allele if inc_allele present"""
-        if 'inc_allele' in self.summary_data.columns:
-            self.summary_data['effect_allele'].fillna(self.summary_data['inc_allele'])
-
+        self.summary_data['effect_allele'].fillna(self.summary_data['inc_allele'])
+        
 
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""
@@ -281,7 +280,7 @@ class Infiler:
 
         self.file_name = find_file(self.file_name)
 
-        self.summary_data = pandas.read_csv(self.file_name, sep='\t', header=0)
+        self.summary_data = pandas.read_csv(self.file_name, sep='\t', header=0, low_memory=False)
 
         # check if empty and check header
         if not self.summary_data.empty:
@@ -320,6 +319,18 @@ class Infiler:
             logging.error(f' rsnum column is not provided.')
             sys.exit()
 
+        if 'inc_allele' in self.included_header:
+            self.fill_effect_allele()
+        else:
+            logging.info(f' inc_allele column is not available')
+        
+        self.summary_data.drop(
+            ['chrom', 'pos', 'ref', 'alt', 'build', 'chromosome', 
+            'position', 'inc_allele'], 
+            axis=1, 
+            inplace=True
+        )
+
         if 'effect_size' in self.included_header:
             check_numeric(self.summary_data, 'effect_size') 
         else:
@@ -339,15 +350,6 @@ class Infiler:
             logging.error(f' pvalue column is not provided.')
             pass
         
-        self.fill_effect_allele()
-        
-        self.summary_data.drop(
-            ['chrom', 'pos', 'ref', 'alt', 'build', 'chromosome', 
-            'position', 'inc_allele'], 
-            axis=1, 
-            inplace=True
-        )
-
         return self.summary_data
         
 

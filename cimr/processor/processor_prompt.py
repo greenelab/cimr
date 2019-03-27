@@ -10,7 +10,7 @@ from .query import Querier
 from .query import Snpper
 
 from .tad import Tadpole
-    
+
 
 def processor_cli(args):
     
@@ -29,15 +29,13 @@ def processor_cli(args):
             
             if args.file_name is not None:
                 outfile = outfile + '_' + data_type + '.txt.gz'
-                infile = Infiler(data_type, args.file_name, args.genome_build, args.update_rsid)
-                summary_data = infile.read_file()
+                infile = Infiler(data_type, args.file_name, args.genome_build, args.update_rsid, outfile)
+                infile.read_file()
                 
                 if data_type == 'eqtl':
                     genes = list(infile.list_genes())
                     queried = Querier(genes)
                     queried.form_query()
-
-                infile.write_file(outfile, summary_data)
             
             else:
                 logging.error(f' no file_name provided. nothing to process.')

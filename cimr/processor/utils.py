@@ -141,7 +141,7 @@ class Infiler:
                ]
 
 
-    def __init__(self, data_type, file_name, genome_build, update_rsid):
+    def __init__(self, data_type, file_name, genome_build, update_rsid, outfile):
         if data_type not in self.DATA_TYPES:
             raise ValueError(' %s is not a valid data_type supported by cimr.' % data_type)
         if genome_build not in self.GENOME_BUILDS:
@@ -150,22 +150,21 @@ class Infiler:
         self.file_name = file_name
         self.genome_build = genome_build
         self.update_rsid = update_rsid
+        self.outfile = outfile
     
 
     def get_pos(self):
         """Check variant_id column and make 
         chrom, pos, ref, alt, build columns"""
 
-        sumdata = self.summary_data
-
-        temp = sumdata['variant_id'].str.split('_', expand=True)
+        temp = self.summary_data['variant_id'].str.split('_', expand=True)
 
         if not temp.empty:
-            sumdata['chrom'] = temp[0]
-            sumdata['pos'] = temp[1]
-            sumdata['ref'] = temp[2]
-            sumdata['alt'] = temp[3]
-            sumdata['build'] = temp[4]
+            self.summary_data['chrom'] = temp[0]
+            self.summary_data['pos'] = temp[1]
+            self.summary_data['ref'] = temp[2]
+            self.summary_data['alt'] = temp[3]
+            self.summary_data['build'] = temp[4]
     
 
     def check_chrom(self):
@@ -270,37 +269,13 @@ class Infiler:
 
     def fill_effect_allele(self):
         """Fill NA in effect_allele column with inc_allele if inc_allele present"""
-        if 'inc_allele' in self.summary_data.columns:
-            self.summary_data['effect_allele'].fillna(self.summary_data['inc_allele'])
+        self.summary_data['effect_allele'].fillna(self.summary_data['inc_allele'])
+        
 
-
-    def read_file(self):
-        """Read the input file as a pandas dataframe. check if empty"""
-
-        template = pandas.DataFrame(columns=self.HEADERS)
-
-        self.file_name = find_file(self.file_name)
-
-        self.summary_data = pandas.read_csv(self.file_name, sep='\t', header=0)
-
-        # check if empty and check header
-        if not self.summary_data.empty:
-            # make column headings more explicit
-            betaeffect = {'beta':'effect_size', 'se':'standard_error', 'pval':'pvalue'}
-            gtexid = {'variant_id':'rsnum', 'panel_variant_id':'variant_id'}
-
-            if 'beta' in self.summary_data.columns:
-                self.summary_data.rename(columns=betaeffect, inplace=True)
-            
-            if 'panel_variant_id' in self.summary_data.columns:
-                self.summary_data.rename(columns=gtexid, inplace=True)
-            
-            self.included_header = list(set(self.HEADERS) & set(self.summary_data.columns))
-            self.summary_data = template.append(self.summary_data, ignore_index=True, sort=False)
-            
-        else:
-            logging.error(f' no content in uploaded file {self.file_name}.')    
-            sys.exit()
+    def check_file(self):
+        """Check different columns for dtype, remove missing rows and standardize
+        format to be used for analyses
+        """
         
         self.find_reference()
 
@@ -320,6 +295,18 @@ class Infiler:
             logging.error(f' rsnum column is not provided.')
             sys.exit()
 
+        if 'inc_allele' in self.included_header:
+            self.fill_effect_allele()
+        else:
+            logging.info(f' inc_allele column is not available')
+        
+        self.summary_data.drop(
+            ['chrom', 'pos', 'ref', 'alt', 'build', 'chromosome', 
+            'position', 'inc_allele'], 
+            axis=1, 
+            inplace=True
+        )
+
         if 'effect_size' in self.included_header:
             check_numeric(self.summary_data, 'effect_size') 
         else:
@@ -338,35 +325,66 @@ class Infiler:
         else:
             logging.error(f' pvalue column is not provided.')
             pass
-        
-        self.fill_effect_allele()
-        
-        self.summary_data.drop(
-            ['chrom', 'pos', 'ref', 'alt', 'build', 'chromosome', 
-            'position', 'inc_allele'], 
-            axis=1, 
-            inplace=True
+
+
+    def read_file(self):
+        """Read the input file as a pandas dataframe. check if empty"""
+
+        template = pandas.DataFrame(columns=self.HEADERS)
+
+        self.file_name = find_file(self.file_name)
+
+        self.chunks = pandas.read_csv(
+            self.file_name, 
+            sep='\t', 
+            header=0, 
+            iterator=True,
+            chunksize=100000
         )
 
-        return self.summary_data
-        
+        for chunk in self.chunks:
+            self.summary_data = chunk
 
-    def write_file(self, outfile, summary_data):
+            # check if empty and check header
+            if not self.summary_data.empty:
+                # make column headings more explicit
+                betaeffect = {'beta':'effect_size', 'se':'standard_error', 'pval':'pvalue'}
+                gtexid = {'variant_id':'rsnum', 'panel_variant_id':'variant_id'}
+
+                if 'beta' in self.summary_data.columns:
+                    self.summary_data.rename(columns=betaeffect, inplace=True)
+                
+                if 'panel_variant_id' in self.summary_data.columns:
+                    self.summary_data.rename(columns=gtexid, inplace=True)
+                
+                self.included_header = list(set(self.HEADERS) & set(self.summary_data.columns))
+                self.summary_data = template.append(self.summary_data, ignore_index=True, sort=False)
+                
+            else:
+                logging.error(f' no content in uploaded file {self.file_name}.')    
+                sys.exit()
+            
+            self.check_file()
+            self.write_file()
+
+
+    def write_file(self):
         """Write a checked file into a format used for cimr gene subprocess"""
-        logging.info(f' output will be saved in {outfile}.')
-        if isinstance(summary_data, pandas.DataFrame):
+        logging.info(f' output will be saved in {self.outfile}.')
+        if isinstance(self.summary_data, pandas.DataFrame):
             try:
-                summary_data.to_csv(
-                    str(outfile), 
-                    header=True, 
+                self.summary_data.to_csv(
+                    str(self.outfile), 
+                    header=False, 
                     index=False, 
                     sep='\t', 
                     na_rep='NA',
                     compression='gzip',
-                    float_format='%.5f'
+                    float_format='%.5f',
+                    mode='a'
                 )
             except:
-                logging.error(f' file {outfile} cannot be written.')
+                logging.error(f' file {self.outfile} cannot be written.')
         
 
 class Integrator:

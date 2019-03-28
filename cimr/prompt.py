@@ -182,7 +182,7 @@ def add_subparser_processor(subparsers):
         help='temporary directory name to clone cimr database into.',
     )
     parser.add_argument(
-        '-study_id',
+        '-study-id',
         dest='study_id',
         help='unique identification number for the study representing the '
              'submitted data. If left blank, cimr will generate a random ID. '
@@ -190,7 +190,7 @@ def add_subparser_processor(subparsers):
              'expression omnibus (GEO).'
     )
     parser.add_argument(
-        '-pub_id',
+        '-pub-id',
         dest='pub_id',
         help='DOI for the article describing the submitted data. '
     )

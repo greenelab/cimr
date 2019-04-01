@@ -139,6 +139,12 @@ def add_subparser_processor(subparsers):
         action='store_true',
         help='whether to update snp rs IDs based on newest refsnp variation database',
     )
+    parser.add_argument(
+        '-chunk-size',
+        default=10000,
+        dest='chunk_size',
+        help='number of rows in the input file to process at a time',
+    )
 
     # not required for data-type gwas
     parser.add_argument(

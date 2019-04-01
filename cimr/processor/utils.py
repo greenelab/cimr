@@ -141,7 +141,7 @@ class Infiler:
                ]
 
 
-    def __init__(self, data_type, file_name, genome_build, update_rsid, outfile):
+    def __init__(self, data_type, file_name, genome_build, update_rsid, outfile, chunksize):
         if data_type not in self.DATA_TYPES:
             raise ValueError(' %s is not a valid data_type supported by cimr.' % data_type)
         if genome_build not in self.GENOME_BUILDS:
@@ -151,6 +151,7 @@ class Infiler:
         self.genome_build = genome_build
         self.update_rsid = update_rsid
         self.outfile = outfile
+        self.chunksize = chunksize
     
 
     def get_pos(self):
@@ -327,23 +328,47 @@ class Infiler:
             pass
 
 
+    def write_header(self, template):
+        """Write a header row to the output file"""
+        logging.info(f' output will be saved in {self.outfile}.')
+        if isinstance(template, pandas.DataFrame):
+            try:
+                template.to_csv(
+                    str(self.outfile), 
+                    header=True, 
+                    index=False, 
+                    sep='\t', 
+                    na_rep='NA',
+                    compression='gzip',
+                    float_format='%.5f',
+                    mode='w'
+                )
+            except:
+                logging.error(f' file {self.outfile} cannot be written.')
+
+
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""
 
         template = pandas.DataFrame(columns=self.HEADERS)
 
         self.file_name = find_file(self.file_name)
-
+        self.write_header(template)
+        
         self.chunks = pandas.read_csv(
             self.file_name, 
             sep='\t', 
             header=0, 
             iterator=True,
-            chunksize=100000
+            chunksize=self.chunksize
         )
+
+        chunkcount = 0
 
         for chunk in self.chunks:
             self.summary_data = chunk
+            
+            logging.info(f' processing input chunk {chunkcount}')
 
             # check if empty and check header
             if not self.summary_data.empty:
@@ -366,11 +391,12 @@ class Infiler:
             
             self.check_file()
             self.write_file()
+            chunkcount += 1
 
 
     def write_file(self):
         """Write a checked file into a format used for cimr gene subprocess"""
-        logging.info(f' output will be saved in {self.outfile}.')
+        # logging.info(f' output will be saved in {self.outfile}.')
         if isinstance(self.summary_data, pandas.DataFrame):
             try:
                 self.summary_data.to_csv(

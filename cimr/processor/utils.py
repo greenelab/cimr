@@ -142,6 +142,7 @@ class Infiler:
 
 
     def __init__(self, data_type, file_name, genome_build, update_rsid, outfile, chunksize):
+
         if data_type not in self.DATA_TYPES:
             raise ValueError(' %s is not a valid data_type supported by cimr.' % data_type)
         if genome_build not in self.GENOME_BUILDS:

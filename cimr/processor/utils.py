@@ -355,7 +355,7 @@ class Infiler:
 
         self.file_name = find_file(self.file_name)
         self.write_header(template)
-        
+       
         self.chunks = pandas.read_csv(
             self.file_name, 
             sep='\t', 

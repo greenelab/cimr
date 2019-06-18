@@ -67,49 +67,52 @@ trait loci (eQTL, pQTL, sQTL, etc.) have similar input formatting requirements.
 
 
 
-- Following are required :
+Following are required ::
 
-  - gene_id : gene id. expected for eqtls. not required for gwas.
-  - rsnum : rs id of the variant
-  - variant_id : variant id in the following format
-    chromosome_position_referenceallele_alternateallele_genomebuild
-  - pval / pvalue: p-value of the beta estimate
+    gene_id : gene id. expected for eqtls. not required for gwas.
+    rsnum : rs id of the variant
+    variant_id : variant id in the following format
+        chromosome_position_referenceallele_alternateallele_genomebuild
+    pval / pvalue: p-value of the beta estimate
 
-- Following are recommended:
 
-  - beta / effect_size : beta coefficient estimate for the effect 
-    of the variant on the gene 
-  - se / standard_error : standard error of the beta
-  - zscore: z-score if no beta/se information is present 
-    (e.g. imputed summary statistic)
+Following are recommended::
 
-- Following are optional :
+    beta / effect_size : beta coefficient estimate for the effect 
+        of the variant on the gene 
+    se / standard_error : standard error of the beta
+    zscore: z-score if no beta/se information is present 
+        (e.g. imputed summary statistic)
 
-  - tss_distance : distance to the transcription start site of the 
-    gene_id
-  - ma_samples : samples with minor alleles
-  - maf : minor allele frequency
-  - effect_allele : allele with respect to which variant's effect 
-    sizes are estimated
-  - non_effect_allele : non-effect-allele
-  - imputation_status : imputation status of the variant. 'original' to
-    indicate that the original GWAS contained the variant. 'imputed' to
-    indicate that the data submitter has done (additional) imputation 
-    to the initial release of the data.
-  - sample_size : sample size for the variant underlying the effect_size 
-    and pvalue estimates. If not available per-variant, the total sample
-    size used for the study is accepted.
-  - n_cases : for binary phenotypic traits, n_cases are necessary for 
-    downstream analyses such as coloc colocalization.
-  - frequency : allele frequency of the effect_allele
 
-- Following are assumed by parsing variant_id column:
+Following are optional::
 
-  - chrom : chromosome id
-  - pos: genomic position
-  - ref : reference allele
-  - alt : alternate allele
-  - build : genomic build version number for the variant_id
+    tss_distance : distance to the transcription start site of the 
+        gene_id
+    ma_samples : samples with minor alleles
+    maf : minor allele frequency
+    effect_allele : allele with respect to which variant's effect 
+        sizes are estimated
+    non_effect_allele : non-effect-allele
+    imputation_status : imputation status of the variant. 'original' 
+        to indicate that the original GWAS contained the variant. 
+        'imputed' to indicate that the data submitter has done 
+        (additional) imputation to the initial release of the data.
+    sample_size : sample size for the variant underlying the 
+        effect_size and pvalue estimates. If not available per-variant, 
+        the total sample size used for the study is accepted.
+    n_cases : for binary phenotypic traits, n_cases are necessary 
+        for downstream analyses such as coloc colocalization.
+    frequency : allele frequency of the effect_allele
+
+
+Following are assumed by parsing variant_id column::
+
+    chrom : chromosome id
+    pos: genomic position
+    ref : reference allele
+    alt : alternate allele
+    build : genomic build version number for the variant_id
 
 
 

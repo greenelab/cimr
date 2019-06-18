@@ -62,10 +62,14 @@
 <li class="toctree-l2"><a class="reference internal" href="#installing-cimr">Installing cimr</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="contributing.html">How to contribute to cimr</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="contributing.html#did-you-find-a-bug">Did you find a bug?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="contributing.html#did-you-fix-a-bug">Did you fix a bug?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="contributing.html#do-you-have-data">Do you have data?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">How to contribute to cimr</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html#did-you-find-a-bug">===================
+Did you find a bug?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html#did-you-fix-a-bug">==================
+Did you fix a bug?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html#do-you-have-data">=================
+Do you have data?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#variant-based-association-study-results">Variant-based association study results</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="processing/variant.html">Processing variant-association files</a><ul>
@@ -171,37 +175,41 @@
 </div>
 <div class="section" id="installing-git-lfs">
 <h3>Installing git lfs<a class="headerlink" href="#installing-git-lfs" title="Permalink to this headline">¶</a></h3>
-<p>cimd-d and cimr integrator functionalities may use git large file storage (LFS).
-Install <a class="reference external" href="https://www.atlassian.com/git/tutorials/install-git">git</a> and
+<p>cimd-d and cimr integrator functionalities may use git large file
+storage (LFS).
+Install <a class="reference external" href="https://www.atlassian.com/git/tutorials/install-git">git</a>
+and
 <a class="reference external" href="https://git-lfs.github.com/">git-lfs</a> to use these functionalities.</p>
 <p>To install git-lfs on Ubuntu, run:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">curl</span> <span class="o">-</span><span class="n">s</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">packagecloud</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">install</span><span class="o">/</span><span class="n">repositories</span><span class="o">/</span><span class="n">github</span><span class="o">/</span><span class="n">git</span><span class="o">-</span><span class="n">lfs</span><span class="o">/</span><span class="n">script</span><span class="o">.</span><span class="n">deb</span><span class="o">.</span><span class="n">sh</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="o">-</span><span class="n">y</span> <span class="n">git</span> <span class="n">git</span><span class="o">-</span><span class="n">lfs</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">git</span><span class="o">-</span><span class="n">lfs</span> <span class="n">install</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">curl</span> <span class="o">-</span><span class="n">s</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">packagecloud</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">install</span><span class="o">/</span><span class="n">repositories</span><span class="o">/</span><span class="n">github</span><span class="o">/</span><span class="n">git</span><span class="o">-</span><span class="n">lfs</span><span class="o">/</span><span class="n">script</span><span class="o">.</span><span class="n">deb</span><span class="o">.</span><span class="n">sh</span>
+<span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="o">-</span><span class="n">y</span> <span class="n">git</span> <span class="n">git</span><span class="o">-</span><span class="n">lfs</span>
+<span class="n">git</span><span class="o">-</span><span class="n">lfs</span> <span class="n">install</span>
 </pre></div>
 </div>
 <p>Alternatively, conda can be used to install git-lfs:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">git</span><span class="o">-</span><span class="n">lfs</span> <span class="o">&amp;&amp;</span> <span class="n">git</span> <span class="n">lfs</span> <span class="n">install</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">git</span><span class="o">-</span><span class="n">lfs</span> <span class="o">&amp;&amp;</span> <span class="n">git</span> <span class="n">lfs</span> <span class="n">install</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="installing-cimr">
 <h2>Installing cimr<a class="headerlink" href="#installing-cimr" title="Permalink to this headline">¶</a></h2>
-<p>cimr requires Python <span class="math notranslate nohighlight">\(\ge\)</span> 3.6. <a class="reference external" href="https://conda.io/miniconda.html">Miniconda</a>
-or <a class="reference external" href="https://www.anaconda.com/download/">Anaconda</a> are convenient options for
-scientific computing with Python. However, if a basic Python version has been
-installed, requirements.txt and setup.py files can be used to download specific
-packages required for cimr functions.</p>
+<p>cimr requires Python <span class="math notranslate nohighlight">\(\ge\)</span> 3.6.
+<a class="reference external" href="https://conda.io/miniconda.html">Miniconda</a> or
+<a class="reference external" href="https://www.anaconda.com/download/">Anaconda</a> are convenient
+options for scientific computing with Python. However, if a basic
+Python version has been installed, requirements.txt and setup.py
+files can be used to download specific packages required for cimr
+functions.</p>
 <p>cimr can be installed using pip3:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pip3</span> <span class="n">install</span> <span class="n">cimr</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">cimr</span>
 </pre></div>
 </div>
 <p>Or by cloning the git repository for the nightly builds:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">greenelab</span><span class="o">/</span><span class="n">cimr</span><span class="o">.</span><span class="n">git</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cd</span> <span class="n">cimr</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">python3</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">build</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">python3</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">greenelab</span><span class="o">/</span><span class="n">cimr</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">cimr</span>
+<span class="n">python3</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">build</span>
+<span class="n">python3</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
 </div>

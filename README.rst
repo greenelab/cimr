@@ -9,10 +9,9 @@ cimr
 cimr is not yet released for public use
 ***************************************
 
-
-================================================================================
-continuous integration and analysis using variant association summary statistics
-================================================================================
+=====================================================
+continuous integration and analysis of complex traits
+=====================================================
 
 ==========
 YoSon Park
@@ -25,15 +24,12 @@ YoSon Park
 `cimr-d <https://github.com/greenelab/cimr-d>`_
 
 
-cimr is a convenience tool for continuous analyses of variant-based 
-association results from GWAS (genome-wide association studies), eQTL 
-(expression-quantitative trait loci mapping) or other association studies. 
-cimr began as a python module to run large-scale Mendelian randomization 
-analysis (hence the name). As the project developed, it became more 
-evident that there are many parts preceding the analyses that require 
-pipelining. So the current incarnation of cimr aims to streamline the 
-pre-analysis processing steps, provide standardized input files and write 
-example scripts to run various downstream methods seamlessly.
+*cimr* (continuous integration meta-resource) is a convenience tool 
+for continuous analyses of variant-based association results from 
+GWAS (genome-wide association studies), eQTL (expression-quantitative 
+trait loci mapping) or other association studies. cimr aims to 
+streamline the pre-analysis processing steps, provide standardized 
+input files and automate scripting for standard downstream analyses.
 
 
 
@@ -59,40 +55,38 @@ Installing git lfs
 
 cimr-d and some functionalities in cimr may use 
 `git large file storage (LFS) <https://git-lfs.github.com/>`_ . 
-See how to install `git <https://www.atlassian.com/git/tutorials/install-git>`_ .
-git-lfs is not required for using cimr as a standalone tool without cimr-d.
+See how to install 
+`git <https://www.atlassian.com/git/tutorials/install-git>`_ .
 
 
-To install git-lfs on Ubuntu, run:
+To install git-lfs on Ubuntu, run::
+
+    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+    sudo apt-get install -y git git-lfs
+    git-lfs install
 
 
->>> curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
->>> sudo apt-get install -y git git-lfs
->>> git-lfs install
+Alternatively, you can install git-lfs through conda::
 
-
-Alternatively, you can install git-lfs through conda:
-
->>> conda install -c conda-forge git-lfs && git lfs install
+    conda install -c conda-forge git-lfs && git lfs install
 
 
 ---------------
 Installing cimr
 ---------------
 
-You can use pip to install the latest stable release of cimr.
+You can use pip to install the latest stable release of cimr::
 
->>> pip3 install cimr
+    pip3 install cimr
 
 
 If you want to try out the nightly build of cimr at your own risk, 
-clone the repository from git.
+clone the repository from git::
 
-
->>> git clone https://github.com/greenelab/cimr.git
->>> cd cimr
->>> python3 setup.py build
->>> python3 setup.py install
+    git clone https://github.com/greenelab/cimr.git
+    cd cimr
+    python3 setup.py build
+    python3 setup.py install
 
 
 =================
@@ -119,10 +113,9 @@ Contributing data
 You may contribute summary statistics from GWAS, eQTL and other similar studies. 
 cimr currently expects hg20/GRCh38 reference for genomic position mapping.
 However, variants mapped to hg19/GRCh37 may be used if updated using the
-following command:
+following command::
 
-
->>> cimr processor --datatype {datatype} --filename {filename} --update-map
+    cimr processor --datatype {datatype} --filename {filename} --update-map
 
 
 Following columns are expected for association summary statistics files::

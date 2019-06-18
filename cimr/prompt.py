@@ -139,6 +139,12 @@ def add_subparser_processor(subparsers):
         action='store_true',
         help='whether to update snp rs IDs based on newest refsnp variation database',
     )
+    parser.add_argument(
+        '-chunk-size',
+        default=10000,
+        dest='chunk_size',
+        help='number of rows in the input file to process at a time',
+    )
 
     # not required for data-type gwas
     parser.add_argument(
@@ -182,7 +188,7 @@ def add_subparser_processor(subparsers):
         help='temporary directory name to clone cimr database into.',
     )
     parser.add_argument(
-        '-study_id',
+        '-study-id',
         dest='study_id',
         help='unique identification number for the study representing the '
              'submitted data. If left blank, cimr will generate a random ID. '
@@ -190,7 +196,7 @@ def add_subparser_processor(subparsers):
              'expression omnibus (GEO).'
     )
     parser.add_argument(
-        '-pub_id',
+        '-pub-id',
         dest='pub_id',
         help='DOI for the article describing the submitted data. '
     )

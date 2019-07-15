@@ -6,5 +6,5 @@ pathlib>=1.0.1
 setuptools>=39.1.0
 sphinx>=1.6.6
 sphinx_bootstrap_theme>=0.6.5
-yaml
-tqdm
+yaml>=5.0
+tqdm>=4.32

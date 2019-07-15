@@ -69,7 +69,7 @@ setuptools.setup(
         'pathlib',
         'setuptools',
         'requests',
-        'yaml',
+        'pyyaml',
         'tqdm',
     ],
 

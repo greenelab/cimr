@@ -54,8 +54,8 @@ necessary to integrate into cimr-d.
 ### Variant-based association study results
 
 Genome-wide association study (GWAS) and expression- or other 
-quantitative trait loci (eQTL, pQTL, sQTL, etc.) have similar input 
-formatting requirements.
+quantitative trait loci (eQTL, pQTL, sQTL, TWAS, etc.) have similar 
+input formatting requirements.
 
 
 Following are required:

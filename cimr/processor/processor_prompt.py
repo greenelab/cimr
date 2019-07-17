@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-
+import sys
 import logging
+
 
 from .utils import Infiler
 from .utils import Integrator
@@ -11,10 +12,10 @@ from .query import Snpper
 
 from .tad import Tadpole
 
+from ..defaults import DATA_TYPES
 
 def processor_cli(args):
-    
-    data_types = {'gwas', 'eqtl'}
+    """cimr processor subprocess cli"""
 
     outdir = args.outdir 
     outdir.mkdir(exist_ok=True)
@@ -25,11 +26,17 @@ def processor_cli(args):
     data_type = args.data_type
 
     if args.process:
-        if data_type in data_types:
+        if data_type in DATA_TYPES:
             
             if args.file_name is not None:
                 outfile = outfile + '_' + data_type + '.txt.gz'
-                infile = Infiler(data_type, args.file_name, args.genome_build, args.update_rsid, outfile)
+                infile = Infiler(
+                    data_type, 
+                    args.file_name, 
+                    args.genome_build, 
+                    args.update_rsid, 
+                    outfile
+                )
                 infile.read_file()
                 
                 if data_type == 'eqtl':
@@ -75,7 +82,7 @@ def processor_cli(args):
             logging.error(f' data-type is not recognized.')
 
     elif args.integrate:
-        if data_type in data_types:
+        if data_type in DATA_TYPES:
             integrating = Integrator(
                 data_type, 
                 args.file_name, 
@@ -86,5 +93,6 @@ def processor_cli(args):
 
     else:
         logging.error(f' data_type or file_name is not recognized. nothing to do.')
+        sys.exit(1)
     
 

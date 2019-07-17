@@ -12,6 +12,9 @@ import pathlib
 import logging
 import subprocess
 
+from ..defaults import *
+
+
 def set_chrom_dict():
     """Make a dictionary to standardize chromosome IDs in input files."""
     maxchrom = 23
@@ -78,7 +81,7 @@ class Infiler:
     Parameters
     ----------
 
-    data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl'}
+    data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl', 'twas', 'tad'}
     file_name: name of the file to read in summary statistics
     genome_build: human genome reference id {'b37', 'b38'}
 
@@ -130,18 +133,17 @@ class Infiler:
 
     """
 
-    DATA_TYPES = ('gwas', 'eqtl', 'sqtl', 'pqtl', 'gene', 'tad')
-    GENOME_BUILDS = ('b37', 'b38')
-    HEADERS = ['gene_id', 'rsnum', 'variant_id', 'pvalue', 
-               'effect_size', 'standard_error', 'zscore', 'tss_distance', 
-               'ma_samples', 'maf', 'chrom', 'pos', 'ref', 'alt', 
-               'build', 'effect_allele', 'non_effect_allele', 'inc_allele', 
-               'inc_afrq', 'imputation_status', 'sample_size', 'n_cases', 
-               'frequency'
-               ]
-
-
-    def __init__(self, data_type, file_name, genome_build, update_rsid, outfile, chunksize):
+    def __init__(self, 
+                 data_type, 
+                 file_name, 
+                 genome_build, 
+                 update_rsid, 
+                 outfile, 
+                 chunksize=100000):
+        
+        self.DATA_TYPES = DATA_TYPES
+        self.GENOME_BUILDS = GENOME_BUILDS
+        self.HEADERS = HEADERS
 
         if data_type not in self.DATA_TYPES:
             raise ValueError(' %s is not a valid data_type supported by cimr.' % data_type)
@@ -171,9 +173,9 @@ class Infiler:
 
     def check_chrom(self):
         """Assumes chr+number
-        - check for autosomal chromosomes
-        - change if different from the specified format
-        - discard non-autosomal chromosomes from main input
+        * check for autosomal chromosomes
+        * change if different from the specified format
+        * discard non-autosomal chromosomes from main input
         """
         sumdata = self.summary_data
         chrom_dict, maxchrom = set_chrom_dict()
@@ -420,8 +422,8 @@ class Integrator:
     Parameters:
     -----------
 
+    data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl', 'twas', 'tad'}
     file_name: name of the file containing the data
-    data_type = {'gwas', 'eqtl', 'tad'}
     can_be_public: boolean variable indicating whether the contributed data
                    can be released as a part of the public archive.
                    for cimr >= 0.2.3, can_be_public parameter will determine

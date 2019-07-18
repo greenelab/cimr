@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """General prompt for the cimr processor subprocess.
-
+ 
 (c) YoSon Park
 """
 
@@ -19,6 +19,30 @@ from .tad import Tadpole
 
 from ..defaults import DATA_TYPES
 
+
+def check_type(types):
+    """Check data types"""
+    if types in DATA_TYPES:
+        return True
+    else:
+        logging.error(f' data type is not recognized.')
+
+
+def grow_tadpoles(args):
+    """Standard processing of a new tad annotation file."""
+    tads = Tadpole(
+        file_name=args.file_name,
+        study_id=args.study_id,
+        pub_id=args.pub_id, 
+        species=args.species, 
+        cell_type=args.cell_type,
+        data_type=args.data_type,
+        protocol=args.protocol
+    )
+    tads.read_file()
+    tads.write_file()
+
+
 def processor_cli(args):
     """cimr processor subprocess cli"""
 
@@ -31,8 +55,9 @@ def processor_cli(args):
     data_type = args.data_type
 
     if args.process:
-        if data_type in DATA_TYPES:
-            
+        
+        if check_type(data_type):
+
             if args.file_name is not None:
                 outfile = outfile + '_' + data_type + '.txt.gz'
                 infile = Infiler(
@@ -72,17 +97,7 @@ def processor_cli(args):
                 queried.write_gene(annot_gene_file)
 
         elif data_type == 'tad':        
-            tads = Tadpole(
-                file_name=args.file_name,
-                study_id=args.study_id,
-                pub_id=args.pub_id, 
-                species=args.species, 
-                cell_type=args.cell_type,
-                data_type=args.data_type,
-                protocol=args.protocol
-            )
-            tads.read_file()
-            tads.write_file()
+            grow_tadpoles(args)
         else:
             logging.error(f' data-type is not recognized.')
 

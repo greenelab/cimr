@@ -1,1 +1,0 @@
-chrom	hg38_pos	rsid	pvalue	effect	effect_se	tissue	gene

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""General prompt for the cimr processor subprocess.
+
+(c) YoSon Park
+"""
+
 import sys
 import logging
 

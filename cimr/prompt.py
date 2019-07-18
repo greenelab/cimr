@@ -145,6 +145,11 @@ def add_subparser_processor(subparsers):
         dest='chunk_size',
         help='number of rows in the input file to process at a time',
     )
+    parser.add_argument(
+        '-yaml-file',
+        dest='yaml_file',
+        help='yaml file containing information about data',
+    )
 
     # not required for data-type gwas
     parser.add_argument(

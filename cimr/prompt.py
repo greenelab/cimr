@@ -30,7 +30,7 @@ import cimr
 def parse_arguments():
     """Parse command line arguments for subprocesses of cimr."""
     parser = argparse.ArgumentParser(
-        description='cimr: continuous integration + analyses of summary statistics.'
+        description='cimr: continuously integrated meta-resource'
     )
     parser.add_argument(
         '-version', 
@@ -147,6 +147,11 @@ def add_subparser_processor(subparsers):
         dest='chunksize',
         type=int,
         help='number of rows in the input file to process at a time',
+    )
+    parser.add_argument(
+        '-yaml-file',
+        dest='yaml_file',
+        help='yaml file containing information about data',
     )
 
     # not required for data-type gwas

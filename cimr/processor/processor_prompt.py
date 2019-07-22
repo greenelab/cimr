@@ -9,6 +9,7 @@
 import sys
 import logging
 
+
 from .utils import Infiler
 from .utils import Integrator
 
@@ -33,8 +34,8 @@ def grow_tadpoles(args):
     tads = Tadpole(
         file_name=args.file_name,
         study_id=args.study_id,
-        pub_id=args.pub_id,
-        species=args.species,
+        pub_id=args.pub_id, 
+        species=args.species, 
         cell_type=args.cell_type,
         data_type=args.data_type,
         protocol=args.protocol

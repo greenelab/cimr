@@ -81,7 +81,7 @@ class Infiler:
     Parameters
     ----------
 
-    data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl'}
+    data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl', 'twas', 'tad'}
     file_name: name of the file to read in summary statistics
     genome_build: human genome reference id {'b37', 'b38'}
 
@@ -169,9 +169,9 @@ class Infiler:
 
     def check_chrom(self):
         """Assumes chr+number
-        - check for autosomal chromosomes
-        - change if different from the specified format
-        - discard non-autosomal chromosomes from main input
+        * check for autosomal chromosomes
+        * change if different from the specified format
+        * discard non-autosomal chromosomes from main input
         """
         sumdata = self.summary_data
         chrom_dict, maxchrom = set_chrom_dict()
@@ -436,6 +436,7 @@ class Integrator:
     Parameters:
     -----------
 
+    data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl', 'twas', 'tad'}
     file_name: name of the file containing the data
     data_type = default.DATA_TYPES
     can_be_public: boolean variable indicating whether the contributed 

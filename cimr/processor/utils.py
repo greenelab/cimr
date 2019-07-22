@@ -12,6 +12,9 @@ import pathlib
 import logging
 import subprocess
 
+from ..defaults import *
+
+
 def set_chrom_dict():
     """Make a dictionary to standardize chromosome IDs in input files."""
     maxchrom = 23
@@ -130,23 +133,18 @@ class Infiler:
 
     """
 
-    DATA_TYPES = ('gwas', 'eqtl', 'sqtl', 'pqtl', 'gene', 'tad')
-    GENOME_BUILDS = ('b37', 'b38')
-    HEADERS = ['gene_id', 'rsnum', 'variant_id', 'pvalue', 
-               'effect_size', 'standard_error', 'zscore', 'tss_distance', 
-               'ma_samples', 'maf', 'chrom', 'pos', 'ref', 'alt', 
-               'build', 'effect_allele', 'non_effect_allele', 'inc_allele', 
-               'inc_afrq', 'imputation_status', 'sample_size', 'n_cases', 
-               'frequency'
-               ]
+    def __init__(self, 
+                 data_type, 
+                 file_name, 
+                 genome_build, 
+                 update_rsid, 
+                 outfile, 
+                 chunksize):
 
-
-    def __init__(self, data_type, file_name, genome_build, update_rsid, outfile, chunksize):
-
-        if data_type not in self.DATA_TYPES:
-            raise ValueError(' %s is not a valid data_type supported by cimr.' % data_type)
-        if genome_build not in self.GENOME_BUILDS:
-            raise ValueError(' %s is not a valid genome_build supported by cimr.' % genome_build)
+        if data_type not in DATA_TYPES:
+            raise ValueError(' %s is not a valid data_type supported' % data_type)
+        if genome_build not in GENOME_BUILDS:
+            raise ValueError(' %s is not a valid genome_build supported' % genome_build)
         self.data_type = data_type
         self.file_name = file_name
         self.genome_build = genome_build
@@ -270,44 +268,52 @@ class Infiler:
     
 
     def fill_effect_allele(self):
-        """Fill NA in effect_allele column with inc_allele if inc_allele present"""
+        """Fill NA in effect_allele column with inc_allele if 
+        inc_allele present
+        """
         self.summary_data['effect_allele'].fillna(self.summary_data['inc_allele'])
         
 
-    def check_file(self):
-        """Check different columns for dtype, remove missing rows and standardize
-        format to be used for analyses
+    def check_file(self, summary_data):
+        """Check different columns for dtype, remove missing rows and 
+        standardize format to be used for analyses
         """
         
         self.find_reference()
+        self.summary_data = summary_data
 
-        # check each column
         if 'variant_id' in self.included_header:
             self.get_pos()
             self.check_chrom()
             logging.info(f' chromosome information is checked.')
         else:
             logging.error(f' variant_id column is not provided')
-            sys.exit()
+            sys.exit(1)
 
         if 'rsnum' in self.included_header:
             if self.update_rsid:
                 self.check_ref()
         else:
             logging.error(f' rsnum column is not provided.')
-            sys.exit()
+            # sys.exit(1)
 
         if 'inc_allele' in self.included_header:
             self.fill_effect_allele()
         else:
             logging.info(f' inc_allele column is not available')
         
-        self.summary_data.drop(
-            ['chrom', 'pos', 'ref', 'alt', 'build', 'chromosome', 
-            'position', 'inc_allele'], 
-            axis=1, 
-            inplace=True
-        )
+        columns_to_drop = [
+            'chrom', 'pos', 'ref', 'alt', 'build', 'chromosome', 
+            'position', 'inc_allele'
+        ]
+
+        for colname in columns_to_drop:
+            if colname in self.summary_data.columns:
+                self.summary_data.drop(
+                    colname, 
+                    axis=1, 
+                    inplace=True
+                )
 
         if 'effect_size' in self.included_header:
             check_numeric(self.summary_data, 'effect_size') 
@@ -351,12 +357,12 @@ class Infiler:
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""
 
-        template = pandas.DataFrame(columns=self.HEADERS)
+        template = pandas.DataFrame(columns=HEADERS)
 
         self.file_name = find_file(self.file_name)
         self.write_header(template)
-       
-        self.chunks = pandas.read_csv(
+
+        chunks = pandas.read_csv(
             self.file_name, 
             sep='\t', 
             header=0, 
@@ -366,38 +372,48 @@ class Infiler:
 
         chunkcount = 0
 
-        for chunk in self.chunks:
-            self.summary_data = chunk
-            
+        for chunk in chunks:
             logging.info(f' processing input chunk {chunkcount}')
 
             # check if empty and check header
-            if not self.summary_data.empty:
+            if not chunk.empty:
                 # make column headings more explicit
-                betaeffect = {'beta':'effect_size', 'se':'standard_error', 'pval':'pvalue'}
-                gtexid = {'variant_id':'rsnum', 'panel_variant_id':'variant_id'}
+                betaeffect = {
+                    'beta':'effect_size', 
+                    'se':'standard_error', 
+                    'pval':'pvalue'
+                }
+                gtexid = {
+                    'variant_id':'rsnum', 
+                    'panel_variant_id':'variant_id'
+                }
 
-                if 'beta' in self.summary_data.columns:
-                    self.summary_data.rename(columns=betaeffect, inplace=True)
+                if 'beta' in chunk.columns:
+                    chunk.rename(columns=betaeffect, inplace=True)
                 
-                if 'panel_variant_id' in self.summary_data.columns:
-                    self.summary_data.rename(columns=gtexid, inplace=True)
+                if 'panel_variant_id' in chunk.columns:
+                    chunk.rename(columns=gtexid, inplace=True)
                 
-                self.included_header = list(set(self.HEADERS) & set(self.summary_data.columns))
-                self.summary_data = template.append(self.summary_data, ignore_index=True, sort=False)
+                self.included_header = list(set(HEADERS) & set(chunk.columns))
+                self.check_file(chunk)
+                self.summary_data = pandas.concat(
+                    [template, self.summary_data], 
+                    sort=False, 
+                    ignore_index=True
+                )
+                self.write_file()
                 
             else:
-                logging.error(f' no content in uploaded file {self.file_name}.')    
+                logging.error(f' no content in {self.file_name}.')
                 sys.exit()
             
-            self.check_file()
-            self.write_file()
+            # self.check_file()
+            # self.write_file()
             chunkcount += 1
 
 
     def write_file(self):
-        """Write a checked file into a format used for cimr gene subprocess"""
-        # logging.info(f' output will be saved in {self.outfile}.')
+        """Write data to file"""
         if isinstance(self.summary_data, pandas.DataFrame):
             try:
                 self.summary_data.to_csv(
@@ -421,11 +437,11 @@ class Integrator:
     -----------
 
     file_name: name of the file containing the data
-    data_type = {'gwas', 'eqtl', 'tad'}
-    can_be_public: boolean variable indicating whether the contributed data
-                   can be released as a part of the public archive.
-                   for cimr >= 0.2.3, can_be_public parameter will determine
-                   the destination repository of the contributed data
+    data_type = default.DATA_TYPES
+    can_be_public: boolean variable indicating whether the contributed 
+                   data can be released as a part of the public archive.
+                   for cimr >= 0.2.3, can_be_public parameter will 
+                   determine the destination repository
 
     Notes:
     ------

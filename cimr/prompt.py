@@ -7,12 +7,14 @@ Options and parameters are listed for cimr subprocesses.
 (c) YoSon Park
 """
 
+
 __author__ = "YoSon Park"
 __copyright__ = "Copyright 2018-2019, YoSon Park"
 __credits__ = ["YoSon Park"]
 __license__ = "BSD"
 __maintainer__ = "YoSon Park"
 __status__ = "production"
+
 
 import os
 import sys
@@ -140,9 +142,10 @@ def add_subparser_processor(subparsers):
         help='whether to update snp rs IDs based on newest refsnp variation database',
     )
     parser.add_argument(
-        '-chunk-size',
-        default=10000,
-        dest='chunk_size',
+        '-chunksize',
+        default=100000,
+        dest='chunksize',
+        type=int,
         help='number of rows in the input file to process at a time',
     )
 

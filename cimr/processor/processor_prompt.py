@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
+"""General prompt for the cimr processor subprocess.
 
+(c) YoSon Park
+"""
+
+
+import sys
 import logging
 
 from .utils import Infiler
@@ -11,10 +17,34 @@ from .query import Snpper
 
 from .tad import Tadpole
 
+from ..defaults import DATA_TYPES
+
+
+def check_type(types):
+    """Check data types"""
+    if types in DATA_TYPES:
+        return True
+    else:
+        logging.error(f' data type is not recognized.')
+
+
+def grow_tadpoles(args):
+    """Standard processing of a new tad annotation file."""
+    tads = Tadpole(
+        file_name=args.file_name,
+        study_id=args.study_id,
+        pub_id=args.pub_id,
+        species=args.species,
+        cell_type=args.cell_type,
+        data_type=args.data_type,
+        protocol=args.protocol
+    )
+    tads.read_file()
+    tads.write_file()
+
 
 def processor_cli(args):
-    
-    data_types = {'gwas', 'eqtl'}
+    """cimr processor subprocess cli"""
 
     outdir = args.outdir 
     outdir.mkdir(exist_ok=True)
@@ -25,11 +55,18 @@ def processor_cli(args):
     data_type = args.data_type
 
     if args.process:
-        if data_type in data_types:
+        if check_type(data_type):
             
             if args.file_name is not None:
                 outfile = outfile + '_' + data_type + '.txt.gz'
-                infile = Infiler(data_type, args.file_name, args.genome_build, args.update_rsid, outfile)
+                infile = Infiler(
+                    data_type, 
+                    args.file_name, 
+                    args.genome_build, 
+                    args.update_rsid, 
+                    outfile,
+                    args.chunksize
+                )
                 infile.read_file()
                 
                 if data_type == 'eqtl':
@@ -39,6 +76,7 @@ def processor_cli(args):
             
             else:
                 logging.error(f' no file_name provided. nothing to process.')
+                sys.exit(0)
         
         # elif data_type == 'snp':
         #     Snpper()
@@ -60,22 +98,12 @@ def processor_cli(args):
                 queried.write_gene(annot_gene_file)
 
         elif data_type == 'tad':        
-            tads = Tadpole(
-                file_name=args.file_name,
-                study_id=args.study_id,
-                pub_id=args.pub_id, 
-                species=args.species, 
-                cell_type=args.cell_type,
-                data_type=args.data_type,
-                protocol=args.protocol
-            )
-            tads.read_file()
-            tads.write_file()
+            grow_tadpoles(args)
         else:
             logging.error(f' data-type is not recognized.')
 
     elif args.integrate:
-        if data_type in data_types:
+        if check_type(data_type):
             integrating = Integrator(
                 data_type, 
                 args.file_name, 
@@ -86,5 +114,6 @@ def processor_cli(args):
 
     else:
         logging.error(f' data_type or file_name is not recognized. nothing to do.')
+        sys.exit(0)
     
 

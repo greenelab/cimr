@@ -18,6 +18,8 @@ from .query import Snpper
 
 from .tad import Tadpole
 
+from .yaml import *
+
 from ..defaults import DATA_TYPES
 
 
@@ -44,18 +46,26 @@ def grow_tadpoles(args):
     tads.write_file()
 
 
+def convert_yaml():
+    """Convert yaml parameters to cimr arguments"""
+    pass
+
+
 def processor_cli(args):
     """cimr processor subprocess cli"""
 
     outdir = args.outdir 
     outdir.mkdir(exist_ok=True)
-    logging.info(f' directory {str(outdir)} will be used for cimr jobs.')
+    logging.info(f' output directory is {str(outdir)}')
     outfile = str(outdir) + '/' + str(args.out)
-    logging.info(f' file prefix {str(args.out)} will be used for output files')
+    logging.info(f' output file prefix is {str(args.out)}')
 
     data_type = args.data_type
 
     if args.process:
+        
+        convert_yaml()
+        
         if check_type(data_type):
             
             if args.file_name is not None:

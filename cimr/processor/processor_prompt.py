@@ -18,8 +18,6 @@ from .query import Snpper
 
 from .tad import Tadpole
 
-from .yaml import *
-
 from ..defaults import DATA_TYPES
 
 
@@ -29,6 +27,7 @@ def check_type(types):
         return True
     else:
         logging.error(f' data type is not recognized.')
+        return False
 
 
 def grow_tadpoles(args):
@@ -46,9 +45,22 @@ def grow_tadpoles(args):
     tads.write_file()
 
 
-def convert_yaml():
+def convert_yaml(yaml_file):
     """Convert yaml parameters to cimr arguments"""
-    pass
+    import pathlib
+    from .yamler import Yamler
+    from .yamler import load_yaml
+
+    try:
+        yaml_file = pathlib.Path(yaml_file)
+        yaml_file_path = yaml_file.resolve(strict=True)
+        logging.info(f' processing {yaml_file_path}')
+        yaml_data = load_yaml(yaml_file)
+        y = Yamler(yaml_data)
+        y.check_data_file()
+    except FileNotFoundError:
+        logging.info(f' {yaml_file_path} is not accesible')
+        sys.exit(1)
 
 
 def processor_cli(args):
@@ -64,11 +76,12 @@ def processor_cli(args):
 
     if args.process:
         
-        convert_yaml()
-        
+        if args.yaml_file:
+            convert_yaml(args.yaml_file)
+
         if check_type(data_type):
             
-            if args.file_name is not None:
+            if args.file_name:
                 outfile = outfile + '_' + data_type + '.txt.gz'
                 infile = Infiler(
                     data_type, 
@@ -111,7 +124,7 @@ def processor_cli(args):
         elif data_type == 'tad':        
             grow_tadpoles(args)
         else:
-            logging.error(f' data-type is not recognized.')
+            pass
 
     elif args.integrate:
         if check_type(data_type):

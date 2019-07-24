@@ -1,9 +1,14 @@
-"""Reading and parsing through the contributor's yaml file.
-(c) YoSon Park
+"""Reading and parsing through the contributor's yaml file(s).
+
+By default within cimr-d ci processing, 'submitted' dir will be
+scanned for file names ending with 'yaml' and 'yml'.
 
 This is the default uploading skim for single and bulk files 
-using zenodo. For PR-based file uploader, check .circleci/deploy.sh 
+using zenodo. For PR-based test file uploader, 
+check .circleci/deploy.sh 
 and .circleci/process_submitted_data.py
+
+(c) YoSon Park
 """
 
 
@@ -17,11 +22,6 @@ import logging
 from ..defaults import DATA_TYPES
 from ..defaults import CONFIG_FILE_EXTENSION
 from ..defaults import BULK_EXTENSION
-
-
-def match_magic():
-    """https://www.garykessler.net/library/file_sigs.html"""
-    pass
 
 
 def check_yaml_before_commit():
@@ -189,6 +189,7 @@ class Yamler:
     """A collection of utilities to parse the yaml file, check metadata
     and trigger cimr processing of the contributed file
     """
+
 
     def __init__(self, yaml_data):
         self.yaml_data = yaml_data

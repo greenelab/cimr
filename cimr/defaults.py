@@ -3,7 +3,7 @@
 
 DATA_TYPES = (
     'gwas', 'eqtl', 'sqtl', 'pqtl', 'gene', 'twas', 
-    'tad', 'multiple'
+    'tad', 'multiple', 'yaml'
 )
 
 GENOME_BUILDS = ('b37', 'b38')

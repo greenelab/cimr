@@ -231,17 +231,17 @@ class Yamler:
         """Check if provided weblink to the file exists. 
         Download if verified.
         """
-        path = self.yaml_data['data_file']['location']['url']
-        self.downloaded_file = path.split('/')[-1]
+        self.file_link = self.yaml_data['data_file']['location']['url']
+        self.downloaded_file = self.file_link.split('/')[-1]
 
         self.outdir_root = 'submitted_data/'
         pathlib.Path(self.outdir_root).mkdir(exist_ok=True)
         self.outdir = self.outdir_root + str(self.data_type) + '/'
         pathlib.Path(self.outdir).mkdir(exist_ok=True)
 
-        if verify_weblink(path):
+        if verify_weblink(self.file_link):
             logging.info(f' starting download')
-            download_file(path, self.outdir)
+            download_file(self.file_link, self.outdir)
             self.hash = self.yaml_data['data_file']['location']['md5']
             self.downloaded_file = self.outdir + self.downloaded_file
             self.check_hash()
@@ -250,10 +250,8 @@ class Yamler:
             sys.exit(1)
 
 
-    def bulk_download(self):
-        """Check if file is a recognized tarfile, compare against the 
-        provided md5 hash value and download
-        """
+    def extract_bulk(self):
+        """Extract downloaded bulk file"""
         import tarfile
 
         if tarfile.is_tarfile(self.downloaded_file):
@@ -261,18 +259,23 @@ class Yamler:
                 self.downloaded_file, 
                 mode='r:*'
             )
-        else:
+            # 'multiple' option is added for edge cases where multiple
+            # data type files in a tarfile share the same yaml
+            if self.data_type == 'multiple':
+                verify_dir(tarred_data)
+                tarred_data.extractall(path=self.outdir_root)
+            else:
+                for member in tarred_data.getmembers():
+                    if member.isreg():
+                        member.name = os.path.basename(member.name)
+                        tarred_data.extract(member, path=self.outdir)
+
+        else: # raise exception for invalid archive file
             raise Exception(' invalid archive file for upload_bulk')
 
-        if self.data_type == 'multiple':
-            verify_dir(tarred_data)
-            tarred_data.extractall(path=self.outdir_root)
-        else:
-            for member in tarred_data.getmembers():
-                if member.isreg():
-                    member.name = os.path.basename(member.name)
-                    tarred_data.extract(member, path=self.outdir)
-                    
+        # per pr#12, moving the downloaded archive file to subdir
+        # 'downloaded_archive' to avoid being processed later
+        # ref: https://github.com/greenelab/cimr-d/pull/12  
         tarfile_dir = 'submitted_data/downloaded_archive/'
         pathlib.Path(tarfile_dir).mkdir(exist_ok=True)
         new_path = tarfile_dir + self.downloaded_file.split('/')[-1]
@@ -285,13 +288,69 @@ class Yamler:
 
     def check_defined(self):
         """Check whether the submitted data is a single file"""
-        if self.yaml_data['defined_as'] == 'upload':
+        if self.yaml_data['defined_as'] in ['upload', 'upload_bulk']:
             self.download()
-        elif self.yaml_data['defined_as'] == 'upload_bulk':
-            self.bulk_download()
         else:
             logging.error(f' not an acceptible \'defined_as\' variable')
             sys.exit(1)
+        
+        self.check_hash()
+
+        if self.yaml_data['defined_as'] == 'upload_bulk':
+            self.extract_bulk()
+    
+
+    def format_data(self):
+        """Initializing submitted column names to cimr variables"""
+        columnset = self.yaml_data['data_file']['columns']
+        reversekeys = {
+            v: k for k, v in columnset.items() if v != 'na'
+        }
+        # get a list of new submitted_data files to process
+        infile = self.file_link.split('/')[-1]
+        downloaded_data = pandas.read_csv(
+            self.outdir + infile, 
+            sep='\t',
+            header=0
+        )
+        # if 'output_name' in self.yaml_data['data_file']:
+        #     if self.yaml_data['data_file']['output_name'] is not 'na':
+        #         outfile = 
+        logging.info(f' renaming columns based on provided info')
+        renamed_data = downloaded_data.rename(reversekeys, axis=1)
+        logging.info(f' writing renamed dataset to a file')
+        renamed_data.to_csv(
+            self.outdir + infile,
+            sep='\t',
+            header=True,
+            index=False,
+            na_rep='NA'
+        )
+        # variant_id = columnset['variant_id']
+        # variant_chrom = columnset['variant_chrom']
+        # variant_pos = columnset['variant_pos']
+        # rsnum = columnset['rsnum']
+        # ref = columnset['ref']
+        # alt = columnset['alt']
+        # build = columnset['build']
+        # effect_allele = columnset['effect_allele']
+        # non_effect_allele = columnset['non_effect_allele']
+        # inc_allele = columnset['inc_allele']
+        # inc_afrq = columnset['inc_afrq']
+        # effect_size = columnset['effect_size']
+        # standard_error = columnset['standard_error']
+        # statistic = columnset['statistic']
+        # pvalue = columnset['pvalue']
+        # feature_id = columnset['feature_id']
+        # feature_chrom = columnset['feature_chrom']
+        # feature_start = columnset['feature_start']
+        # feature_stop = columnset['feature_stop']
+        # imputation_status = columnset['imputation_status']
+        # frequency = columnset['frequency']
+        # tss_distance = columnset['tss_distance']
+        # ma_samples = columnset['ma_samples']
+        # maf = columnset['maf']
+        # comment_0 = columnset['comment_0']
 
 
     def check_data_file(self):
@@ -300,6 +359,7 @@ class Yamler:
         """
         self.set_data_type()
         self.check_defined()
+        self.format_data()
 
 
 if __name__ == '__main__':

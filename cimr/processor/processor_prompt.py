@@ -7,6 +7,7 @@
 
 
 import sys
+import pathlib
 import logging
 
 
@@ -17,6 +18,9 @@ from .query import Querier
 from .query import Snpper
 
 from .tad import Tadpole
+
+from .yamler import Yamler
+from .yamler import load_yaml
 
 from ..defaults import DATA_TYPES
 
@@ -47,9 +51,6 @@ def grow_tadpoles(args):
 
 def convert_yaml(yaml_file):
     """Convert yaml parameters to cimr arguments"""
-    import pathlib
-    from .yamler import Yamler
-    from .yamler import load_yaml
 
     try:
         yaml_file = pathlib.Path(yaml_file)
@@ -66,23 +67,24 @@ def convert_yaml(yaml_file):
 def processor_cli(args):
     """cimr processor subprocess cli"""
 
-    outdir = args.outdir 
-    outdir.mkdir(exist_ok=True)
-    logging.info(f' output directory is {str(outdir)}')
-    outfile = str(outdir) + '/' + str(args.out)
-    logging.info(f' output file prefix is {str(args.out)}')
-
     data_type = args.data_type
 
     if args.process:
-        
-        if args.yaml_file:
-            convert_yaml(args.yaml_file)
 
-        if check_type(data_type):
+        if args.yaml_file:
+            data_type = 'yaml'
+            convert_yaml(args.yaml_file)
             
+        elif check_type(data_type):
+
+            outdir = args.outdir 
+            outdir.mkdir(exist_ok=True)
+            logging.info(f' output directory is {str(outdir)}')
+            outfile = str(outdir) + '/' + str(args.out)
+            logging.info(f' output file prefix is {str(args.out)}')
+
             if args.file_name:
-                outfile = outfile + '_' + data_type + '.txt.gz'
+                outfile = outfile + '.txt.gz'
                 infile = Infiler(
                     data_type, 
                     args.file_name, 
@@ -101,28 +103,28 @@ def processor_cli(args):
             else:
                 logging.error(f' no file_name provided. nothing to process.')
                 sys.exit(0)
-        
-        # elif data_type == 'snp':
-        #     Snpper()
+            
+            # elif data_type == 'snp':
+            #     Snpper()
 
-        elif data_type == 'gene':
-            
-            with open(args.file_name) as f:
-                genes = f.read().splitlines()
-            
-            queried = Querier(genes)
-            queried.form_query()
-            
-            if args.write_json is not None:
-                annot_gene_file = str(outdir) + '/' + str(args.write_json)
-                queried.write_json(annot_gene_file)
-            
-            if args.write_gene is not None:
-                annot_gene_file = str(outdir) + '/' + str(args.write_gene)
-                queried.write_gene(annot_gene_file)
+            if data_type == 'gene':
+                
+                with open(args.file_name) as f:
+                    genes = f.read().splitlines()
+                
+                queried = Querier(genes)
+                queried.form_query()
+                
+                if args.write_json is not None:
+                    annot_gene_file = str(outdir) + '/' + str(args.write_json)
+                    queried.write_json(annot_gene_file)
+                
+                if args.write_gene is not None:
+                    annot_gene_file = str(outdir) + '/' + str(args.write_gene)
+                    queried.write_gene(annot_gene_file)
 
-        elif data_type == 'tad':        
-            grow_tadpoles(args)
+            elif data_type == 'tad':        
+                grow_tadpoles(args)
         else:
             pass
 

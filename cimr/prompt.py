@@ -119,7 +119,7 @@ def add_subparser_processor(subparsers):
         '-data-type',
         dest='data_type',
         help='input file data type',
-        choices=['gwas', 'eqtl', 'snp', 'gene', 'tad'],
+        choices=[ 'gwas', 'eqtl', 'gene', 'tad', 'multiple', 'yaml'],
     )
     parser.add_argument(
         '-genome-build',
@@ -341,8 +341,7 @@ def main():
             raise ValueError(' invalid log level: %s' % loglevel)
         logging.basicConfig(level=numeric_level)
     else:
-        logging.error(f' -log argument must be debug, info, warning, error, or critical.')
-        logging.error(f' -log argument is set to \'info\' by default.')
+        raise ValueError(' -log argument must be debug, info, warning, error, or critical.')
     module_name, function_name = args.function.rsplit('.', 1)
     module = importlib.import_module(module_name)
     function = getattr(module, function_name)

@@ -92,13 +92,11 @@ class Infiler:
     for files to be used for downstream functionalities,
 
     following are required :
-    - gene_id : gene id. expected for eqtls
+    - feature_id : e.g. gene id. expected for eqtls
     - rsnum : rs id of the variant
     - variant_id : variant id in the following format
         chromosome_position_referenceallele_alternateallele_genomebuild
     - pval / pvalue: p-value of the beta estimate
-
-    following are recommended:
     - beta / effect_size : beta coefficient estimate for the effect 
         of the variant on the gene 
     - se / standard_error : standard error of the beta

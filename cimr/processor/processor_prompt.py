@@ -59,6 +59,15 @@ def convert_yaml(yaml_file):
         yaml_data = load_yaml(yaml_file)
         y = Yamler(yaml_data)
         y.check_data_file()
+        data_type = y.data_type
+        file_name = pathlib.Path(y.outfile_path)
+        outdir = pathlib.Path('processed_data/' + str(data_type))
+        pathlib.Path('processed_data/').mkdir(exist_ok=True)
+        out_path = y.outfile_path.replace('submitted', 'processed')
+        out_path = out_path
+
+        return data_type, file_name, outdir, out_path
+
     except FileNotFoundError:
         logging.info(f' {yaml_file_path} is not accesible')
         sys.exit(1)
@@ -67,27 +76,26 @@ def convert_yaml(yaml_file):
 def processor_cli(args):
     """cimr processor subprocess cli"""
 
-    data_type = args.data_type
-
     if args.process:
 
         if args.yaml_file:
-            data_type = 'yaml'
-            convert_yaml(args.yaml_file)
+            data_type, file_name, outdir, out_path = convert_yaml(args.yaml_file)
+        else:
+            data_type = args.data_type
+            file_name = args.file_name
+            outdir = args.outdir
+            out_path = str(outdir) + '/' + str(args.out)
             
-        elif check_type(data_type):
+        if check_type(data_type):
 
-            outdir = args.outdir 
             outdir.mkdir(exist_ok=True)
-            logging.info(f' output directory is {str(outdir)}')
-            outfile = str(outdir) + '/' + str(args.out)
-            logging.info(f' output file prefix is {str(args.out)}')
+            logging.info(f' output directory: {str(outdir)}')
 
-            if args.file_name:
-                outfile = outfile + '.txt.gz'
+            if file_name:
+                outfile = out_path + '.txt.gz'
                 infile = Infiler(
                     data_type, 
-                    args.file_name, 
+                    file_name, 
                     args.genome_build, 
                     args.update_rsid, 
                     outfile,
@@ -125,6 +133,9 @@ def processor_cli(args):
 
             elif data_type == 'tad':        
                 grow_tadpoles(args)
+            
+            logging.info(f' finished processing {file_name}')
+            
         else:
             pass
 

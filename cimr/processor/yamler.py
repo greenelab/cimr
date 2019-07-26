@@ -222,9 +222,9 @@ class Yamler:
     def check_hash(self):
         """Compare md5 of the downloaded file to the provided value"""
         if validate_hash(self.downloaded_file, self.hash):
-            logging.info(f' data is ready for cimr processing.')
+            logging.info(f' md5sum verified.')
         else:
-            raise ValueError(' provided md5 hash didn\'t match.')
+            raise ValueError(' provided md5sum didn\'t match.')
 
 
     def download(self):
@@ -244,10 +244,15 @@ class Yamler:
             download_file(self.file_link, self.outdir)
             self.hash = self.yaml_data['data_file']['location']['md5']
             self.downloaded_file = self.outdir + self.downloaded_file
-            self.check_hash()
         else:
             logging.error(f' file unavailable')
             sys.exit(1)
+
+
+    def make_archive_dir(self):
+        """Make a temp dir for downloaded files to be archived"""
+        self.archive_dir = 'submitted_data/downloaded_archive/'
+        pathlib.Path(self.archive_dir).mkdir(exist_ok=True)
 
 
     def extract_bulk(self):
@@ -276,12 +281,11 @@ class Yamler:
         # per pr#12, moving the downloaded archive file to subdir
         # 'downloaded_archive' to avoid being processed later
         # ref: https://github.com/greenelab/cimr-d/pull/12  
-        tarfile_dir = 'submitted_data/downloaded_archive/'
-        pathlib.Path(tarfile_dir).mkdir(exist_ok=True)
-        new_path = tarfile_dir + self.downloaded_file.split('/')[-1]
+        self.make_archive_dir()
+        new_path = self.archive_dir + self.downloaded_file.split('/')[-1]
         os.rename(
             self.downloaded_file,
-            tarfile_dir + self.downloaded_file.split('/')[-1]
+            self.archive_dir + self.downloaded_file.split('/')[-1]
         )
         self.downloaded_file = new_path
 
@@ -308,6 +312,7 @@ class Yamler:
         }
         # get a list of new submitted_data files to process
         infile = self.file_link.split('/')[-1]
+        outfile = self.yaml_data['data_file']['output_name']
         downloaded_data = pandas.read_csv(
             self.outdir + infile, 
             sep='\t',
@@ -318,14 +323,23 @@ class Yamler:
         #         outfile = 
         logging.info(f' renaming columns based on provided info')
         renamed_data = downloaded_data.rename(reversekeys, axis=1)
-        logging.info(f' writing renamed dataset to a file')
+        self.outfile_path = self.outdir + outfile + '.txt.gz'
+        logging.info(f' writing renamed dataset to a file: {self.outfile_path}')
         renamed_data.to_csv(
-            self.outdir + infile,
+            self.outfile_path,
             sep='\t',
             header=True,
             index=False,
-            na_rep='NA'
+            na_rep='NA',
+            compression='gzip'
         )
+        if os.path.isfile(self.outfile_path):
+            self.make_archive_dir()
+            os.rename(
+                self.outdir + infile,
+                self.archive_dir + infile
+            )
+            logging.info(f' moving downloaded file to the archive')
         # variant_id = columnset['variant_id']
         # variant_chrom = columnset['variant_chrom']
         # variant_pos = columnset['variant_pos']

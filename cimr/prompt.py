@@ -139,11 +139,11 @@ def add_subparser_processor(subparsers):
         default=False,
         dest='update_rsid',
         action='store_true',
-        help='whether to update snp rs IDs based on newest refsnp variation database',
+        help='whether to update snp rs IDs based on refseq',
     )
     parser.add_argument(
         '-chunksize',
-        default=100000,
+        default=10000000,
         dest='chunksize',
         type=int,
         help='number of rows in the input file to process at a time',

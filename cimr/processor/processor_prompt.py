@@ -110,7 +110,7 @@ def processor_cli(args):
                     queried.form_query()
             
             else:
-                logging.error(f' no file_name provided. nothing to process.')
+                logging.error(f' no file_name provided; nothing to process.')
                 sys.exit(1)
             
             # elif data_type == 'snp':
@@ -151,7 +151,7 @@ def processor_cli(args):
             integrating.make_local_db(args.temp_dir)
 
     else:
-        logging.error(f' data_type or file_name is not recognized. nothing to do.')
+        logging.error(f' data_type or file_name is not recognized; nothing to do.')
         sys.exit(1)
     
 

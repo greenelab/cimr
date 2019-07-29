@@ -278,14 +278,14 @@ class Yamler:
         else: # raise exception for invalid archive file
             raise Exception(' invalid archive file for upload_bulk')
 
-        # per pr#12, moving the downloaded archive file to subdir
+        # moving the downloaded archive file to subdir
         # 'downloaded_archive' to avoid being processed later
         # ref: https://github.com/greenelab/cimr-d/pull/12  
         self.make_archive_dir()
         new_path = self.archive_dir + self.downloaded_file.split('/')[-1]
         os.rename(
             self.downloaded_file,
-            self.archive_dir + self.downloaded_file.split('/')[-1]
+            new_path
         )
         self.downloaded_file = new_path
 
@@ -340,31 +340,6 @@ class Yamler:
                 self.archive_dir + infile
             )
             logging.info(f' moving downloaded file to the archive')
-        # variant_id = columnset['variant_id']
-        # variant_chrom = columnset['variant_chrom']
-        # variant_pos = columnset['variant_pos']
-        # rsnum = columnset['rsnum']
-        # ref = columnset['ref']
-        # alt = columnset['alt']
-        # build = columnset['build']
-        # effect_allele = columnset['effect_allele']
-        # non_effect_allele = columnset['non_effect_allele']
-        # inc_allele = columnset['inc_allele']
-        # inc_afrq = columnset['inc_afrq']
-        # effect_size = columnset['effect_size']
-        # standard_error = columnset['standard_error']
-        # statistic = columnset['statistic']
-        # pvalue = columnset['pvalue']
-        # feature_id = columnset['feature_id']
-        # feature_chrom = columnset['feature_chrom']
-        # feature_start = columnset['feature_start']
-        # feature_stop = columnset['feature_stop']
-        # imputation_status = columnset['imputation_status']
-        # frequency = columnset['frequency']
-        # tss_distance = columnset['tss_distance']
-        # ma_samples = columnset['ma_samples']
-        # maf = columnset['maf']
-        # comment_0 = columnset['comment_0']
 
 
     def check_data_file(self):
@@ -383,18 +358,13 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         yaml_files = find_yaml_in_dir()
     else:
-        yaml_files = pathlib.Path(sys.argv[1])
+        yaml_files = [pathlib.Path(sys.argv[1]), ]
 
-    try:
-        for yaml_file in yaml_files:
-            yaml_file = pathlib.Path(yaml_file)
-            yaml_file_path = yaml_file.resolve(strict=True)
-            logging.info(f' processing metadata {yaml_file_path}')
-            yaml_data = load_yaml(yaml_file)
-            y = Yamler(yaml_data)
-            y.check_data_file()
-    except FileNotFoundError:
-        logging.info(f' no new yaml file found to process')
-        sys.exit(0)
-
+    for yaml_file in yaml_files:
+        yaml_file = pathlib.Path(yaml_file)
+        yaml_file_path = yaml_file.resolve(strict=True)
+        logging.info(f' processing metadata {yaml_file_path}')
+        yaml_data = load_yaml(yaml_file)
+        y = Yamler(yaml_data)
+        y.check_data_file()
 

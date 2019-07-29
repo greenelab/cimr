@@ -110,7 +110,7 @@ def processor_cli(args):
             
             else:
                 logging.error(f' no file_name provided. nothing to process.')
-                sys.exit(0)
+                sys.exit(1)
             
             # elif data_type == 'snp':
             #     Snpper()
@@ -135,9 +135,9 @@ def processor_cli(args):
                 grow_tadpoles(args)
             
             logging.info(f' finished processing {file_name}')
-            
+
         else:
-            pass
+            sys.exit(1)
 
     elif args.integrate:
         if check_type(data_type):
@@ -151,6 +151,6 @@ def processor_cli(args):
 
     else:
         logging.error(f' data_type or file_name is not recognized. nothing to do.')
-        sys.exit(0)
+        sys.exit(1)
     
 

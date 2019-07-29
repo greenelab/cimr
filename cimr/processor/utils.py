@@ -12,7 +12,9 @@ import pathlib
 import logging
 import subprocess
 
-from ..defaults import *
+from ..defaults import DATA_TYPES
+from ..defaults import GENOME_BUILDS
+from ..defaults import HEADERS
 
 
 def set_chrom_dict():
@@ -293,7 +295,7 @@ class Infiler:
                 self.check_ref()
         else:
             logging.error(f' rsnum column is not provided.')
-            # sys.exit(1)
+            sys.exit(1)
 
         if 'inc_allele' in self.included_header:
             self.fill_effect_allele()
@@ -317,20 +319,20 @@ class Infiler:
             check_numeric(self.summary_data, 'effect_size') 
         else:
             logging.error(f' effect_size column is not provided.')
-            pass
+            sys.exit(1)
 
         if 'standard_error' in self.included_header:
             check_numeric(self.summary_data, 'standard_error') 
         else:
             logging.error(f' standard_error column is not provided.')
-            pass
+            sys.exit(1)
 
         if 'pvalue' in self.included_header:
             check_numeric(self.summary_data, 'pvalue')
             self.check_probability('pvalue')
         else:
             logging.error(f' pvalue column is not provided.')
-            pass
+            sys.exit(1)
 
 
     def write_header(self, template):
@@ -405,8 +407,6 @@ class Infiler:
                 logging.error(f' no content in {self.file_name}.')
                 sys.exit()
             
-            # self.check_file()
-            # self.write_file()
             chunkcount += 1
 
 
@@ -436,7 +436,7 @@ class Integrator:
 
     data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl', 'twas', 'tad'}
     file_name: name of the file containing the data
-    data_type = default.DATA_TYPES
+    data_type = defaults.DATA_TYPES
     can_be_public: boolean variable indicating whether the contributed 
                    data can be released as a part of the public archive.
                    for cimr >= 0.2.3, can_be_public parameter will 

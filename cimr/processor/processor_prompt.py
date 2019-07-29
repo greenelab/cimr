@@ -60,12 +60,16 @@ def convert_yaml(yaml_file):
         y = Yamler(yaml_data)
         y.check_data_file()
         data_type = y.data_type
-        file_name = pathlib.Path(y.outfile_path)
+        file_name = y.downloaded_file
         outdir = pathlib.Path('processed_data/' + str(data_type))
         pathlib.Path('processed_data/').mkdir(exist_ok=True)
-        out_path = y.outfile_path.replace('submitted', 'processed')
-        out_path = out_path
-        return data_type, file_name, outdir, out_path
+        out_path = file_name.replace('submitted', 'processed')
+        out_path = pathlib.Path(out_path)
+        if y.columnset:
+            columnset = y.columnset
+        else:
+            columnset = {}
+        return data_type, file_name, outdir, out_path, columnset
     else:
         logging.info(f' {yaml_file_path} is not accessible')
         sys.exit(1)
@@ -77,12 +81,13 @@ def processor_cli(args):
     if args.process:
 
         if args.yaml_file:
-            data_type, file_name, outdir, out_path = convert_yaml(args.yaml_file)
+            data_type, file_name, outdir, out_path, columnset = convert_yaml(args.yaml_file)
         else:
             data_type = args.data_type
             file_name = args.file_name
             outdir = args.outdir
             out_path = str(outdir) + '/' + str(args.out)
+            columnset = {}
             
         if check_type(data_type):
 
@@ -90,18 +95,20 @@ def processor_cli(args):
             logging.info(f' output directory: {str(outdir)}')
 
             if file_name:
-                if not out_path.endswith(FILE_EXTENSION):
-                    outfile = out_path + '.txt.gz'
+                if not str(out_path).endswith(FILE_EXTENSION):
+                    outfile = pathlib.Path(str(out_path) + '.tsv.gz')
                 else:
-                    outfile = out_path
+                    outfile = pathlib.Path(out_path)
                 infile = Infiler(
                     data_type, 
                     file_name, 
                     args.genome_build, 
                     args.update_rsid, 
                     outfile,
-                    args.chunksize
+                    args.chunksize,
+                    columnset
                 )
+                
                 infile.read_file()
                 
                 if data_type == 'eqtl':

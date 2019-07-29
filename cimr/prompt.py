@@ -153,6 +153,15 @@ def add_subparser_processor(subparsers):
         dest='yaml_file',
         help='yaml file containing information about data',
     )
+    parser.add_argument(
+        '-keys',
+        default={},
+        # variable name due to reversed key: value 
+        # in yaml-based parsing of column headings...
+        dest='reversekeys',
+        help='dictionary containing corresponding header names, '
+             'if different from the cimr default',
+    )
 
     # not required for data-type gwas
     parser.add_argument(

@@ -75,6 +75,20 @@ def check_numeric(data, col):
         return None
 
 
+def make_int(col):
+    """Make sure the column values are represented as int"""
+    return col.astype(int)
+
+
+def rename_columns(data, columnset):
+    """Given a pandas dataframe and a dictionary, rename columns
+    Primarily used for yaml column-set-based renaming in cimr.
+    """
+    logging.info(f' renaming columns based on provided info')
+    renamed_data = data.rename(columnset, axis=1)
+    return renamed_data
+
+
 class Infiler:
     """This is the cimr processor base class. functions regarding 
     automated checks for contributed summary statistics files are
@@ -139,7 +153,8 @@ class Infiler:
                  genome_build, 
                  update_rsid, 
                  outfile, 
-                 chunksize):
+                 chunksize,
+                 columnset={}):
 
         if data_type not in DATA_TYPES:
             raise ValueError(' %s is not a valid data_type supported' % data_type)
@@ -151,6 +166,7 @@ class Infiler:
         self.update_rsid = update_rsid
         self.outfile = outfile
         self.chunksize = chunksize
+        self.columnset = columnset
     
 
     def get_pos(self):
@@ -165,7 +181,8 @@ class Infiler:
             if len(temp.columns) == 5:
                 self.summary_data['build'] = temp[4]
             else:
-                self.summary_data['build'] = self.genome_build    
+                self.summary_data['build'] = self.genome_build   
+
 
     def check_chrom(self):
         """Assumes chr+number
@@ -305,7 +322,7 @@ class Infiler:
         
         columns_to_drop = [
             'chrom', 'pos', 'ref', 'alt', 'chromosome', 
-            'position', 'inc_allele'
+            'position', 'inc_allele', 'variant_chrom', 'variant_pos'
         ]
 
         for colname in columns_to_drop:
@@ -388,23 +405,9 @@ class Infiler:
 
             # check if empty and check header
             if not chunk.empty:
-                # make column headings more explicit
-                betaeffect = {
-                    'beta':'effect_size', 
-                    'se':'standard_error', 
-                    'pval':'pvalue'
-                }
-                gtexid = {
-                    'variant_id':'rsnum', 
-                    'panel_variant_id':'variant_id'
-                }
 
-                if 'beta' in chunk.columns:
-                    chunk.rename(columns=betaeffect, inplace=True)
-                
-                if 'panel_variant_id' in chunk.columns:
-                    chunk.rename(columns=gtexid, inplace=True)
-                
+                if self.columnset:
+                    chunk = rename_columns(chunk, self.columnset)
                 self.included_header = list(set(HEADERS) & set(chunk.columns))
                 self.check_file(chunk)
                 self.summary_data = pandas.concat(

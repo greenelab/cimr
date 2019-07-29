@@ -20,7 +20,7 @@ WORKING_HEADERS = ['rsnum', 'variant_id', 'pvalue',
 HEADERS = ['rsnum', 'variant_id', 'pvalue', 'effect_size', 
     'odds_ratio', 'standard_error', 'zscore', 'tss_distance', 
     'effect_allele', 'non_effect_allele', 'frequency', 
-    'imputation_status', 'sample_size', 'n_cases'
+    'imputation_status', 'sample_size', 'n_cases', 'build'
 ]
 
 CONFIG_FILE_EXTENSION = ('yml', 'yaml')
@@ -28,5 +28,5 @@ CONFIG_FILE_EXTENSION = ('yml', 'yaml')
 # gzip, bz2, and lzma (xz)
 COMPRESSION_EXTENSION = ('gz', 'bz2', 'xz')
 BULK_EXTENSION = ('tgz', 'tar.gz', 'tar.bz2', 'tar.xz')
-FILE_EXTENSION = ('txt', 'tsv', 'txt.gz', 'tsv.gz')
+FILE_EXTENSION = ('txt.gz', 'tsv.gz')
 

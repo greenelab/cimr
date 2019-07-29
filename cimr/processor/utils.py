@@ -156,16 +156,16 @@ class Infiler:
     def get_pos(self):
         """Check variant_id column and make 
         chrom, pos, ref, alt, build columns"""
-
         temp = self.summary_data['variant_id'].str.split('_', expand=True)
-
         if not temp.empty:
             self.summary_data['chrom'] = temp[0]
             self.summary_data['pos'] = temp[1]
             self.summary_data['ref'] = temp[2]
             self.summary_data['alt'] = temp[3]
-            self.summary_data['build'] = temp[4]
-    
+            if len(temp.columns) == 5:
+                self.summary_data['build'] = temp[4]
+            else:
+                self.summary_data['build'] = self.genome_build    
 
     def check_chrom(self):
         """Assumes chr+number
@@ -180,13 +180,13 @@ class Infiler:
         chroms = sumdata['chrom'].drop_duplicates().values
         
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
-            logging.info(f' there are {len(chroms)} chromosomes in the file provided.')
+            logging.info(f' there are {len(chroms)} chromosomes.')
         elif len(chroms) <= (maxchrom - 2):
-            logging.warning(f' input file does not include {maxchrom} chromosome(s).')
-            logging.warning(f' chromosome(s) included in the input file: %s'%(chroms,))
+            logging.warning(f' data does not include {maxchrom} chromosome(s).')
+            logging.warning(f' chromosome(s) included: %s'%(chroms,))
         else:
             logging.warning(f' input file more than {maxchrom - 1} chromosomes.')
-            logging.warning(f' chromosome(s) included in the input file: %s'%(chroms,))
+            logging.warning(f' chromosome(s) included: %s'%(chroms,))
 
         if len(set(chroms) & set(chrom_str)) > (maxchrom - 2):
             pass
@@ -201,37 +201,38 @@ class Infiler:
 
         remainder = list(set(chroms) - set(chrom_str) - set(chrom_int))
         if len(remainder) > 0:
-            logging.warning(f' chromosome(s) not used for analysis: %s'%(remainder,))
+            logging.warning(f' chromosome(s) not used: %s'%(remainder,))
 
 
     def check_ref(self):
         from pkg_resources import resource_filename
         
-        variant_reference_file = 'data/annotation/' + self.variant_reference_file
-        reference_id = self.variant_reference_id
-        reference_file = resource_filename(
-            'cimr', variant_reference_file
+        var_ref = 'data/annotation/' + self.var_ref
+        ref_id = self.var_ref_id
+        ref_file = resource_filename(
+            'cimr', var_ref
             )
-        logging.info(f' using {reference_file} to check variant information.')
-        logging.info(f' rs id reference is {reference_id}')
-        reference = pandas.read_csv(
-            reference_file, sep='\t', header=0, dtype={'chr':'str'}
+        logging.info(f' using {ref_file} to check variants.')
+        logging.info(f' rs id reference is {ref_id}')
+        refdf = pandas.read_csv(
+            ref_file, sep='\t', header=0, dtype={'chr':'str'}
             )
-        reference.columns = [x + '_reference' for x in reference.columns]
+        refdf.columns = [x + '_reference' for x in refdf.columns]
         sumdata = self.summary_data
-        rsnum_with_reference = sumdata.loc[sumdata['rsnum'].isin(reference[reference_id + '_reference']),:]
-        if not rsnum_with_reference.empty:
-            samples = rsnum_with_reference.sample(frac=0.1, replace=False)
+        checked_ref = sumdata['rsnum'].isin(refdf[ref_id + '_reference'])
+        rsnum_ref = sumdata.loc[checked_ref,:]
+        if not rsnum_ref.empty:
+            samples = rsnum_ref.sample(frac=0.1, replace=False)
             merged = samples.merge(
-                reference, left_on='rsnum', right_on=reference_id+'_reference', 
+                refdf, left_on='rsnum', right_on=ref_id+'_reference', 
                 left_index=False, right_index=False, how='left'
                 )
             merged.drop_duplicates(inplace=True)
             variant_nomatch = merged.loc[~(merged['variant_id']==merged['variant_id_reference'])]
             samplecount = len(samples.index)
-            rsrefcount = len(rsnum_with_reference.index)
+            rsrefcount = len(rsnum_ref.index)
             nomatchcount = len(variant_nomatch.index)
-            logging.info(f' {samplecount} sampled variants from {rsrefcount} total variants with rs ids,')
+            logging.info(f' {samplecount} sampled from {rsrefcount} total variants with rs ids,')
             logging.info(f' {nomatchcount} variants do not match the reference.')
         else:
             logging.error(f' there are no matching rs ids.')
@@ -249,13 +250,13 @@ class Infiler:
     def find_reference(self):
         """Find variant and gene references for map checking"""
         if self.genome_build == 'b37':
-            self.gene_reference_file = 'gene_grch37_gencode_v29.txt.gz'
-            self.variant_reference_file = 'variant_grch37_subset.txt.gz'
-            self.variant_reference_id = 'rs_id_dbSNP147_GRCh37p13'
+            self.gene_ref = 'gene_grch37_gencode_v29.txt.gz'
+            self.var_ref = 'variant_grch37_subset.txt.gz'
+            self.var_ref_id = 'rs_id_dbSNP147_GRCh37p13'
         else:
-            self.gene_reference_file = 'gene_grch38_gencode_v26.txt.gz'
-            self.variant_reference_file = 'variant_grch38_subset.txt.gz'
-            self.variant_reference_id = 'rs_id_dbSNP150_GRCh38p7'
+            self.gene_ref = 'gene_grch38_gencode_v26.txt.gz'
+            self.var_ref = 'variant_grch38_subset.txt.gz'
+            self.var_ref_id = 'rs_id_dbSNP150_GRCh38p7'
     
 
     def list_genes(self):
@@ -303,7 +304,7 @@ class Infiler:
             logging.info(f' inc_allele column is not available')
         
         columns_to_drop = [
-            'chrom', 'pos', 'ref', 'alt', 'build', 'chromosome', 
+            'chrom', 'pos', 'ref', 'alt', 'chromosome', 
             'position', 'inc_allele'
         ]
 
@@ -335,23 +336,34 @@ class Infiler:
             sys.exit(1)
 
 
-    def write_header(self, template):
-        """Write a header row to the output file"""
-        logging.info(f' output will be saved in {self.outfile}.')
-        if isinstance(template, pandas.DataFrame):
-            try:
-                template.to_csv(
-                    str(self.outfile), 
-                    header=True, 
-                    index=False, 
-                    sep='\t', 
-                    na_rep='NA',
-                    compression='gzip',
-                    float_format='%.5f',
-                    mode='w'
-                )
-            except:
-                logging.error(f' file {self.outfile} cannot be written.')
+    def write_header(self):
+        """Write data to file with header"""
+        if isinstance(self.summary_data, pandas.DataFrame):
+            self.summary_data.to_csv(
+                str(self.outfile), 
+                header=True, 
+                index=False, 
+                sep='\t', 
+                na_rep='NA',
+                compression='gzip',
+                float_format='%.5f',
+                mode='w'
+            )
+
+
+    def write_file(self):
+        """Write data to file without header"""
+        if isinstance(self.summary_data, pandas.DataFrame):
+            self.summary_data.to_csv(
+                str(self.outfile), 
+                header=False, 
+                index=False, 
+                sep='\t', 
+                na_rep='NA',
+                compression='gzip',
+                float_format='%.5f',
+                mode='a'
+            )
 
 
     def read_file(self):
@@ -360,7 +372,6 @@ class Infiler:
         template = pandas.DataFrame(columns=HEADERS)
 
         self.file_name = find_file(self.file_name)
-        self.write_header(template)
 
         chunks = pandas.read_csv(
             self.file_name, 
@@ -401,31 +412,19 @@ class Infiler:
                     sort=False, 
                     ignore_index=True
                 )
-                self.write_file()
+
+                if chunkcount == 0:
+                    self.write_header()
+                elif chunkcount > 0:
+                    self.write_file()
+                else:
+                    logging.error(f' file {self.outfile} cannot be written.')
                 
             else:
                 logging.error(f' no content in {self.file_name}.')
-                sys.exit()
+                sys.exit(1)
             
             chunkcount += 1
-
-
-    def write_file(self):
-        """Write data to file"""
-        if isinstance(self.summary_data, pandas.DataFrame):
-            try:
-                self.summary_data.to_csv(
-                    str(self.outfile), 
-                    header=False, 
-                    index=False, 
-                    sep='\t', 
-                    na_rep='NA',
-                    compression='gzip',
-                    float_format='%.5f',
-                    mode='a'
-                )
-            except:
-                logging.error(f' file {self.outfile} cannot be written.')
         
 
 class Integrator:

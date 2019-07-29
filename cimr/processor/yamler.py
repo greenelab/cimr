@@ -232,7 +232,8 @@ class Yamler:
         Download if verified.
         """
         self.file_link = self.yaml_data['data_file']['location']['url']
-        self.downloaded_file = self.file_link.split('/')[-1]
+        # self.downloaded_file = self.file_link.split('/')[-1]
+        self.infile = self.yaml_data['data_file']['input_name']
 
         self.outdir_root = 'submitted_data/'
         pathlib.Path(self.outdir_root).mkdir(exist_ok=True)
@@ -243,7 +244,7 @@ class Yamler:
             logging.info(f' starting download')
             download_file(self.file_link, self.outdir)
             self.hash = self.yaml_data['data_file']['location']['md5']
-            self.downloaded_file = self.outdir + self.downloaded_file
+            self.downloaded_file = self.outdir + self.infile
         else:
             logging.error(f' file unavailable')
             sys.exit(1)
@@ -282,12 +283,49 @@ class Yamler:
         # 'downloaded_archive' to avoid being processed later
         # ref: https://github.com/greenelab/cimr-d/pull/12  
         self.make_archive_dir()
-        new_path = self.archive_dir + self.downloaded_file.split('/')[-1]
+        new_path = self.archive_dir + self.infile
         os.rename(
             self.downloaded_file,
             new_path
         )
         self.downloaded_file = new_path
+
+
+    def format_data(self):
+        """Initializing submitted column names to cimr variables"""
+        columnset = self.yaml_data['data_file']['columns']
+        reversekeys = {
+            v: k for k, v in columnset.items() if v != 'na'
+        }
+        # get a list of new submitted_data files to process
+        outfile = self.yaml_data['data_file']['output_name']
+        downloaded_data = pandas.read_csv(
+            self.outdir + self.infile, 
+            sep='\t',
+            header=0
+        )
+        logging.info(f' renaming columns based on provided info')
+        renamed_data = downloaded_data.rename(reversekeys, axis=1)
+        if outfile.endswith('.tsv.gz'):
+            self.outfile_path = self.outdir + outfile
+        else:
+            self.outfile_path = self.outdir + outfile + '.tsv.gz'
+        logging.info(f' writing renamed dataset to a file: {self.outfile_path}')
+        renamed_data.to_csv(
+            self.outfile_path,
+            sep='\t',
+            header=True,
+            index=False,
+            na_rep='NA',
+            compression='gzip'
+        )
+        if os.path.isfile(self.outfile_path) and self.infile is not outfile:
+            self.make_archive_dir()
+            os.rename(
+                self.outdir + self.infile,
+                self.archive_dir + self.infile
+            )
+            logging.info(f' moving downloaded file to the archive')
 
 
     def check_defined(self):
@@ -302,44 +340,8 @@ class Yamler:
 
         if self.yaml_data['defined_as'] == 'upload_bulk':
             self.extract_bulk()
-    
-
-    def format_data(self):
-        """Initializing submitted column names to cimr variables"""
-        columnset = self.yaml_data['data_file']['columns']
-        reversekeys = {
-            v: k for k, v in columnset.items() if v != 'na'
-        }
-        # get a list of new submitted_data files to process
-        infile = self.file_link.split('/')[-1]
-        outfile = self.yaml_data['data_file']['output_name']
-        downloaded_data = pandas.read_csv(
-            self.outdir + infile, 
-            sep='\t',
-            header=0
-        )
-        # if 'output_name' in self.yaml_data['data_file']:
-        #     if self.yaml_data['data_file']['output_name'] is not 'na':
-        #         outfile = 
-        logging.info(f' renaming columns based on provided info')
-        renamed_data = downloaded_data.rename(reversekeys, axis=1)
-        self.outfile_path = self.outdir + outfile + '.txt.gz'
-        logging.info(f' writing renamed dataset to a file: {self.outfile_path}')
-        renamed_data.to_csv(
-            self.outfile_path,
-            sep='\t',
-            header=True,
-            index=False,
-            na_rep='NA',
-            compression='gzip'
-        )
-        if os.path.isfile(self.outfile_path):
-            self.make_archive_dir()
-            os.rename(
-                self.outdir + infile,
-                self.archive_dir + infile
-            )
-            logging.info(f' moving downloaded file to the archive')
+        else:
+            self.format_data()
 
 
     def check_data_file(self):
@@ -348,8 +350,7 @@ class Yamler:
         """
         self.set_data_type()
         self.check_defined()
-        self.format_data()
-
+        
 
 if __name__ == '__main__':
 

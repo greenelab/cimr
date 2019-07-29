@@ -23,6 +23,7 @@ from .yamler import Yamler
 from .yamler import load_yaml
 
 from ..defaults import DATA_TYPES
+from ..defaults import FILE_EXTENSION
 
 
 def check_type(types):
@@ -51,9 +52,8 @@ def grow_tadpoles(args):
 
 def convert_yaml(yaml_file):
     """Convert yaml parameters to cimr arguments"""
-
-    try:
-        yaml_file = pathlib.Path(yaml_file)
+    yaml_file = pathlib.Path(yaml_file)
+    if yaml_file.is_file():
         yaml_file_path = yaml_file.resolve(strict=True)
         logging.info(f' processing {yaml_file_path}')
         yaml_data = load_yaml(yaml_file)
@@ -65,11 +65,9 @@ def convert_yaml(yaml_file):
         pathlib.Path('processed_data/').mkdir(exist_ok=True)
         out_path = y.outfile_path.replace('submitted', 'processed')
         out_path = out_path
-
         return data_type, file_name, outdir, out_path
-
-    except FileNotFoundError:
-        logging.info(f' {yaml_file_path} is not accesible')
+    else:
+        logging.info(f' {yaml_file_path} is not accessible')
         sys.exit(1)
 
 
@@ -92,7 +90,10 @@ def processor_cli(args):
             logging.info(f' output directory: {str(outdir)}')
 
             if file_name:
-                outfile = out_path + '.txt.gz'
+                if not out_path.endswith(FILE_EXTENSION):
+                    outfile = out_path + '.txt.gz'
+                else:
+                    outfile = out_path
                 infile = Infiler(
                     data_type, 
                     file_name, 

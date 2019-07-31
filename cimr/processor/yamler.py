@@ -202,12 +202,14 @@ def convert_yaml(yaml_files):
         y = Yamler(yaml_data)
         y.check_data_file()
         
-        if 'columns' in y.yaml_data['data_file'].keys():
+        if hasattr(y, 'columnset'):
             columnset = y.columnset
         else:
             columnset = {}
 
-        genome_build = y.genome_build
+        if hasattr(y, 'genome_build'):
+            genome_build = y.genome_build
+        
         fileset = [*fileset, *y.fileset]
 
     return genome_build, fileset, columnset

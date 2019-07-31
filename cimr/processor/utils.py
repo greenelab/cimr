@@ -45,16 +45,6 @@ def find_file(file_name):
         sys.exit()
 
 
-def download_file(url, file_name, download_dir):
-    """Check if a file exists and download if not."""
-    import os
-    from urllib.request import urlretrieve
-    file_path = find_file(file_name)
-    if not (os.path.isfile(file_path)):
-        urlretrieve(url + file_name, file_path)
-        return 0
-
-
 def check_numeric(data, col):
     """Check for numeric columns"""
     from pandas.api.types import is_numeric_dtype
@@ -78,15 +68,6 @@ def check_numeric(data, col):
 def make_int(col):
     """Make sure the column values are represented as int"""
     return col.astype(int)
-
-
-def rename_columns(data, columnset):
-    """Given a pandas dataframe and a dictionary, rename columns
-    Primarily used for yaml column-set-based renaming in cimr.
-    """
-    logging.info(f' renaming columns based on provided info')
-    renamed_data = data.rename(columnset, axis=1)
-    return renamed_data
 
 
 class Infiler:
@@ -383,6 +364,14 @@ class Infiler:
             )
 
 
+    def rename_columns(self, dataframe):
+        """Given a pandas dataframe and a dictionary, rename columns
+        Primarily used for yaml column-set-based renaming in cimr.
+        """
+        logging.info(f' renaming columns based on provided info')
+        dataframe.rename(self.columnset, axis=1, inplace=True)
+
+
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""
 
@@ -407,7 +396,8 @@ class Infiler:
             if not chunk.empty:
 
                 if self.columnset:
-                    chunk = rename_columns(chunk, self.columnset)
+                    self.rename_columns(chunk)
+
                 self.included_header = list(set(HEADERS) & set(chunk.columns))
                 self.check_file(chunk)
                 self.summary_data = pandas.concat(

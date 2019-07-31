@@ -154,11 +154,11 @@ def add_subparser_processor(subparsers):
         help='yaml file containing information about data',
     )
     parser.add_argument(
-        '-keys',
+        '-column-set',
         default={},
         # variable name due to reversed key: value 
         # in yaml-based parsing of column headings...
-        dest='reversekeys',
+        dest='columnset',
         help='dictionary containing corresponding header names, '
              'if different from the cimr default',
     )

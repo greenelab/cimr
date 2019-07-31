@@ -186,6 +186,33 @@ def verify_dir(tarred_data):
             sys.exit(1)
 
 
+def convert_yaml(yaml_files):
+    """Convert yaml parameters to cimr arguments"""
+    fileset = []
+    for yaml_file in yaml_files:
+        yaml_file = pathlib.Path(yaml_file)
+        if yaml_file.is_file():
+            yaml_file_path = yaml_file.resolve(strict=True)
+            logging.info(f' processing {yaml_file_path}')
+        else:
+            logging.error(f' {yaml_file} is not accessible')
+            sys.exit(1)
+
+        yaml_data = load_yaml(yaml_file)
+        y = Yamler(yaml_data)
+        y.check_data_file()
+        
+        if 'columns' in y.yaml_data['data_file'].keys():
+            columnset = y.columnset
+        else:
+            columnset = {}
+
+        genome_build = y.genome_build
+        fileset = [*fileset, *y.fileset]
+
+    return genome_build, fileset, columnset
+
+
 class Yamler:
     """A collection of utilities to parse the yaml file, check metadata
     and trigger cimr processing of the contributed file
@@ -195,9 +222,10 @@ class Yamler:
     def __init__(self, yaml_data):
         self.yaml_data = yaml_data
         self.data_type = None
+        self.genome_build = None
         self.keys = None
         self.hash = None
-        self.outdir = None
+        self.sub_datatype_dir = None
         self.downloaded_file = None
 
 
@@ -220,6 +248,15 @@ class Yamler:
             sys.exit(1)
     
 
+    def set_genome_build(self):
+        """Pull out genome build variable value from yaml"""
+        if 'build' in self.yaml_data['data_info']:
+            self.genome_build = self.yaml_data['data_info']['build']
+        else:
+            logging.info(f' genome build is not provided in yaml')
+            sys.exit(1)
+    
+
     def check_hash(self):
         """Compare md5 of the downloaded file to the provided value"""
         if validate_hash(self.downloaded_file, self.hash):
@@ -233,22 +270,22 @@ class Yamler:
         Download if verified.
         """
         self.file_link = self.yaml_data['data_file']['location']['url']
-        # self.downloaded_file = self.file_link.split('/')[-1]
         if 'input_name' in self.yaml_data['data_file'].keys():
             self.infile = self.yaml_data['data_file']['input_name']
         else:
             self.infile = self.file_link.split('/')[-1]
 
-        self.outdir_root = 'submitted_data/'
-        pathlib.Path(self.outdir_root).mkdir(exist_ok=True)
-        self.outdir = self.outdir_root + str(self.data_type) + '/'
-        pathlib.Path(self.outdir).mkdir(exist_ok=True)
+        self.submitted_dir = 'submitted_data/'
+        pathlib.Path(self.submitted_dir).mkdir(exist_ok=True)
+        self.sub_datatype_dir = self.submitted_dir + str(self.data_type) + '/'
+        pathlib.Path(self.sub_datatype_dir).mkdir(exist_ok=True)
 
         if verify_weblink(self.file_link):
             logging.info(f' starting download')
-            download_file(self.file_link, self.outdir)
+            download_file(self.file_link, self.sub_datatype_dir)
             self.hash = self.yaml_data['data_file']['location']['md5']
-            self.downloaded_file = self.outdir + self.infile
+            self.downloaded_file = self.sub_datatype_dir + self.infile
+            self.fileset = [self.downloaded_file,]
         else:
             logging.error(f' file unavailable')
             sys.exit(1)
@@ -273,14 +310,17 @@ class Yamler:
             # data type files in a tarfile share the same yaml
             if self.data_type == 'multiple':
                 verify_dir(tarred_data)
-                tarred_data.extractall(path=self.outdir_root)
+                tarred_data.extractall(path=self.submitted_dir)
+                self.fileset = [self.submitted_dir + x for x in tarred_data.getnames()]
             else:
+                self.fileset = []
                 for member in tarred_data.getmembers():
                     if member.isreg():
                         member.name = os.path.basename(member.name)
-                        tarred_data.extract(member, path=self.outdir)
+                        tarred_data.extract(member, path=self.sub_datatype_dir)
+                        self.fileset.append(self.sub_datatype_dir + member.name)
 
-        else: # raise exception for invalid archive file
+        else:
             raise Exception(' invalid archive file for upload_bulk')
 
         # moving the downloaded archive file to subdir
@@ -297,14 +337,24 @@ class Yamler:
 
     def get_colnames(self):
         """Initializing submitted column names to cimr variables"""
-        columnset = self.yaml_data['data_file']['columns']
-        self.columnset = {
-            v: k for k, v in columnset.items() if v != 'na'
-        }
+        if 'columns' in self.yaml_data['data_file'].keys():
+            columnset = self.yaml_data['data_file']['columns']
+            self.columnset = {
+                v: k for k, v in columnset.items() if v != 'na'
+            }
+            logging.info(f' following columns will be renamed: ')
+            logging.info(f' {self.columnset.keys()}')
+        else:
+            logging.info(f' column header change is not indicated.')
 
 
-    def check_defined(self):
-        """Check whether the submitted data is a single file"""
+    def check_data_file(self):
+        """Standard set of Yamler functions to check information on the
+        contributed data file for ci cimr processing.
+        """
+        self.set_data_type()
+        self.set_genome_build()
+
         if self.yaml_data['defined_as'] in ['upload', 'upload_bulk']:
             self.download()
         else:
@@ -315,16 +365,8 @@ class Yamler:
 
         if self.yaml_data['defined_as'] == 'upload_bulk':
             self.extract_bulk()
-        else:
-            self.get_colnames()
-
-
-    def check_data_file(self):
-        """Standard set of Yamler functions to check information on the
-        contributed data file for ci cimr processing.
-        """
-        self.set_data_type()
-        self.check_defined()
+        
+        self.get_colnames()
 
 
 if __name__ == '__main__':
@@ -334,13 +376,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         yaml_files = find_yaml_in_dir()
     else:
-        yaml_files = [pathlib.Path(sys.argv[1]), ]
-
-    for yaml_file in yaml_files:
-        yaml_file = pathlib.Path(yaml_file)
-        yaml_file_path = yaml_file.resolve(strict=True)
-        logging.info(f' processing metadata {yaml_file_path}')
-        yaml_data = load_yaml(yaml_file)
-        y = Yamler(yaml_data)
-        y.check_data_file()
+        yaml_files = [pathlib.Path(sys.argv[1]),]
+    
+    convert_yaml(yaml_files)
 

@@ -20,7 +20,7 @@ from .query import Snpper
 from .tad import Tadpole
 
 from .yamler import Yamler
-from .yamler import load_yaml
+from .yamler import convert_yaml
 
 from ..defaults import DATA_TYPES
 from ..defaults import FILE_EXTENSION
@@ -50,29 +50,70 @@ def grow_tadpoles(args):
     tads.write_file()
 
 
-def convert_yaml(yaml_file):
-    """Convert yaml parameters to cimr arguments"""
-    yaml_file = pathlib.Path(yaml_file)
-    if yaml_file.is_file():
-        yaml_file_path = yaml_file.resolve(strict=True)
-        logging.info(f' processing {yaml_file_path}')
-        yaml_data = load_yaml(yaml_file)
-        y = Yamler(yaml_data)
-        y.check_data_file()
-        data_type = y.data_type
-        file_name = y.downloaded_file
-        outdir = pathlib.Path('processed_data/' + str(data_type))
-        pathlib.Path('processed_data/').mkdir(exist_ok=True)
-        out_path = file_name.replace('submitted', 'processed')
-        out_path = pathlib.Path(out_path)
-        if y.columnset:
-            columnset = y.columnset
+def main(args, 
+         data_type, 
+         genome_build, 
+         file_name, 
+         outdir, 
+         out_path, 
+         columnset):
+    """A standard set of functions for cimr -process argument
+    
+    Within cimr, main() may be called with a cimr call using
+    a set of parameters or a yaml file.
+
+    main() call Infiler class from cimr processor utils and
+    runs standard processing steps for the Infiler object.
+    """
+    if check_type(data_type):
+
+        if file_name:
+            if not str(out_path).endswith(FILE_EXTENSION):
+                outfile = pathlib.Path(str(out_path) + '.tsv.gz')
+            else:
+                outfile = pathlib.Path(out_path)
+
+            infile = Infiler(
+                data_type, 
+                file_name, 
+                genome_build, 
+                args.update_rsid, 
+                outfile,
+                args.chunksize,
+                columnset=columnset
+            )
+            
+            infile.read_file()
+            
+            if data_type == 'eqtl':
+                genes = list(infile.list_genes())
+                queried = Querier(genes)
+                queried.form_query()
+        
         else:
-            columnset = {}
-        return data_type, file_name, outdir, out_path, columnset
-    else:
-        logging.info(f' {yaml_file_path} is not accessible')
-        sys.exit(1)
+            logging.error(f' no file_name provided; nothing to process.')
+            sys.exit(1)
+        
+    if data_type == 'gene':
+        with open(args.file_name) as f:
+            genes = f.read().splitlines()
+        
+        queried = Querier(genes)
+        queried.form_query()
+        
+        if args.write_json is not None:
+            annot_gene_file = str(outdir) + '/' + str(args.write_json)
+            queried.write_json(annot_gene_file)
+        
+        if args.write_gene is not None:
+            annot_gene_file = str(outdir) + '/' + str(args.write_gene)
+            queried.write_gene(annot_gene_file)
+
+    elif data_type == 'tad':        
+        grow_tadpoles(args)
+    
+    logging.info(f' finished processing {file_name}')
+    logging.info(f' output has been saved as {outfile}')
 
 
 def processor_cli(args):
@@ -81,72 +122,32 @@ def processor_cli(args):
     if args.process:
 
         if args.yaml_file:
-            data_type, file_name, outdir, out_path, columnset = convert_yaml(args.yaml_file)
+            yaml_file = [pathlib.Path(args.yaml_file),]
+            genome_build, fileset, columnset = convert_yaml(yaml_file)
+            for _file in fileset:
+                data_type = _file.split('/')[-2]
+                file_name = _file.split('/')[-1]
+                pathlib.Path('processed_data').mkdir(exist_ok=True)
+                outdir = 'processed_data/' + str(data_type) + '/'
+                logging.info(f' making dir: {outdir}')
+                pathlib.Path(outdir).mkdir(exist_ok=True)
+                out_path = outdir + file_name
+                main(
+                    args, data_type, genome_build, _file, outdir, out_path, columnset
+                )
+
         else:
             data_type = args.data_type
+            genome_build = args.genome_build
             file_name = args.file_name
             outdir = args.outdir
+            pathlib.Path(outdir).mkdir(exist_ok=True)
             out_path = str(outdir) + '/' + str(args.out)
             columnset = {}
-            
-        if check_type(data_type):
-
-            outdir.mkdir(exist_ok=True)
-            logging.info(f' output directory: {str(outdir)}')
-
-            if file_name:
-                if not str(out_path).endswith(FILE_EXTENSION):
-                    outfile = pathlib.Path(str(out_path) + '.tsv.gz')
-                else:
-                    outfile = pathlib.Path(out_path)
-                infile = Infiler(
-                    data_type, 
-                    file_name, 
-                    args.genome_build, 
-                    args.update_rsid, 
-                    outfile,
-                    args.chunksize,
-                    columnset
-                )
-                
-                infile.read_file()
-                
-                if data_type == 'eqtl':
-                    genes = list(infile.list_genes())
-                    queried = Querier(genes)
-                    queried.form_query()
-            
-            else:
-                logging.error(f' no file_name provided; nothing to process.')
-                sys.exit(1)
-            
-            # elif data_type == 'snp':
-            #     Snpper()
-
-            if data_type == 'gene':
-                
-                with open(args.file_name) as f:
-                    genes = f.read().splitlines()
-                
-                queried = Querier(genes)
-                queried.form_query()
-                
-                if args.write_json is not None:
-                    annot_gene_file = str(outdir) + '/' + str(args.write_json)
-                    queried.write_json(annot_gene_file)
-                
-                if args.write_gene is not None:
-                    annot_gene_file = str(outdir) + '/' + str(args.write_gene)
-                    queried.write_gene(annot_gene_file)
-
-            elif data_type == 'tad':        
-                grow_tadpoles(args)
-            
-            logging.info(f' finished processing {file_name}')
-
-        else:
-            sys.exit(1)
-
+            main(
+                args, data_type, genome_build, file_name, outdir, out_path, columnset
+            )
+        
     elif args.integrate:
         if check_type(data_type):
             integrating = Integrator(

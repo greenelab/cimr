@@ -1,8 +1,8 @@
 
 # How to contribute to cimr
 
-cimr is an open source project that welcomes contributions from the community, 
-including:
+cimr is an open source project that welcomes contributions from the
+community, including:
 
 * Data contributions
 
@@ -54,35 +54,42 @@ necessary to integrate into cimr-d.
 ### Variant-based association study results
 
 Genome-wide association study (GWAS) and expression- or other 
-quantitative trait loci (eQTL, pQTL, sQTL, etc.) have similar input 
-formatting requirements.
+quantitative trait loci (eQTL, pQTL, sQTL, TWAS, etc.) have similar 
+input formatting requirements.
 
 
-Following are required:
+Following are required for all association summary statistics:
 
 ```
-gene_id : gene id. expected for eqtls. not required for gwas.
 rsnum : rs id of the variant
 variant_id : variant id in the following format
     chromosome_position_referenceallele_alternateallele_genomebuild
 pval / pvalue: p-value of the beta estimate
-```
-
-Following are recommended:
-
-```
 beta / effect_size : beta coefficient estimate for the effect 
     of the variant on the gene 
 se / standard_error : standard error of the beta
-zscore: z-score if no beta/se information is present 
-    (e.g. imputed summary statistic)
+zscore: standardized or imputed statistic
+sample_size : sample size for the variant underlying the 
+    effect_size and pvalue estimates. If not available per-variant, 
+    the total sample size used for the study is accepted.
+n_cases : **required for binary phenotypic traits only.**
+    n_cases are necessary 
+    for downstream analyses such as coloc colocalization.
+build: if not included in variant_id, genome build can be provided
+    as a yaml parameter
+```
+
+Following are required for quantitative trait loci:
+
+```
+feature_id : feature may be gene (eQTL), transcript (sQTL)
 ```
 
 Following are optional:
 
 ```
 tss_distance : distance to the transcription start site of the 
-    gene_id
+    gene_id, if gene is used as a feature (eQTL)
 ma_samples : samples with minor alleles
 maf : minor allele frequency
 effect_allele : allele with respect to which variant's effect 
@@ -92,11 +99,6 @@ imputation_status : imputation status of the variant. 'original'
     to indicate that the original GWAS contained the variant. 
     'imputed' to indicate that the data submitter has done 
     (additional) imputation to the initial release of the data.
-sample_size : sample size for the variant underlying the 
-    effect_size and pvalue estimates. If not available per-variant, 
-    the total sample size used for the study is accepted.
-n_cases : for binary phenotypic traits, n_cases are necessary 
-    for downstream analyses such as coloc colocalization.
 frequency : allele frequency of the effect_allele
 ```
 

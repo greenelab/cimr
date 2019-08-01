@@ -1,5 +1,6 @@
 """Set of default values used in cimr"""
 
+MAXCHROM = 23
 
 DATA_TYPES = (
     'gwas', 'eqtl', 'sqtl', 'pqtl', 'gene', 'twas', 
@@ -8,7 +9,8 @@ DATA_TYPES = (
 
 GENOME_BUILDS = ('b37', 'b38')
 
-WORKING_HEADERS = ['rsnum', 'variant_id', 'pvalue', 
+WORKING_HEADER = [
+    'rsnum', 'variant_id', 'pvalue', 
     'effect_size', 'odds_ratio', 'standard_error', 'zscore', 
     'tss_distance', 'effect_allele', 'non_effect_allele', 
     'frequency', 'imputation_status', 'sample_size', 'n_cases',
@@ -17,7 +19,7 @@ WORKING_HEADERS = ['rsnum', 'variant_id', 'pvalue',
     'feature_stop', 'feature_type', 'feature_name'
 ]
 
-HEADERS = ['rsnum', 'variant_id', 'pvalue', 'effect_size', 
+HEADER = ['rsnum', 'variant_id', 'pvalue', 'effect_size', 
     'odds_ratio', 'standard_error', 'zscore', 'tss_distance', 
     'effect_allele', 'non_effect_allele', 'frequency', 
     'imputation_status', 'sample_size', 'n_cases', 'build'
@@ -30,3 +32,8 @@ COMPRESSION_EXTENSION = ('gz', 'bz2', 'xz')
 BULK_EXTENSION = ('tgz', 'tar.gz', 'tar.bz2', 'tar.xz')
 FILE_EXTENSION = ('txt.gz', 'tsv.gz')
 
+META_HEADER = [
+    'file_name', 'processed_data_url', 'submitted_data_url', 
+    'submitted_data_md5', 'citation', 'data_source', 'data_type', 'build',
+    'sample_size', 'n_cases', 'method_name', 'method_tool', 'description'
+]

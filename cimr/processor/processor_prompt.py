@@ -89,32 +89,32 @@ def main(args,
                 genes = list(infile.list_genes())
                 queried = Querier(genes)
                 queried.form_query()
-        
+
+            if data_type == 'gene':
+                with open(args.file_name) as f:
+                    genes = f.read().splitlines()
+                
+                queried = Querier(genes)
+                queried.form_query()
+                
+                if args.write_json is not None:
+                    annot_gene_file = str(outdir) + '/' + str(args.write_json)
+                    queried.write_json(annot_gene_file)
+                
+                if args.write_gene is not None:
+                    annot_gene_file = str(outdir) + '/' + str(args.write_gene)
+                    queried.write_gene(annot_gene_file)
+
+            elif data_type == 'tad':        
+                grow_tadpoles(args)
+            
+            logging.info(f' finished processing {file_name}')
+            logging.info(f' output has been saved as {outfile}')
+
         else:
             logging.error(f' no file_name provided; nothing to process.')
             sys.exit(1)
         
-    if data_type == 'gene':
-        with open(args.file_name) as f:
-            genes = f.read().splitlines()
-        
-        queried = Querier(genes)
-        queried.form_query()
-        
-        if args.write_json is not None:
-            annot_gene_file = str(outdir) + '/' + str(args.write_json)
-            queried.write_json(annot_gene_file)
-        
-        if args.write_gene is not None:
-            annot_gene_file = str(outdir) + '/' + str(args.write_gene)
-            queried.write_gene(annot_gene_file)
-
-    elif data_type == 'tad':        
-        grow_tadpoles(args)
-    
-    logging.info(f' finished processing {file_name}')
-    logging.info(f' output has been saved as {outfile}')
-
 
 def processor_cli(args):
     """cimr processor subprocess cli"""
@@ -133,7 +133,13 @@ def processor_cli(args):
                 pathlib.Path(outdir).mkdir(exist_ok=True)
                 out_path = outdir + file_name
                 main(
-                    args, data_type, genome_build, _file, outdir, out_path, columnset
+                    args, 
+                    data_type, 
+                    genome_build, 
+                    _file, 
+                    outdir, 
+                    out_path, 
+                    columnset
                 )
 
         else:
@@ -145,7 +151,13 @@ def processor_cli(args):
             out_path = str(outdir) + '/' + str(args.out)
             columnset = {}
             main(
-                args, data_type, genome_build, file_name, outdir, out_path, columnset
+                args, 
+                data_type, 
+                genome_build, 
+                file_name, 
+                outdir, 
+                out_path, 
+                columnset
             )
         
     elif args.integrate:

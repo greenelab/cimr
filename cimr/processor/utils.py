@@ -14,13 +14,15 @@ import subprocess
 
 from ..defaults import DATA_TYPES
 from ..defaults import GENOME_BUILDS
-from ..defaults import HEADERS
+from ..defaults import HEADER
+from ..defaults import MAXCHROM
 
 
 def set_chrom_dict():
     """Make a dictionary to standardize chromosome IDs in input files."""
-    maxchrom = 23
-    chrom_dict = {str(i):'chr' + str(i) for i in range(1, maxchrom)}
+    chrom_dict = {
+        str(i):'chr' + str(i) for i in range(1, MAXCHROM)
+    }
     chrom_dict.update({
         'X':'chr23', 
         'Y':'chr24', 
@@ -31,7 +33,7 @@ def set_chrom_dict():
         'chrM':'chr25', 
         'chrMT':'chr25'
     })
-    return chrom_dict, maxchrom
+    return chrom_dict, MAXCHROM
 
 
 def find_file(file_name):
@@ -62,7 +64,7 @@ def check_numeric(data, col):
     except:
         logging.error(f' the format of %s is not testable.' % (col,))
         print(data.head(n=2))
-        return None
+        sys.exit(1)
 
 
 def make_int(col):
@@ -153,7 +155,19 @@ class Infiler:
     def get_pos(self):
         """Check variant_id column and make 
         chrom, pos, ref, alt, build columns"""
-        temp = self.summary_data['variant_id'].str.split('_', expand=True)
+        # check first element to find delimiter in variant_id
+        variant_ids = self.summary_data['variant_id']
+        if '_' in variant_ids[0]:
+            pass
+        elif '-' in variant_ids[0]:
+            variant_ids = variant_ids.str.replace('-', '_')
+        elif ':' in variant_ids[0]:
+            variant_ids = variant_ids.str.replace(':', '_')
+        else:
+            logging.error(f' unknown delimiter used in variant_id')
+            sys.exit(1)
+
+        temp = variant_ids.str.split('_', expand=True)
         if not temp.empty:
             self.summary_data['chrom'] = temp[0]
             self.summary_data['pos'] = temp[1]
@@ -162,7 +176,9 @@ class Infiler:
             if len(temp.columns) == 5:
                 self.summary_data['build'] = temp[4]
             else:
-                self.summary_data['build'] = self.genome_build   
+                logging.info(f' updating variant_id to include build')
+                self.summary_data['build'] = self.genome_build
+                self.summary_data['variant_id'] = variant_ids + '_' + self.genome_build
 
 
     def check_chrom(self):
@@ -375,7 +391,7 @@ class Infiler:
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""
 
-        template = pandas.DataFrame(columns=HEADERS)
+        template = pandas.DataFrame(columns=HEADER)
 
         self.file_name = find_file(self.file_name)
 
@@ -398,7 +414,7 @@ class Infiler:
                 if self.columnset:
                     self.rename_columns(chunk)
 
-                self.included_header = list(set(HEADERS) & set(chunk.columns))
+                self.included_header = list(set(HEADER) & set(chunk.columns))
                 self.check_file(chunk)
                 self.summary_data = pandas.concat(
                     [template, self.summary_data], 
@@ -406,6 +422,7 @@ class Infiler:
                     ignore_index=True
                 )
 
+                logging.info(f' writing processed data...')
                 if chunkcount == 0:
                     self.write_header()
                 elif chunkcount > 0:

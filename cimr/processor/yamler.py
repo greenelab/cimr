@@ -232,10 +232,7 @@ class Yamler:
 
 
     def pick_keys(self):
-        """List keys for the dictionarized yaml data and store in self.
-        The following keys are expected:
-        ['defined_as', 'data_file', 'contributor', 'data_info', 'method']
-        """
+        """List keys for the dictionarized yaml data."""
         self.keys = self.yaml_data.keys()
 
 
@@ -276,7 +273,7 @@ class Yamler:
             self.infile = self.yaml_data['data_file']['input_name']
         else:
             self.infile = self.file_link.split('/')[-1]
-
+        
         self.submitted_dir = 'submitted_data/'
         pathlib.Path(self.submitted_dir).mkdir(exist_ok=True)
         self.sub_datatype_dir = self.submitted_dir + str(self.data_type) + '/'
@@ -350,25 +347,85 @@ class Yamler:
             logging.info(f' column header change is not indicated.')
 
 
+    def make_metatable(self):
+        """Collect and store information for downstream analyses
+        This function is meant to create a catalog for processed data
+        in cimr-d. The updated table will be committed back to repo
+        """
+        from ..defaults import META_HEADER
+        
+        metadata_file = 'cimr-d_catalog.txt'
+        if os.path.isfile(metadata_file):
+            metadata = pandas.read_csv(
+                metadata_file, 
+                header=0, 
+                index_col=0, 
+                sep='\t', 
+                na_values='NA'
+            )
+        else:
+            metadata = pandas.DataFrame(columns=META_HEADER)
+        
+        for file_name in self.fileset:
+            new_row = {
+                'file_name': file_name.split('/')[-1],
+                'submitted_data_url': self.file_link,
+                'submitted_data_md5': self.hash,
+                'build': self.genome_build
+            }
+
+            # data_info: sample_size
+            # data_info: n_cases
+
+            # these are not required and do not terminate if missing
+            if 'description' in self.yaml_data['data_file'].keys():
+                new_row['description'] = self.yaml_data['data_file']['description']
+            else:
+                logging.info(f' data description is not provided')
+            if 'citation' in self.yaml_data['data_info'].keys():
+                new_row['citation'] = self.yaml_data['data_info']['citation']
+            else:
+                logging.info(f' citation is not provided')
+            if 'data_source' in self.yaml_data['data_info'].keys():
+                new_row['data_source'] = self.yaml_data['data_info']['data_source']
+            else:
+                logging.info(f' data_source is not provided')
+            if 'name' in self.yaml_data['method'].keys():
+                new_row['method_name'] = self.yaml_data['method']['name']
+            else:
+                logging.info(f' method name is not provided')
+            if 'tool' in self.yaml_data['method'].keys():
+                new_row['method_tool'] = self.yaml_data['method']['tool']
+            else:
+                logging.info(f' method tool is not provided')
+            
+            logging.info(f' updating cimr-d catalog.txt for {file_name}')
+            metadata = metadata.append(new_row, ignore_index=True)
+            metadata.reset_index(inplace=True, drop=True)
+            metadata.to_csv(
+                metadata_file, 
+                header=True, 
+                index=True, 
+                sep='\t', 
+                na_rep='NA', 
+                mode='a'
+            )
+        
+
     def check_data_file(self):
         """Standard set of Yamler functions to check information on the
         contributed data file for ci cimr processing.
         """
         self.set_data_type()
         self.set_genome_build()
-
-        if self.yaml_data['defined_as'] in ['upload', 'upload_bulk']:
-            self.download()
-        else:
-            logging.error(f' not an acceptible \'defined_as\' variable')
-            sys.exit(1)
-        
+        self.download()
         self.check_hash()
 
-        if self.yaml_data['defined_as'] == 'upload_bulk':
+        if self.infile.endswith(BULK_EXTENSION):
             self.extract_bulk()
         
         self.get_colnames()
+        self.make_metatable()
 
 
 if __name__ == '__main__':

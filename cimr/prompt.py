@@ -7,12 +7,14 @@ Options and parameters are listed for cimr subprocesses.
 (c) YoSon Park
 """
 
+
 __author__ = "YoSon Park"
 __copyright__ = "Copyright 2018-2019, YoSon Park"
 __credits__ = ["YoSon Park"]
 __license__ = "BSD"
 __maintainer__ = "YoSon Park"
 __status__ = "production"
+
 
 import os
 import sys
@@ -28,7 +30,7 @@ import cimr
 def parse_arguments():
     """Parse command line arguments for subprocesses of cimr."""
     parser = argparse.ArgumentParser(
-        description='cimr: continuous integration + analyses of summary statistics.'
+        description='cimr: continuously integrated meta-resource'
     )
     parser.add_argument(
         '-version', 
@@ -117,7 +119,7 @@ def add_subparser_processor(subparsers):
         '-data-type',
         dest='data_type',
         help='input file data type',
-        choices=['gwas', 'eqtl', 'snp', 'gene', 'tad'],
+        choices=[ 'gwas', 'eqtl', 'gene', 'tad', 'multiple', 'yaml'],
     )
     parser.add_argument(
         '-genome-build',
@@ -137,13 +139,28 @@ def add_subparser_processor(subparsers):
         default=False,
         dest='update_rsid',
         action='store_true',
-        help='whether to update snp rs IDs based on newest refsnp variation database',
+        help='whether to update snp rs IDs based on refseq',
     )
     parser.add_argument(
-        '-chunk-size',
-        default=10000,
-        dest='chunk_size',
+        '-chunksize',
+        default=100000000,
+        dest='chunksize',
+        type=int,
         help='number of rows in the input file to process at a time',
+    )
+    parser.add_argument(
+        '-yaml-file',
+        dest='yaml_file',
+        help='yaml file containing information about data',
+    )
+    parser.add_argument(
+        '-column-set',
+        default={},
+        # variable name due to reversed key: value 
+        # in yaml-based parsing of column headings...
+        dest='columnset',
+        help='dictionary containing corresponding header names, '
+             'if different from the cimr default',
     )
 
     # not required for data-type gwas
@@ -333,8 +350,7 @@ def main():
             raise ValueError(' invalid log level: %s' % loglevel)
         logging.basicConfig(level=numeric_level)
     else:
-        logging.error(f' -log argument must be debug, info, warning, error, or critical.')
-        logging.error(f' -log argument is set to \'info\' by default.')
+        raise ValueError(' -log argument must be debug, info, warning, error, or critical.')
     module_name, function_name = args.function.rsplit('.', 1)
     module = importlib.import_module(module_name)
     function = getattr(module, function_name)

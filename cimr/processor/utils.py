@@ -12,10 +12,17 @@ import pathlib
 import logging
 import subprocess
 
+from ..defaults import DATA_TYPES
+from ..defaults import GENOME_BUILDS
+from ..defaults import HEADER
+from ..defaults import MAXCHROM
+
+
 def set_chrom_dict():
     """Make a dictionary to standardize chromosome IDs in input files."""
-    maxchrom = 23
-    chrom_dict = {str(i):'chr' + str(i) for i in range(1, maxchrom)}
+    chrom_dict = {
+        str(i):'chr' + str(i) for i in range(1, MAXCHROM)
+    }
     chrom_dict.update({
         'X':'chr23', 
         'Y':'chr24', 
@@ -26,7 +33,7 @@ def set_chrom_dict():
         'chrM':'chr25', 
         'chrMT':'chr25'
     })
-    return chrom_dict, maxchrom
+    return chrom_dict, MAXCHROM
 
 
 def find_file(file_name):
@@ -38,16 +45,6 @@ def find_file(file_name):
     else:
         logging.error(f' no file {file_name} found for processing.')
         sys.exit()
-
-
-def download_file(url, file_name, download_dir):
-    """Check if a file exists and download if not."""
-    import os
-    from urllib.request import urlretrieve
-    file_path = find_file(file_name)
-    if not (os.path.isfile(file_path)):
-        urlretrieve(url + file_name, file_path)
-        return 0
 
 
 def check_numeric(data, col):
@@ -67,7 +64,12 @@ def check_numeric(data, col):
     except:
         logging.error(f' the format of %s is not testable.' % (col,))
         print(data.head(n=2))
-        return None
+        sys.exit(1)
+
+
+def make_int(col):
+    """Make sure the column values are represented as int"""
+    return col.astype(int)
 
 
 class Infiler:
@@ -78,7 +80,7 @@ class Infiler:
     Parameters
     ----------
 
-    data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl'}
+    data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl', 'twas', 'tad'}
     file_name: name of the file to read in summary statistics
     genome_build: human genome reference id {'b37', 'b38'}
 
@@ -89,13 +91,11 @@ class Infiler:
     for files to be used for downstream functionalities,
 
     following are required :
-    - gene_id : gene id. expected for eqtls
+    - feature_id : e.g. gene id. expected for eqtls
     - rsnum : rs id of the variant
     - variant_id : variant id in the following format
         chromosome_position_referenceallele_alternateallele_genomebuild
     - pval / pvalue: p-value of the beta estimate
-
-    following are recommended:
     - beta / effect_size : beta coefficient estimate for the effect 
         of the variant on the gene 
     - se / standard_error : standard error of the beta
@@ -130,50 +130,62 @@ class Infiler:
 
     """
 
-    DATA_TYPES = ('gwas', 'eqtl', 'sqtl', 'pqtl', 'gene', 'tad')
-    GENOME_BUILDS = ('b37', 'b38')
-    HEADERS = ['gene_id', 'rsnum', 'variant_id', 'pvalue', 
-               'effect_size', 'standard_error', 'zscore', 'tss_distance', 
-               'ma_samples', 'maf', 'chrom', 'pos', 'ref', 'alt', 
-               'build', 'effect_allele', 'non_effect_allele', 'inc_allele', 
-               'inc_afrq', 'imputation_status', 'sample_size', 'n_cases', 
-               'frequency'
-               ]
+    def __init__(self, 
+                 data_type, 
+                 file_name, 
+                 genome_build, 
+                 update_rsid, 
+                 outfile, 
+                 chunksize,
+                 columnset={}):
 
-
-    def __init__(self, data_type, file_name, genome_build, update_rsid, outfile, chunksize):
-
-        if data_type not in self.DATA_TYPES:
-            raise ValueError(' %s is not a valid data_type supported by cimr.' % data_type)
-        if genome_build not in self.GENOME_BUILDS:
-            raise ValueError(' %s is not a valid genome_build supported by cimr.' % genome_build)
+        if data_type not in DATA_TYPES:
+            raise ValueError(' %s is not a valid data_type supported' % data_type)
+        if genome_build not in GENOME_BUILDS:
+            raise ValueError(' %s is not a valid genome_build supported' % genome_build)
         self.data_type = data_type
         self.file_name = file_name
         self.genome_build = genome_build
         self.update_rsid = update_rsid
         self.outfile = outfile
         self.chunksize = chunksize
+        self.columnset = columnset
     
 
     def get_pos(self):
         """Check variant_id column and make 
         chrom, pos, ref, alt, build columns"""
+        # check first element to find delimiter in variant_id
+        variant_ids = self.summary_data['variant_id']
+        if '_' in variant_ids[0]:
+            pass
+        elif '-' in variant_ids[0]:
+            variant_ids = variant_ids.str.replace('-', '_')
+        elif ':' in variant_ids[0]:
+            variant_ids = variant_ids.str.replace(':', '_')
+        else:
+            logging.error(f' unknown delimiter used in variant_id')
+            sys.exit(1)
 
-        temp = self.summary_data['variant_id'].str.split('_', expand=True)
-
+        temp = variant_ids.str.split('_', expand=True)
         if not temp.empty:
             self.summary_data['chrom'] = temp[0]
             self.summary_data['pos'] = temp[1]
             self.summary_data['ref'] = temp[2]
             self.summary_data['alt'] = temp[3]
-            self.summary_data['build'] = temp[4]
-    
+            if len(temp.columns) == 5:
+                self.summary_data['build'] = temp[4]
+            else:
+                logging.info(f' updating variant_id to include build')
+                self.summary_data['build'] = self.genome_build
+                self.summary_data['variant_id'] = variant_ids + '_' + self.genome_build
+
 
     def check_chrom(self):
         """Assumes chr+number
-        - check for autosomal chromosomes
-        - change if different from the specified format
-        - discard non-autosomal chromosomes from main input
+        * check for autosomal chromosomes
+        * change if different from the specified format
+        * discard non-autosomal chromosomes from main input
         """
         sumdata = self.summary_data
         chrom_dict, maxchrom = set_chrom_dict()
@@ -182,13 +194,13 @@ class Infiler:
         chroms = sumdata['chrom'].drop_duplicates().values
         
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
-            logging.info(f' there are {len(chroms)} chromosomes in the file provided.')
+            logging.info(f' there are {len(chroms)} chromosomes.')
         elif len(chroms) <= (maxchrom - 2):
-            logging.warning(f' input file does not include {maxchrom} chromosome(s).')
-            logging.warning(f' chromosome(s) included in the input file: %s'%(chroms,))
+            logging.warning(f' data does not include {maxchrom} chromosome(s).')
+            logging.warning(f' chromosome(s) included: %s'%(chroms,))
         else:
             logging.warning(f' input file more than {maxchrom - 1} chromosomes.')
-            logging.warning(f' chromosome(s) included in the input file: %s'%(chroms,))
+            logging.warning(f' chromosome(s) included: %s'%(chroms,))
 
         if len(set(chroms) & set(chrom_str)) > (maxchrom - 2):
             pass
@@ -203,37 +215,38 @@ class Infiler:
 
         remainder = list(set(chroms) - set(chrom_str) - set(chrom_int))
         if len(remainder) > 0:
-            logging.warning(f' chromosome(s) not used for analysis: %s'%(remainder,))
+            logging.warning(f' chromosome(s) not used: %s'%(remainder,))
 
 
     def check_ref(self):
         from pkg_resources import resource_filename
         
-        variant_reference_file = 'data/annotation/' + self.variant_reference_file
-        reference_id = self.variant_reference_id
-        reference_file = resource_filename(
-            'cimr', variant_reference_file
+        var_ref = 'data/annotation/' + self.var_ref
+        ref_id = self.var_ref_id
+        ref_file = resource_filename(
+            'cimr', var_ref
             )
-        logging.info(f' using {reference_file} to check variant information.')
-        logging.info(f' rs id reference is {reference_id}')
-        reference = pandas.read_csv(
-            reference_file, sep='\t', header=0, dtype={'chr':'str'}
+        logging.info(f' using {ref_file} to check variants.')
+        logging.info(f' rs id reference is {ref_id}')
+        refdf = pandas.read_csv(
+            ref_file, sep='\t', header=0, dtype={'chr':'str'}
             )
-        reference.columns = [x + '_reference' for x in reference.columns]
+        refdf.columns = [x + '_reference' for x in refdf.columns]
         sumdata = self.summary_data
-        rsnum_with_reference = sumdata.loc[sumdata['rsnum'].isin(reference[reference_id + '_reference']),:]
-        if not rsnum_with_reference.empty:
-            samples = rsnum_with_reference.sample(frac=0.1, replace=False)
+        checked_ref = sumdata['rsnum'].isin(refdf[ref_id + '_reference'])
+        rsnum_ref = sumdata.loc[checked_ref,:]
+        if not rsnum_ref.empty:
+            samples = rsnum_ref.sample(frac=0.1, replace=False)
             merged = samples.merge(
-                reference, left_on='rsnum', right_on=reference_id+'_reference', 
+                refdf, left_on='rsnum', right_on=ref_id+'_reference', 
                 left_index=False, right_index=False, how='left'
                 )
             merged.drop_duplicates(inplace=True)
             variant_nomatch = merged.loc[~(merged['variant_id']==merged['variant_id_reference'])]
             samplecount = len(samples.index)
-            rsrefcount = len(rsnum_with_reference.index)
+            rsrefcount = len(rsnum_ref.index)
             nomatchcount = len(variant_nomatch.index)
-            logging.info(f' {samplecount} sampled variants from {rsrefcount} total variants with rs ids,')
+            logging.info(f' {samplecount} sampled from {rsrefcount} total variants with rs ids,')
             logging.info(f' {nomatchcount} variants do not match the reference.')
         else:
             logging.error(f' there are no matching rs ids.')
@@ -251,13 +264,13 @@ class Infiler:
     def find_reference(self):
         """Find variant and gene references for map checking"""
         if self.genome_build == 'b37':
-            self.gene_reference_file = 'gene_grch37_gencode_v29.txt.gz'
-            self.variant_reference_file = 'variant_grch37_subset.txt.gz'
-            self.variant_reference_id = 'rs_id_dbSNP147_GRCh37p13'
+            self.gene_ref = 'gene_grch37_gencode_v29.txt.gz'
+            self.var_ref = 'variant_grch37_subset.txt.gz'
+            self.var_ref_id = 'rs_id_dbSNP147_GRCh37p13'
         else:
-            self.gene_reference_file = 'gene_grch38_gencode_v26.txt.gz'
-            self.variant_reference_file = 'variant_grch38_subset.txt.gz'
-            self.variant_reference_id = 'rs_id_dbSNP150_GRCh38p7'
+            self.gene_ref = 'gene_grch38_gencode_v26.txt.gz'
+            self.var_ref = 'variant_grch38_subset.txt.gz'
+            self.var_ref_id = 'rs_id_dbSNP150_GRCh38p7'
     
 
     def list_genes(self):
@@ -270,93 +283,119 @@ class Infiler:
     
 
     def fill_effect_allele(self):
-        """Fill NA in effect_allele column with inc_allele if inc_allele present"""
+        """Fill NA in effect_allele column with inc_allele if 
+        inc_allele present
+        """
         self.summary_data['effect_allele'].fillna(self.summary_data['inc_allele'])
         
 
-    def check_file(self):
-        """Check different columns for dtype, remove missing rows and standardize
-        format to be used for analyses
+    def check_file(self, summary_data):
+        """Check different columns for dtype, remove missing rows and 
+        standardize format to be used for analyses
         """
         
         self.find_reference()
+        self.summary_data = summary_data
 
-        # check each column
         if 'variant_id' in self.included_header:
             self.get_pos()
             self.check_chrom()
             logging.info(f' chromosome information is checked.')
         else:
             logging.error(f' variant_id column is not provided')
-            sys.exit()
+            sys.exit(1)
 
         if 'rsnum' in self.included_header:
             if self.update_rsid:
                 self.check_ref()
         else:
             logging.error(f' rsnum column is not provided.')
-            sys.exit()
+            sys.exit(1)
 
         if 'inc_allele' in self.included_header:
             self.fill_effect_allele()
         else:
             logging.info(f' inc_allele column is not available')
         
-        self.summary_data.drop(
-            ['chrom', 'pos', 'ref', 'alt', 'build', 'chromosome', 
-            'position', 'inc_allele'], 
-            axis=1, 
-            inplace=True
-        )
+        columns_to_drop = [
+            'chrom', 'pos', 'ref', 'alt', 'chromosome', 
+            'position', 'inc_allele', 'variant_chrom', 'variant_pos'
+        ]
+
+        for colname in columns_to_drop:
+            if colname in self.summary_data.columns:
+                self.summary_data.drop(
+                    colname, 
+                    axis=1, 
+                    inplace=True
+                )
 
         if 'effect_size' in self.included_header:
             check_numeric(self.summary_data, 'effect_size') 
         else:
             logging.error(f' effect_size column is not provided.')
-            pass
+            sys.exit(1)
 
         if 'standard_error' in self.included_header:
             check_numeric(self.summary_data, 'standard_error') 
         else:
             logging.error(f' standard_error column is not provided.')
-            pass
+            sys.exit(1)
 
         if 'pvalue' in self.included_header:
             check_numeric(self.summary_data, 'pvalue')
             self.check_probability('pvalue')
         else:
             logging.error(f' pvalue column is not provided.')
-            pass
+            sys.exit(1)
 
 
-    def write_header(self, template):
-        """Write a header row to the output file"""
-        logging.info(f' output will be saved in {self.outfile}.')
-        if isinstance(template, pandas.DataFrame):
-            try:
-                template.to_csv(
-                    str(self.outfile), 
-                    header=True, 
-                    index=False, 
-                    sep='\t', 
-                    na_rep='NA',
-                    compression='gzip',
-                    float_format='%.5f',
-                    mode='w'
-                )
-            except:
-                logging.error(f' file {self.outfile} cannot be written.')
+    def write_header(self):
+        """Write data to file with header"""
+        if isinstance(self.summary_data, pandas.DataFrame):
+            self.summary_data.to_csv(
+                str(self.outfile), 
+                header=True, 
+                index=False, 
+                sep='\t', 
+                na_rep='NA',
+                compression='gzip',
+                float_format='%.5f',
+                mode='w'
+            )
+
+
+    def write_file(self):
+        """Write data to file without header"""
+        if isinstance(self.summary_data, pandas.DataFrame):
+            self.summary_data.to_csv(
+                str(self.outfile), 
+                header=False, 
+                index=False, 
+                sep='\t', 
+                na_rep='NA',
+                compression='gzip',
+                float_format='%.5f',
+                mode='a'
+            )
+
+
+    def rename_columns(self, dataframe):
+        """Given a pandas dataframe and a dictionary, rename columns
+        Primarily used for yaml column-set-based renaming in cimr.
+        """
+        logging.info(f' renaming columns based on provided info')
+        dataframe.rename(self.columnset, axis=1, inplace=True)
 
 
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""
 
-        template = pandas.DataFrame(columns=self.HEADERS)
+        template = pandas.DataFrame(columns=HEADER)
 
         self.file_name = find_file(self.file_name)
-        self.write_header(template)
-       
-        self.chunks = pandas.read_csv(
+
+        chunks = pandas.read_csv(
             self.file_name, 
             sep='\t', 
             header=0, 
@@ -366,52 +405,36 @@ class Infiler:
 
         chunkcount = 0
 
-        for chunk in self.chunks:
-            self.summary_data = chunk
-            
+        for chunk in chunks:
             logging.info(f' processing input chunk {chunkcount}')
 
             # check if empty and check header
-            if not self.summary_data.empty:
-                # make column headings more explicit
-                betaeffect = {'beta':'effect_size', 'se':'standard_error', 'pval':'pvalue'}
-                gtexid = {'variant_id':'rsnum', 'panel_variant_id':'variant_id'}
+            if not chunk.empty:
 
-                if 'beta' in self.summary_data.columns:
-                    self.summary_data.rename(columns=betaeffect, inplace=True)
-                
-                if 'panel_variant_id' in self.summary_data.columns:
-                    self.summary_data.rename(columns=gtexid, inplace=True)
-                
-                self.included_header = list(set(self.HEADERS) & set(self.summary_data.columns))
-                self.summary_data = template.append(self.summary_data, ignore_index=True, sort=False)
+                if self.columnset:
+                    self.rename_columns(chunk)
+
+                self.included_header = list(set(HEADER) & set(chunk.columns))
+                self.check_file(chunk)
+                self.summary_data = pandas.concat(
+                    [template, self.summary_data], 
+                    sort=False, 
+                    ignore_index=True
+                )
+
+                logging.info(f' writing processed data...')
+                if chunkcount == 0:
+                    self.write_header()
+                elif chunkcount > 0:
+                    self.write_file()
+                else:
+                    logging.error(f' file {self.outfile} cannot be written.')
                 
             else:
-                logging.error(f' no content in uploaded file {self.file_name}.')    
-                sys.exit()
+                logging.error(f' no content in {self.file_name}.')
+                sys.exit(1)
             
-            self.check_file()
-            self.write_file()
             chunkcount += 1
-
-
-    def write_file(self):
-        """Write a checked file into a format used for cimr gene subprocess"""
-        # logging.info(f' output will be saved in {self.outfile}.')
-        if isinstance(self.summary_data, pandas.DataFrame):
-            try:
-                self.summary_data.to_csv(
-                    str(self.outfile), 
-                    header=False, 
-                    index=False, 
-                    sep='\t', 
-                    na_rep='NA',
-                    compression='gzip',
-                    float_format='%.5f',
-                    mode='a'
-                )
-            except:
-                logging.error(f' file {self.outfile} cannot be written.')
         
 
 class Integrator:
@@ -420,12 +443,13 @@ class Integrator:
     Parameters:
     -----------
 
+    data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl', 'twas', 'tad'}
     file_name: name of the file containing the data
-    data_type = {'gwas', 'eqtl', 'tad'}
-    can_be_public: boolean variable indicating whether the contributed data
-                   can be released as a part of the public archive.
-                   for cimr >= 0.2.3, can_be_public parameter will determine
-                   the destination repository of the contributed data
+    data_type = defaults.DATA_TYPES
+    can_be_public: boolean variable indicating whether the contributed 
+                   data can be released as a part of the public archive.
+                   for cimr >= 0.2.3, can_be_public parameter will 
+                   determine the destination repository
 
     Notes:
     ------

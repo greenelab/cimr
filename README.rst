@@ -24,7 +24,7 @@ YoSon Park
 `cimr-d <https://github.com/greenelab/cimr-d>`_
 
 
-*cimr* (continuous integration meta-resource) is a convenience tool 
+*cimr* (continuously integrated meta-resource) is a convenience tool 
 for continuous analyses of variant-based association results from 
 GWAS (genome-wide association studies), eQTL (expression-quantitative 
 trait loci mapping) or other association studies. cimr aims to 
@@ -87,6 +87,7 @@ clone the repository from git::
     cd cimr
     python3 setup.py build
     python3 setup.py install
+
 
 
 =================

@@ -196,7 +196,6 @@ class Infiler:
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
             logging.info(f' there are {len(chroms)} chromosomes.')
         elif len(chroms) <= (maxchrom - 2):
-            logging.warning(f' data does not include {maxchrom} chromosome(s).')
             logging.warning(f' chromosome(s) included: %s'%(chroms,))
         else:
             logging.warning(f' input file more than {maxchrom - 1} chromosomes.')
@@ -310,7 +309,6 @@ class Infiler:
                 self.check_ref()
         else:
             logging.error(f' rsnum column is not provided.')
-            sys.exit(1)
 
         if 'inc_allele' in self.included_header:
             self.fill_effect_allele()
@@ -429,6 +427,7 @@ class Infiler:
                     self.write_file()
                 else:
                     logging.error(f' file {self.outfile} cannot be written.')
+                    sys.exit(1)
                 
             else:
                 logging.error(f' no content in {self.file_name}.')

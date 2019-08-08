@@ -294,6 +294,7 @@ class Infiler:
         """
         
         self.find_reference()
+        summary_data.reset_index(inplace=True, drop=True)
         self.summary_data = summary_data
 
         if 'variant_id' in self.included_header:
@@ -389,8 +390,6 @@ class Infiler:
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""
 
-        template = pandas.DataFrame(columns=HEADER)
-
         self.file_name = find_file(self.file_name)
 
         chunks = pandas.read_csv(
@@ -409,16 +408,13 @@ class Infiler:
             # check if empty and check header
             if not chunk.empty:
 
+                chunk.reset_index(drop=True, inplace=True)
+
                 if self.columnset:
                     self.rename_columns(chunk)
 
                 self.included_header = list(set(HEADER) & set(chunk.columns))
                 self.check_file(chunk)
-                self.summary_data = pandas.concat(
-                    [template, self.summary_data], 
-                    sort=False, 
-                    ignore_index=True
-                )
 
                 logging.info(f' writing processed data...')
                 if chunkcount == 0:

@@ -85,10 +85,10 @@ def main(args,
             
             infile.read_file()
             
-            if data_type == 'eqtl':
-                genes = list(infile.list_genes())
-                queried = Querier(genes)
-                queried.form_query()
+            # if data_type == 'eqtl':
+            #     genes = list(infile.list_genes())
+            #     queried = Querier(genes)
+            #     queried.form_query()
 
             if data_type == 'gene':
                 with open(args.file_name) as f:

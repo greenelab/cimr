@@ -275,7 +275,7 @@ class Infiler:
     def list_genes(self):
         """Find the list of genes from the gene_id column."""
         if 'gene_id' in self.summary_data.columns:
-            return self.summary_data.gene_id
+            return self.summary_data.feature_id
         else:
             logging.error(f' gene_id column is not provided.')
             return None

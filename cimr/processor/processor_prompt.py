@@ -85,8 +85,9 @@ def main(args,
             
             infile.read_file()
             
+            # debugging mialigned rows
             # if data_type == 'eqtl':
-            #     genes = list(infile.list_genes())
+            #     genes = list(infile.list_features())
             #     queried = Querier(genes)
             #     queried.form_query()
 

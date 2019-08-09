@@ -288,8 +288,14 @@ class Yamler:
             return
             
         if verify_weblink(self.file_link):
-            logging.info(f' starting download')
-            download_file(self.file_link, self.sub_datatype_dir)
+            if not os.path.isfile(self.sub_datatype_dir + self.infile):
+                logging.info(f' starting download')
+                download_file(self.file_link, self.sub_datatype_dir)
+            else:
+                logging.info(f' file found in {self.sub_datatype_dir}')
+            self.hash = self.yaml_data['data_file']['location']['md5']
+            self.downloaded_file = self.sub_datatype_dir + self.infile
+            self.fileset = [self.downloaded_file,]
         else:
             logging.error(f' file unavailable')
             sys.exit(1)

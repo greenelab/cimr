@@ -302,6 +302,7 @@ class Infiler:
         """
         
         self.find_reference()
+        summary_data.reset_index(inplace=True, drop=True)
         self.summary_data = summary_data
 
         if 'variant_id' in self.included_header:
@@ -317,7 +318,7 @@ class Infiler:
                 self.check_ref()
         else:
             logging.error(f' rsnum column is not provided.')
-        
+            
         if 'ma_samples' in self.included_header:
             self.make_int('ma_sample')
         
@@ -422,6 +423,8 @@ class Infiler:
             logging.info(f' processing input chunk {chunkcount}')
             # check if empty and check header
             if not chunk.empty:
+              
+                chunk.reset_index(drop=True, inplace=True)
                 if self.columnset:
                     self.rename_columns(chunk)
 

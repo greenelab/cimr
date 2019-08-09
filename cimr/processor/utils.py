@@ -161,13 +161,16 @@ class Infiler:
             pass
         elif '-' in variant_ids[0]:
             variant_ids = variant_ids.str.replace('-', '_')
+            logging.info(f' variant_id delimiter changed from \'-\' to \'_\'')
         elif ':' in variant_ids[0]:
             variant_ids = variant_ids.str.replace(':', '_')
+            logging.info(f' variant_id delimiter changed from \':\' to \'_\'')
         else:
             logging.error(f' unknown delimiter used in variant_id')
             sys.exit(1)
 
         temp = variant_ids.str.split('_', expand=True)
+
         if not temp.empty:
             self.summary_data['chrom'] = temp[0]
             self.summary_data['pos'] = temp[1]
@@ -272,12 +275,12 @@ class Infiler:
             self.var_ref_id = 'rs_id_dbSNP150_GRCh38p7'
     
 
-    def list_genes(self):
-        """Find the list of genes from the gene_id column."""
-        if 'gene_id' in self.summary_data.columns:
+    def list_features(self):
+        """Find the list of features (e.g. genes)."""
+        if 'feature_id' in self.summary_data.columns:
             return self.summary_data.feature_id
         else:
-            logging.error(f' gene_id column is not provided.')
+            logging.error(f' feature_id column is not provided.')
             return None
     
 
@@ -287,6 +290,11 @@ class Infiler:
         """
         self.summary_data['effect_allele'].fillna(self.summary_data['inc_allele'])
         
+
+    def make_int(self, colname):
+        """Make int columns int"""
+        self.summary_data[colname] = self.summary_data[colname].astype(int)
+
 
     def check_file(self, summary_data):
         """Check different columns for dtype, remove missing rows and 
@@ -310,6 +318,15 @@ class Infiler:
                 self.check_ref()
         else:
             logging.warning(f' rsnum column is not provided.')
+            
+        if 'ma_samples' in self.included_header:
+            self.make_int('ma_sample')
+        
+        if 'ma_count' in self.included_header:
+            self.make_int('ma_count')
+        
+        if 'sample_size' in self.included_header:
+            self.make_int('sample_size')
 
         if 'inc_allele' in self.included_header:
             self.fill_effect_allele()
@@ -423,7 +440,6 @@ class Infiler:
 
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""
-
         self.file_name = find_file(self.file_name)
 
         chunks = pandas.read_csv(
@@ -437,20 +453,19 @@ class Infiler:
         chunkcount = 0
 
         for chunk in chunks:
+            chunk.reset_index(drop=True, inplace=True)
             logging.info(f' processing input chunk {chunkcount}')
-
             # check if empty and check header
             if not chunk.empty:
-
+              
                 chunk.reset_index(drop=True, inplace=True)
-
                 if self.columnset:
                     self.rename_columns(chunk)
 
                 self.included_header = list(set(HEADER) & set(chunk.columns))
                 self.check_file(chunk)
-
                 logging.info(f' writing processed data...')
+
                 if chunkcount == 0:
                     self.write_header()
                 elif chunkcount > 0:

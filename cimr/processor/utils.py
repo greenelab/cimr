@@ -309,7 +309,7 @@ class Infiler:
             if self.update_rsid:
                 self.check_ref()
         else:
-            logging.error(f' rsnum column is not provided.')
+            logging.warning(f' rsnum column is not provided.')
 
         if 'inc_allele' in self.included_header:
             self.fill_effect_allele()
@@ -375,6 +375,40 @@ class Infiler:
                 na_rep='NA',
                 compression='gzip',
                 float_format='%.5f',
+                mode='a'
+            )
+    
+    def check_h5_outfile(self):
+        """Check file extension for h5 output"""
+        if not str(self.outfile).endswith('.h5.bz2'):
+            self.outfile = str(self.outfile) + '.h5.bz2'
+
+
+    def write_h5_header(self):
+        """Write data as PyTable in an h5 file system with header"""
+        if isinstance(self.summary_data, pandas.DataFrame):
+            self.summary_data.to_hdf(
+                str(self.outfile), 
+                header=True, 
+                index=False, 
+                format='table', 
+                complevel=9, 
+                complib='bzip2', 
+                key=self.data_type, 
+                mode='w'
+            )
+
+    def write_h5_file(self):
+        """Append data as PyTable in an h5 file system"""
+        if isinstance(self.summary_data, pandas.DataFrame):
+            self.summary_data.to_hdf(
+                str(self.outfile), 
+                header=True, 
+                index=False, 
+                format='table', 
+                complevel=9, 
+                complib='bzip2', 
+                key=self.data_type, 
                 mode='a'
             )
 

@@ -150,7 +150,9 @@ def processor_cli(args):
             outdir = args.outdir
             pathlib.Path(outdir).mkdir(exist_ok=True)
             out_path = str(outdir) + '/' + str(args.out)
-            columnset = {}
+            columnset = {
+                v: k for k, v in args.columnset.items() if v != 'na'
+            }
             main(
                 args, 
                 data_type, 

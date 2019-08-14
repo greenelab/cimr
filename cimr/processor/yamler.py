@@ -383,15 +383,25 @@ class Yamler:
                 'submitted_data_md5': self.hash,
                 'build': self.genome_build
             }
-
-            # data_info: sample_size
-            # data_info: n_cases
-
-            # these are not required and do not terminate if missing
+            
+            if 'data_type' in self.yaml_data['data_info'].keys():
+                new_row['data_type'] = self.yaml_data['data_info']['data_type']
+            else:
+                logging.error(f' data_type is required')
+                sys.exit(1)
+                
             if 'description' in self.yaml_data['data_file'].keys():
                 new_row['description'] = self.yaml_data['data_file']['description']
             else:
                 logging.info(f' data description is not provided')
+            if 'sample_size' in self.yaml_data['data_info'].keys():
+                new_row['sample_size'] = self.yaml_data['data_info']['sample_size']
+            else:
+                logging.info(f' sample_size is not provided')
+            if 'n_cases' in self.yaml_data['data_info'].keys():
+                new_row['n_cases'] = self.yaml_data['data_info']['n_cases']
+            else:
+                logging.info(f' n_cases is not provided')
             if 'citation' in self.yaml_data['data_info'].keys():
                 new_row['citation'] = self.yaml_data['data_info']['citation']
             else:
@@ -415,7 +425,7 @@ class Yamler:
             metadata.to_csv(
                 metadata_file, 
                 header=True, 
-                index=True, 
+                index=False, 
                 sep='\t', 
                 na_rep='NA', 
                 mode='w'

@@ -233,6 +233,55 @@ class Querier:
         )
         self.jsoned = json.loads(self.queried.text)
 
+    
+    def list_queried(self):
+        """"""
+        _columns = ['symbol', 'entrez', 'ensembl', 'alias']
+        queried_genes = pandas.DataFrame(columns=_columns)
+        try:    
+            for gene in range(0, len(self.jsoned)):
+                row = {}
+
+                try:
+                    row['symbol'] = self.jsoned[gene]['symbol']
+                except KeyError:
+                    logging.info(f' %s does not have an official gene symbol' % self.jsoned[gene]['query'])
+                    row['symbol'] = 'NA'
+
+                try:
+                    row['entrez'] = self.jsoned[gene]['entrezgene']
+                except KeyError:
+                    logging.info(f' %s does not have an entrez ID.' % self.jsoned[gene]['query'])
+                    row['entrez'] = 'NA'
+
+                try:
+                    row['ensembl'] = self.jsoned[gene]['ensembl']['gene']
+                except KeyError:
+                    logging.info(f' %s does not have an ensembl ID.' % self.jsoned[gene]['query'])
+                    row['ensembl'] = 'NA'
+
+                except TypeError:
+                    row['ensembl'] = self.jsoned[gene]['ensembl'][0]['gene']
+                except:
+                    logging.info(f' %s has a type error' % self.jsoned[gene]['query'])
+                    row['ensembl'] = 'NA'
+                
+                try: 
+                    row['alias'] = self.jsoned[gene]['alias']
+                except KeyError:
+                    logging.info(f' %s does not have an alias.' % self.jsoned[gene]['query'])
+                    row['alias'] = 'NA'
+
+                queried_genes = queried_genes.append(
+                    row, 
+                    ignore_index=True
+                )
+            return queried_genes
+
+        except:
+            print(self.jsoned[gene]["query"])
+            raise ValueError(' the parsed list could not be written.')
+
 
     def write_json(self, annot_file_out):
         """Write the results of the query into a file.
@@ -249,47 +298,15 @@ class Querier:
         """Write official gene symbol, entrez IDs and ensembl gene IDs 
         for each gene_id.
         """
-        with open(annot_file_out, 'w') as outfile:
-
-            try:    
-                for gene in range(0, len(self.jsoned)):
-
-                    try:
-                        symbol = self.jsoned[gene]['symbol']
-                    except KeyError:
-                        logging.info(f' %s does not have an official gene symbol' % self.jsoned[gene]['query'])
-                        symbol = 'NA'
-
-                    try:
-                        entrez = self.jsoned[gene]['entrezgene']
-                    except KeyError:
-                        logging.info(f' %s does not have an entrez ID.' % self.jsoned[gene]['query'])
-                        entrez = 'NA'
-
-                    try:
-                        ensembl = self.jsoned[gene]['ensembl']['gene']
-                    except KeyError:
-                        logging.info(f' %s does not have an ensembl ID.' % self.jsoned[gene]['query'])
-                        ensembl = 'NA'
-
-                    except TypeError:
-                        ensembl = self.jsoned[gene]['ensembl'][0]['gene']
-                    except:
-                        logging.info(f' %s has a type error' % self.jsoned[gene]['query'])
-                        ensembl = 'NA'
-                    
-                    try: 
-                        alias = self.jsoned[gene]['alias']
-                    except KeyError:
-                        logging.info(f' %s does not have an alias.' % self.jsoned[gene]['query'])
-                        alias = 'NA'
-
-                    print(symbol, entrez, ensembl, alias, file=outfile)
-
-            except:
-                print(self.jsoned[gene]["query"])
-                raise ValueError(' the parsed list could not be written.')
-
+        queried_genes = list_queried()
+        queried_genes.to_csv(
+            annot_file_out, 
+            sep='\t', 
+            header=True, 
+            index=False, 
+            na_values='NA'
+        )
+        
 
 class Snpper:
     """Query refsnp variation database directly to update RS IDs of 

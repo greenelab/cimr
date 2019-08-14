@@ -137,7 +137,7 @@ class Infiler:
                  update_rsid, 
                  outfile, 
                  chunksize,
-                 columnset={}):
+                 columnset):
 
         if data_type not in DATA_TYPES:
             raise ValueError(' %s is not a valid data_type supported' % data_type)
@@ -182,6 +182,19 @@ class Infiler:
                 logging.info(f' updating variant_id to include build')
                 self.summary_data['build'] = self.genome_build
                 self.summary_data['variant_id'] = variant_ids + '_' + self.genome_build
+    
+
+    def make_variant_id(self):
+        """(Re)make variant_id with updated chrom ID, build #, etc."""
+        self.summary_data['variant_id'] = self.summary_data['chrom'] \
+            + '_' \
+            + self.summary_data['pos'] \
+            + '_' \
+            + self.summary_data['ref'] \
+            + '_' \
+            + self.summary_data['alt'] \
+            + '_' \
+            + self.summary_data['build']
 
 
     def check_chrom(self):
@@ -242,7 +255,7 @@ class Infiler:
             merged = samples.merge(
                 refdf, left_on='rsnum', right_on=ref_id+'_reference', 
                 left_index=False, right_index=False, how='left'
-                )
+            )
             merged.drop_duplicates(inplace=True)
             variant_nomatch = merged.loc[~(merged['variant_id']==merged['variant_id_reference'])]
             samplecount = len(samples.index)
@@ -309,6 +322,8 @@ class Infiler:
             self.get_pos()
             self.check_chrom()
             logging.info(f' chromosome information is checked.')
+            self.make_variant_id()
+            logging.info(f' variant_id has been standardized.')
         else:
             logging.error(f' variant_id column is not provided')
             sys.exit(1)
@@ -320,7 +335,7 @@ class Infiler:
             logging.warning(f' rsnum column is not provided.')
             
         if 'ma_samples' in self.included_header:
-            self.make_int('ma_sample')
+            self.make_int('ma_samples')
         
         if 'ma_count' in self.included_header:
             self.make_int('ma_count')
@@ -334,7 +349,7 @@ class Infiler:
             logging.info(f' inc_allele column is not available')
         
         columns_to_drop = [
-            'chrom', 'pos', 'ref', 'alt', 'chromosome', 
+            'chrom', 'pos', 'ref', 'alt', 'chromosome', 'build',
             'position', 'inc_allele', 'variant_chrom', 'variant_pos'
         ]
 
@@ -365,6 +380,22 @@ class Infiler:
             logging.error(f' pvalue column is not provided.')
             sys.exit(1)
 
+        if 'pvalue_perm' in self.included_header:
+            check_numeric(self.summary_data, 'pvalue_perm')
+            self.check_probability('pvalue_perm')
+        else:
+            logging.info(f' pvalue_perm column is not provided.')
+
+        if 'fdr' in self.included_header:
+            check_numeric(self.summary_data, 'fdr')
+            self.check_probability('fdr')
+        else:
+            logging.info(f' fdr column is not provided.')
+
+        if 'qvalue' in self.included_header:
+            check_numeric(self.summary_data, 'qvalue')
+        else:
+            logging.info(f' qvalue column is not provided.')
 
     def write_header(self):
         """Write data to file with header"""
@@ -436,7 +467,7 @@ class Infiler:
         """
         logging.info(f' renaming columns based on provided info')
         dataframe.rename(self.columnset, axis=1, inplace=True)
-
+    
 
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""

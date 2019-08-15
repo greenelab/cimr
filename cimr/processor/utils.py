@@ -12,6 +12,10 @@ import pathlib
 import logging
 import subprocess
 
+from pandas.api.types import is_numeric_dtype
+
+from .query import Querier
+
 from ..defaults import DATA_TYPES
 from ..defaults import GENOME_BUILDS
 from ..defaults import HEADER
@@ -279,22 +283,45 @@ class Infiler:
     def find_reference(self):
         """Find variant and gene references for map checking"""
         if self.genome_build == 'b37':
-            self.gene_ref = 'gene_grch37_gencode_v29.txt.gz'
+            self.gene_ref = 'gene_grch37_gencode_v26.tsv.gz'
             self.var_ref = 'variant_grch37_subset.txt.gz'
             self.var_ref_id = 'rs_id_dbSNP147_GRCh37p13'
         else:
-            self.gene_ref = 'gene_grch38_gencode_v26.txt.gz'
+            self.gene_ref = 'gene_grch38_gencode_v29.tsv.gz'
             self.var_ref = 'variant_grch38_subset.txt.gz'
             self.var_ref_id = 'rs_id_dbSNP150_GRCh38p7'
     
 
+    def trim_ensembl(self):
+        """Make the ensembl gene id list to be agnostic to 
+        subversions for queries
+        
+        e.g. ENSG00000143614.7 -> ENSG00000143614
+        """
+        ensemblid = self.summary_data['feature_id'].str.split('.').str[0]
+        self.summary_data['feature_id'] = ensemblid
+
+
     def list_features(self):
         """Find the list of features (e.g. genes)."""
-        if 'feature_id' in self.summary_data.columns:
+        logging.debug(f' {self.included_header}')
+        logging.debug(f' {self.summary_data.head(2)}')
+        if 'feature_id' in self.included_header:
+            if self.summary_data['feature_id'][0].startswith('ENSG'):
+                self.trim_ensembl()
+
+        if 'ensemblgene' in self.summary_data.columns:
+            return self.summary_data.ensemblgene
+        elif 'feature_id' in self.summary_data.columns:
             return self.summary_data.feature_id
         else:
             logging.error(f' feature_id column is not provided.')
-            return None
+            sys.exit(1)
+    
+
+    def append_gene_cols(self, gene_df):
+        """Add gene annotation columns to dataframe"""
+        self.summary_data = pandas.concat([self.summary_data, gene_df], axis=1)
     
 
     def fill_effect_allele(self):
@@ -346,7 +373,7 @@ class Infiler:
         if 'inc_allele' in self.included_header:
             self.fill_effect_allele()
         else:
-            logging.info(f' inc_allele column is not available')
+            logging.debug(f' inc_allele column is not available')
         
         columns_to_drop = [
             'chrom', 'pos', 'ref', 'alt', 'chromosome', 'build',
@@ -384,18 +411,19 @@ class Infiler:
             check_numeric(self.summary_data, 'pvalue_perm')
             self.check_probability('pvalue_perm')
         else:
-            logging.info(f' pvalue_perm column is not provided.')
+            logging.debug(f' pvalue_perm column is not provided.')
 
         if 'fdr' in self.included_header:
             check_numeric(self.summary_data, 'fdr')
             self.check_probability('fdr')
         else:
-            logging.info(f' fdr column is not provided.')
+            logging.debug(f' fdr column is not provided.')
 
         if 'qvalue' in self.included_header:
             check_numeric(self.summary_data, 'qvalue')
         else:
-            logging.info(f' qvalue column is not provided.')
+            logging.debug(f' qvalue column is not provided.')
+
 
     def write_header(self):
         """Write data to file with header"""
@@ -469,6 +497,54 @@ class Infiler:
         dataframe.rename(self.columnset, axis=1, inplace=True)
     
 
+    def call_querier(self, genes):
+        queried = Querier(genes)
+        queried.form_query()
+        self.append_gene_cols(queried.list_queried())
+    
+
+    def map_features(self, features):
+        """Find the type of feature_id, map to gene symbols, 
+        if not available.
+        """
+        if features.str.startswith('ENSG').all(skipna=True):
+            self.feature_type = 'ensemblgene'
+        elif features.str.startswith('ENST').all(skipna=True):
+            self.feature_type = 'ensembltranscript'
+        elif features.str.startswith('ENSP').all(skipna=True):
+            self.feature_type = 'ensemblprotein'
+        elif is_numeric_dtype(features):
+            self.feature_type = 'entrezgene'
+        else:
+            logging.error(f' feature reference cannot be determined.')
+            sys.exit(1)
+        
+        if not 'feature_name' in self.included_header:
+            gene_annot = pandas.read_csv(
+                'cimr/data/annotation/' + self.gene_ref, 
+                sep='\t', 
+                header=0
+            )
+            cols = ['feature_name', self.feature_type, 'feature_type']
+            gene_annot = gene_annot[cols]
+            gene_annot.rename(columns={self.feature_type:'feature_id'}, inplace=True)
+
+            logging.debug(f' current dataframe: ')
+            logging.debug(f' {self.summary_data.head(2)}')
+            logging.debug(f' selected annotations: ')
+            logging.debug(f' {gene_annot.head(2)}')
+            
+            self.summary_data = self.summary_data.merge(
+                gene_annot, 
+                on='feature_id', 
+                how='left',
+                left_index=False,
+                right_index=False
+            )
+            logging.debug(f' dataframe has been annotated.')
+            logging.debug(f' {self.summary_data.head(2)}')
+    
+
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""
         self.file_name = find_file(self.file_name)
@@ -493,8 +569,22 @@ class Infiler:
                 if self.columnset:
                     self.rename_columns(chunk)
 
-                self.included_header = list(set(HEADER) & set(chunk.columns))
+                self.included_header = list(
+                    set(HEADER) & set(chunk.columns)
+                )
                 self.check_file(chunk)
+                logging.debug(f' processing data type {self.data_type}')
+
+                if self.data_type == 'eqtl':
+                    features = self.list_features()
+                    # 413 error
+                    # self.call_querier(features)
+                    self.map_features(features)
+                
+                logging.info(f' dropping duplicate columns...')
+                dropcols = self.summary_data.columns.duplicated()
+                self.summary_data = self.summary_data.loc[:, ~dropcols]
+
                 logging.info(f' writing processed data...')
 
                 if chunkcount == 0:

@@ -67,6 +67,25 @@ def main(args,
     """
     if check_type(data_type):
 
+        if data_type == 'gene':
+            with open(args.file_name) as f:
+                genes = f.read().splitlines()
+            
+            queried = Querier(genes)
+            queried.form_query()
+            
+            if args.write_json is not None:
+                annot_gene_file = str(outdir) + '/' + str(args.write_json)
+                queried.write_json(annot_gene_file)
+            
+            if args.write_gene is not None:
+                annot_gene_file = str(outdir) + '/' + str(args.write_gene)
+                queried.write_gene(annot_gene_file)
+            return 0
+
+        elif data_type == 'tad':        
+            grow_tadpoles(args)
+            
         if file_name:
             if not str(out_path).endswith(FILE_EXTENSION):
                 outfile = pathlib.Path(str(out_path) + '.tsv.gz')
@@ -84,30 +103,6 @@ def main(args,
             )
             
             infile.read_file()
-            
-            # debugging mialigned rows
-            # if data_type == 'eqtl':
-            #     genes = list(infile.list_features())
-            #     queried = Querier(genes)
-            #     queried.form_query()
-
-            if data_type == 'gene':
-                with open(args.file_name) as f:
-                    genes = f.read().splitlines()
-                
-                queried = Querier(genes)
-                queried.form_query()
-                
-                if args.write_json is not None:
-                    annot_gene_file = str(outdir) + '/' + str(args.write_json)
-                    queried.write_json(annot_gene_file)
-                
-                if args.write_gene is not None:
-                    annot_gene_file = str(outdir) + '/' + str(args.write_gene)
-                    queried.write_gene(annot_gene_file)
-
-            elif data_type == 'tad':        
-                grow_tadpoles(args)
             
             logging.info(f' finished processing {file_name}')
             logging.info(f' output has been saved as {outfile}')

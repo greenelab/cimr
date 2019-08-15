@@ -231,46 +231,48 @@ class Querier:
             headers=self.headers, 
             data=params
         )
-        self.jsoned = json.loads(self.queried.text)
+        try:
+            self.jsoned = json.loads(self.queried.text)
+        except:
+            logging.info(f' {params}')
+            logging.info(f' {self.queried}')
 
     
     def list_queried(self):
         """"""
-        _columns = ['symbol', 'entrez', 'ensembl', 'alias']
+        _columns = ['feature_name', 'entrezgene', 'ensemblgene', 'feature_alias']
         queried_genes = pandas.DataFrame(columns=_columns)
         try:    
             for gene in range(0, len(self.jsoned)):
                 row = {}
 
                 try:
-                    row['symbol'] = self.jsoned[gene]['symbol']
+                    row['feature_name'] = self.jsoned[gene]['symbol']
                 except KeyError:
-                    logging.info(f' %s does not have an official gene symbol' % self.jsoned[gene]['query'])
-                    row['symbol'] = 'NA'
+                    logging.debug(f' %s does not have an official gene symbol' % self.jsoned[gene]['query'])
+                    row['feature_name'] = 'NA'
 
                 try:
-                    row['entrez'] = self.jsoned[gene]['entrezgene']
+                    row['entrezgene'] = self.jsoned[gene]['entrezgene']
                 except KeyError:
-                    logging.info(f' %s does not have an entrez ID.' % self.jsoned[gene]['query'])
-                    row['entrez'] = 'NA'
+                    logging.debug(f' %s does not have an entrez ID.' % self.jsoned[gene]['query'])
+                    row['entrezgene'] = 'NA'
 
                 try:
-                    row['ensembl'] = self.jsoned[gene]['ensembl']['gene']
+                    row['ensemblgene'] = self.jsoned[gene]['ensembl']['gene']
                 except KeyError:
-                    logging.info(f' %s does not have an ensembl ID.' % self.jsoned[gene]['query'])
-                    row['ensembl'] = 'NA'
-
+                    logging.debug(f' %s does not have an ensembl ID.' % self.jsoned[gene]['query'])
+                    row['ensemblgene'] = 'NA'
                 except TypeError:
-                    row['ensembl'] = self.jsoned[gene]['ensembl'][0]['gene']
+                    row['ensemblgene'] = self.jsoned[gene]['ensembl'][0]['gene']
                 except:
-                    logging.info(f' %s has a type error' % self.jsoned[gene]['query'])
-                    row['ensembl'] = 'NA'
+                    logging.debug(f' %s has a type error' % self.jsoned[gene]['query'])
+                    row['ensemblgene'] = 'NA'
                 
                 try: 
-                    row['alias'] = self.jsoned[gene]['alias']
+                    row['feature_alias'] = self.jsoned[gene]['alias']
                 except KeyError:
-                    logging.info(f' %s does not have an alias.' % self.jsoned[gene]['query'])
-                    row['alias'] = 'NA'
+                    row['feature_alias'] = 'NA'
 
                 queried_genes = queried_genes.append(
                     row, 
@@ -281,6 +283,14 @@ class Querier:
         except:
             print(self.jsoned[gene]["query"])
             raise ValueError(' the parsed list could not be written.')
+    
+
+    def return_to_cimr(self):
+        """If Querier is called within cimr(-d) rather than as an 
+        independent annotation call, return queried object to cimr 
+        to be integrated back to the dataframe
+        """
+        return self.list_queried()
 
 
     def write_json(self, annot_file_out):
@@ -298,15 +308,15 @@ class Querier:
         """Write official gene symbol, entrez IDs and ensembl gene IDs 
         for each gene_id.
         """
-        queried_genes = list_queried()
+        queried_genes = self.list_queried()
         queried_genes.to_csv(
             annot_file_out, 
             sep='\t', 
             header=True, 
             index=False, 
-            na_values='NA'
+            na_rep='NA'
         )
-        
+
 
 class Snpper:
     """Query refsnp variation database directly to update RS IDs of 

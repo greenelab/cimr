@@ -18,6 +18,7 @@ from .query import Querier
 
 from ..defaults import DATA_TYPES
 from ..defaults import GENOME_BUILDS
+from ..defaults import REQ_HEADER
 from ..defaults import HEADER
 from ..defaults import MAXCHROM
 
@@ -190,6 +191,8 @@ class Infiler:
 
     def make_variant_id(self):
         """(Re)make variant_id with updated chrom ID, build #, etc."""
+        logging.debug(f' checking variant_id column...')
+        logging.debug(f' {self.summary_data.variant_id}')
         self.summary_data['variant_id'] = self.summary_data['chrom'] \
             + '_' \
             + self.summary_data['pos'] \
@@ -199,6 +202,8 @@ class Infiler:
             + self.summary_data['alt'] \
             + '_' \
             + self.summary_data['build']
+        logging.debug(f' variant_id column verified.')
+        logging.debug(f' {self.summary_data.variant_id}')
 
 
     def check_chrom(self):
@@ -300,6 +305,7 @@ class Infiler:
         """
         ensemblid = self.summary_data['feature_id'].str.split('.').str[0]
         self.summary_data['feature_id'] = ensemblid
+        logging.info(f' ensembl id has been truncated for database queries.')
 
 
     def list_features(self):
@@ -533,7 +539,7 @@ class Infiler:
             logging.debug(f' {self.summary_data.head(2)}')
             logging.debug(f' selected annotations: ')
             logging.debug(f' {gene_annot.head(2)}')
-            
+
             self.summary_data = self.summary_data.merge(
                 gene_annot, 
                 on='feature_id', 
@@ -541,9 +547,19 @@ class Infiler:
                 left_index=False,
                 right_index=False
             )
+            self.summary_data.drop_duplicates(inplace=True)
+            self.summary_data.reset_index(inplace=True, drop=True)
             logging.debug(f' dataframe has been annotated.')
             logging.debug(f' {self.summary_data.head(2)}')
     
+
+    def order_columns(self):
+        """Make sure the final output has the required columns
+        listed first."""
+        nonreq_header = self.summary_data.columns.drop(REQ_HEADER).tolist()
+        output_columns = REQ_HEADER + (nonreq_header)
+        self.summary_data = self.summary_data[output_columns]
+
 
     def read_file(self):
         """Read the input file as a pandas dataframe. check if empty"""
@@ -585,6 +601,9 @@ class Infiler:
                 dropcols = self.summary_data.columns.duplicated()
                 self.summary_data = self.summary_data.loc[:, ~dropcols]
 
+                logging.info(f' reordering output data...')
+                self.order_columns()
+                
                 logging.info(f' writing processed data...')
 
                 if chunkcount == 0:

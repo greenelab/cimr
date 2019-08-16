@@ -124,7 +124,7 @@ def processor_cli(args):
                 data_type = _file.split('/')[-2]
                 file_name = _file.split('/')[-1]
                 pathlib.Path('processed_data').mkdir(exist_ok=True)
-                if not args.outdir:
+                if str(args.outdir) == 'outdir':
                     outdir = 'processed_data/' + str(data_type) + '/'
                 else:
                     outdir = str(args.outdir) + '/'

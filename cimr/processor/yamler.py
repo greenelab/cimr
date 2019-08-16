@@ -74,11 +74,6 @@ def check_yaml_in_ci():
     return yaml_file
 
 
-def predefine_yaml():
-    """A git-status-independent function used for testing"""
-    return pathlib.Path('examples/expected_submitted/gwas.yml')
-
-
 def find_yaml_in_dir():
     """Considering multiple yaml files in a submitted/ dir."""
     yaml_files = []

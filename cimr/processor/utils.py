@@ -21,7 +21,7 @@ from ..defaults import GENOME_BUILDS
 from ..defaults import REQ_HEADER
 from ..defaults import HEADER
 from ..defaults import MAXCHROM
-
+from ..defaults import ANNOTURL
 
 def set_chrom_dict():
     """Make a dictionary to standardize chromosome IDs in input files."""
@@ -245,7 +245,7 @@ class Infiler:
     def check_ref(self):
         from pkg_resources import resource_filename
         
-        var_ref = 'data/annotation/' + self.var_ref
+        var_ref = self.var_ref
         ref_id = self.var_ref_id
         ref_file = resource_filename(
             'cimr', var_ref
@@ -288,12 +288,12 @@ class Infiler:
     def find_reference(self):
         """Find variant and gene references for map checking"""
         if self.genome_build == 'b37':
-            self.gene_ref = 'gene_grch37_gencode_v26.tsv.gz'
-            self.var_ref = 'variant_grch37_subset.txt.gz'
+            self.gene_ref = ANNOTURL + 'gene_grch37_gencode_v26.tsv.gz'
+            self.var_ref = ANNOTURL + 'variant_grch37_subset.txt.gz'
             self.var_ref_id = 'rs_id_dbSNP147_GRCh37p13'
         else:
-            self.gene_ref = 'gene_grch38_gencode_v29.tsv.gz'
-            self.var_ref = 'variant_grch38_subset.txt.gz'
+            self.gene_ref = ANNOTURL + 'gene_grch38_gencode_v29.tsv.gz'
+            self.var_ref = ANNOTURL + 'variant_grch38_subset.txt.gz'
             self.var_ref_id = 'rs_id_dbSNP150_GRCh38p7'
     
 
@@ -525,9 +525,11 @@ class Infiler:
             logging.error(f' feature reference cannot be determined.')
             sys.exit(1)
         
+        logging.debug(f' reading {self.gene_ref}.')
+        
         if not 'feature_name' in self.included_header:
             gene_annot = pandas.read_csv(
-                'cimr/data/annotation/' + self.gene_ref, 
+                self.gene_ref, 
                 sep='\t', 
                 header=0
             )
@@ -603,7 +605,7 @@ class Infiler:
 
                 logging.info(f' reordering output data...')
                 self.order_columns()
-                
+
                 logging.info(f' writing processed data...')
 
                 if chunkcount == 0:

@@ -371,7 +371,7 @@ class Yamler:
             metadata = pandas.read_csv(
                 metadata_file, 
                 header=0, 
-                index_col=0, 
+                index_col=None, 
                 sep='\t'
             )
         else:
@@ -385,11 +385,7 @@ class Yamler:
                 'build': self.genome_build
             }
             
-            if 'data_type' in self.yaml_data['data_info'].keys():
-                new_row['data_type'] = self.yaml_data['data_info']['data_type']
-            else:
-                logging.error(f' data_type is required.')
-                sys.exit(1)
+            new_row['data_type'] = self.data_type
             
             if 'context' in self.yaml_data['data_info'].keys():
                 context = self.yaml_data['data_info']['context']
@@ -433,6 +429,7 @@ class Yamler:
             metadata.reset_index(inplace=True, drop=True)
 
             metadata = metadata[META_HEADER]
+
             metadata.to_csv(
                 metadata_file, 
                 header=True, 

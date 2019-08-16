@@ -16,6 +16,7 @@ data_info:
     data_source: http:/gtexportal.org
     data_type: eqtl
     build: b37
+    context: whole blood
     sample_size: 369
     n_cases: na
     can_be_public: true

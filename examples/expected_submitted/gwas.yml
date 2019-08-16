@@ -23,6 +23,7 @@ data_info:
     data_source: http://lipidgenetics.org/
     data_type: gwas
     build: b38
+    context: coronary_artery_disease
     sample_size: 187167
     n_cases: na
     can_be_public: true

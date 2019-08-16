@@ -21,17 +21,18 @@ WORKING_HEADER = [
 
 # required header
 REQ_HEADER = [
-    'variant_id', 'pvalue', 'effect_size', 'standard_error', 'zscore'
+    'variant_id', 'pvalue', 'effect_size', 'standard_error'
 ]
 
 # union of expected columns in variant- or variant-feature 
 # association test results
 HEADER = [
-    'variant_id', 'pvalue', 'effect_size', 'standard_error', 'zscore', 
-    'odds_ratio', 'rsnum', 'tss_distance', 
+    'variant_id', 'pvalue', 'effect_size', 'standard_error', 
+    'feature_id',
+    'zscore', 'odds_ratio', 'rsnum', 'tss_distance', 
     'effect_allele', 'non_effect_allele', 'frequency', 
     'imputation_status', 'sample_size', 'n_cases', 'build', 
-    'feature_variant_id', 'feature_id', 'feature_name', 
+    'feature_variant_id', 'feature_name', 
     'feature_start', 'feature_stop', 'feature_type', 'strand', 
     'ma_samples', 'ma_count', 'maf', 
     'pvalue_perm', 'pvalue_beta', 'fdr', 'qvalue'

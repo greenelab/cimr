@@ -50,8 +50,9 @@ BULK_EXTENSION = ('tgz', 'tar.gz', 'tar.bz2', 'tar.xz')
 FILE_EXTENSION = ('txt.gz', 'tsv.gz')
 
 META_HEADER = [
+    'data_type', 'context', 'context_id', 
     'file_name', 'processed_data_url', 'submitted_data_url', 
-    'submitted_data_md5', 'citation', 'data_source', 'data_type', 
+    'submitted_data_md5', 'citation', 'data_source', 
     'build', 'sample_size', 'n_cases', 'method_name', 'method_tool', 
     'description'
 ]

@@ -431,6 +431,8 @@ class Yamler:
             logging.info(f' updating cimr-d catalog.txt for {file_name}.')
             metadata = metadata.append(new_row, ignore_index=True)
             metadata.reset_index(inplace=True, drop=True)
+
+            metadata = metadata[META_HEADER]
             metadata.to_csv(
                 metadata_file, 
                 header=True, 

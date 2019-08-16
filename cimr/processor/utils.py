@@ -526,7 +526,7 @@ class Infiler:
             sys.exit(1)
         
         logging.debug(f' reading {self.gene_ref}.')
-        
+
         if not 'feature_name' in self.included_header:
             gene_annot = pandas.read_csv(
                 self.gene_ref, 
@@ -579,7 +579,7 @@ class Infiler:
 
         for chunk in chunks:
             chunk.reset_index(drop=True, inplace=True)
-            logging.info(f' processing input chunk {chunkcount}')
+            logging.info(f' processing input chunk {chunkcount}.')
             # check if empty and check header
             if not chunk.empty:
               
@@ -591,7 +591,7 @@ class Infiler:
                     set(HEADER) & set(chunk.columns)
                 )
                 self.check_file(chunk)
-                logging.debug(f' processing data type {self.data_type}')
+                logging.debug(f' processing data type {self.data_type}.')
 
                 if self.data_type == 'eqtl':
                     features = self.list_features()
@@ -599,11 +599,11 @@ class Infiler:
                     # self.call_querier(features)
                     self.map_features(features)
                 
-                logging.info(f' dropping duplicate columns...')
+                logging.info(f' dropping duplicate columns.')
                 dropcols = self.summary_data.columns.duplicated()
                 self.summary_data = self.summary_data.loc[:, ~dropcols]
 
-                logging.info(f' reordering output data...')
+                logging.info(f' reordering processed data...')
                 self.order_columns()
 
                 logging.info(f' writing processed data...')

@@ -1,6 +1,0 @@
-#!/bin/bash
-
-set -ex
-
-cd ~/cimr/tests/gwas-hdl/
-cimr processor -process -yaml-file hdl.yml"

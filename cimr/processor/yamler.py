@@ -122,6 +122,17 @@ def verify_weblink(path):
         return False
 
 
+def trim_zenodo_link(path):
+    """Trim a zenodo download link to extract file name.
+    
+    e.g. https://zenodo.org/record/3369410/files/gwas.txt.gz?download=1
+    -> https://zenodo.org/record/3369410/files/gwas.txt.gz
+    """
+    if 'zenodo.org' in str(path):
+        path = path.replace('?download=1', '')
+        return path
+
+
 def download_file(path, outdir='./'):
     """Download data based on the provided link.
 
@@ -270,6 +281,7 @@ class Yamler:
         Download if verified.
         """
         self.file_link = self.yaml_data['data_file']['location']['url']
+        self.file_link = trim_zenodo_link(self.file_link)
         if 'input_name' in self.yaml_data['data_file'].keys():
             self.infile = self.yaml_data['data_file']['input_name']
         else:

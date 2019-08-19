@@ -1,2 +1,3 @@
+3569366471de4a8fd318b9f6cf273733  cimr-d_catalog.txt
 abf25a9b9e0445049a9a2da84766d78d  processed_data/gwas/HDL_Cholesterol.txt
 374a0fa34c3d7db1587373a6fee5630e  processed_data/gwas/LDL_Cholesterol.txt

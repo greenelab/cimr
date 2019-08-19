@@ -1,0 +1,32 @@
+data_file:
+    description: >-
+        Genotype-Tissue Expression (GTEx) consortium v7 data release 
+        for genome-wide expression quantitative trait loci (eQTL) scans
+    location:
+        url: https://zenodo.org/record/3369410/files/eqtl.txt.gz
+        md5: b154b53a8ceddd6703d91036845623d3
+    columns:
+        effect_size: slope
+        standard_error: slope_se
+        pvalue: pval_nominal
+        feature_id: gene_id
+
+data_info:
+    citation: 10.1038/nature24277
+    data_source: http:/gtexportal.org
+    data_type: eqtl
+    build: b37
+    context: whole blood
+    sample_size: 369
+    n_cases: na
+    can_be_public: true
+
+method:
+    name: linear regression
+    tool: fastqtl
+    website: http://fastqtl.sourceforge.net/
+
+contributor:
+    name: YoSon Park
+    github: ypar
+    email: cimrroot@gmail.com

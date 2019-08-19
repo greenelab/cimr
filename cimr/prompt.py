@@ -18,6 +18,7 @@ __status__ = "production"
 
 import os
 import sys
+import json
 import argparse
 import pathlib
 import logging
@@ -25,7 +26,7 @@ import warnings
 import importlib
 
 import cimr
-
+from .defaults import DATA_TYPES
 
 def parse_arguments():
     """Parse command line arguments for subprocesses of cimr."""
@@ -119,7 +120,7 @@ def add_subparser_processor(subparsers):
         '-data-type',
         dest='data_type',
         help='input file data type',
-        choices=[ 'gwas', 'eqtl', 'gene', 'tad', 'multiple', 'yaml'],
+        choices=DATA_TYPES,
     )
     parser.add_argument(
         '-genome-build',
@@ -155,10 +156,10 @@ def add_subparser_processor(subparsers):
     )
     parser.add_argument(
         '-column-set',
-        default={},
-        # variable name due to reversed key: value 
-        # in yaml-based parsing of column headings...
+        default='{"key":"value"}',
         dest='columnset',
+        type=json.loads,
+        nargs='?',
         help='dictionary containing corresponding header names, '
              'if different from the cimr default',
     )

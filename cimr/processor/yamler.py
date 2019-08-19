@@ -19,6 +19,8 @@ import pandas
 import pathlib
 import logging
 
+from pandas.api.types import is_numeric_dtype
+
 from ..defaults import DATA_TYPES
 from ..defaults import CONFIG_FILE_EXTENSION
 from ..defaults import BULK_EXTENSION
@@ -72,11 +74,6 @@ def check_yaml_in_ci():
     return yaml_file
 
 
-def predefine_yaml():
-    """A git-status-independent function used for testing"""
-    return pathlib.Path('upload_data_example.yml')
-
-
 def find_yaml_in_dir():
     """Considering multiple yaml files in a submitted/ dir."""
     yaml_files = []
@@ -89,7 +86,7 @@ def find_yaml_in_dir():
         if yaml_file.endswith(CONFIG_FILE_EXTENSION):
             yaml_files.append(yaml_file)
         else:
-            raise Exception(f' {yaml_file} is not an acceptible yaml file')
+            raise Exception(f' {yaml_file} is not an acceptible yaml file.')
 
     return yaml_files
 
@@ -123,6 +120,17 @@ def verify_weblink(path):
         return True
     else:
         return False
+
+
+def trim_zenodo_link(path):
+    """Trim a zenodo download link to extract file name.
+    
+    e.g. https://zenodo.org/record/3369410/files/gwas.txt.gz?download=1
+    -> https://zenodo.org/record/3369410/files/gwas.txt.gz
+    """
+    if 'zenodo.org' in str(path):
+        path = path.replace('?download=1', '')
+        return path
 
 
 def download_file(path, outdir='./'):
@@ -182,7 +190,7 @@ def verify_dir(tarred_data):
         if member.name.startswith(DATA_TYPES):
             return True
         else:
-            logging.error(f' data_type not indicated in dir tree')
+            logging.error(f' data_type not indicated in dir tree.')
             sys.exit(1)
 
 
@@ -195,7 +203,7 @@ def convert_yaml(yaml_files):
             yaml_file_path = yaml_file.resolve(strict=True)
             logging.info(f' processing {yaml_file_path}')
         else:
-            logging.error(f' {yaml_file} is not accessible')
+            logging.error(f' {yaml_file} is not accessible.')
             sys.exit(1)
 
         yaml_data = load_yaml(yaml_file)
@@ -215,12 +223,16 @@ def convert_yaml(yaml_files):
     return genome_build, fileset, columnset
 
 
+def standardize_context(context):
+    """Standardizing the context description"""
+    context = str(context).lower().replace(' ', '_')
+    return context
+
+
 class Yamler:
     """A collection of utilities to parse the yaml file, check metadata
     and trigger cimr processing of the contributed file
     """
-
-
     def __init__(self, yaml_data):
         self.yaml_data = yaml_data
         self.data_type = None
@@ -269,6 +281,7 @@ class Yamler:
         Download if verified.
         """
         self.file_link = self.yaml_data['data_file']['location']['url']
+        self.file_link = trim_zenodo_link(self.file_link)
         if 'input_name' in self.yaml_data['data_file'].keys():
             self.infile = self.yaml_data['data_file']['input_name']
         else:
@@ -370,7 +383,7 @@ class Yamler:
             metadata = pandas.read_csv(
                 metadata_file, 
                 header=0, 
-                index_col=0, 
+                index_col=None, 
                 sep='\t'
             )
         else:
@@ -383,39 +396,56 @@ class Yamler:
                 'submitted_data_md5': self.hash,
                 'build': self.genome_build
             }
-
-            # data_info: sample_size
-            # data_info: n_cases
-
-            # these are not required and do not terminate if missing
+            
+            new_row['data_type'] = self.data_type
+            
+            if 'context' in self.yaml_data['data_info'].keys():
+                context = self.yaml_data['data_info']['context']
+                context = standardize_context(context)
+                new_row['context'] = context
+            else:
+                logging.error(f' context description is required.')
+                sys.exit(1)
+                
             if 'description' in self.yaml_data['data_file'].keys():
                 new_row['description'] = self.yaml_data['data_file']['description']
             else:
-                logging.info(f' data description is not provided')
+                logging.info(f' data description is not provided.')
+            if 'sample_size' in self.yaml_data['data_info'].keys():
+                new_row['sample_size'] = self.yaml_data['data_info']['sample_size']
+            else:
+                logging.info(f' sample_size is not provided.')
+            if 'n_cases' in self.yaml_data['data_info'].keys():
+                new_row['n_cases'] = self.yaml_data['data_info']['n_cases']
+            else:
+                logging.info(f' n_cases is not provided.')
             if 'citation' in self.yaml_data['data_info'].keys():
                 new_row['citation'] = self.yaml_data['data_info']['citation']
             else:
-                logging.info(f' citation is not provided')
+                logging.info(f' citation is not provided.')
             if 'data_source' in self.yaml_data['data_info'].keys():
                 new_row['data_source'] = self.yaml_data['data_info']['data_source']
             else:
-                logging.info(f' data_source is not provided')
+                logging.info(f' data_source is not provided.')
             if 'name' in self.yaml_data['method'].keys():
                 new_row['method_name'] = self.yaml_data['method']['name']
             else:
-                logging.info(f' method name is not provided')
+                logging.info(f' method name is not provided.')
             if 'tool' in self.yaml_data['method'].keys():
                 new_row['method_tool'] = self.yaml_data['method']['tool']
             else:
-                logging.info(f' method tool is not provided')
+                logging.info(f' method tool is not provided.')
             
-            logging.info(f' updating cimr-d catalog.txt for {file_name}')
+            logging.info(f' updating cimr-d catalog.txt for {file_name}.')
             metadata = metadata.append(new_row, ignore_index=True)
             metadata.reset_index(inplace=True, drop=True)
+
+            metadata = metadata[META_HEADER]
+
             metadata.to_csv(
                 metadata_file, 
                 header=True, 
-                index=True, 
+                index=False, 
                 sep='\t', 
                 na_rep='NA', 
                 mode='w'

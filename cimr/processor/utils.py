@@ -12,10 +12,16 @@ import pathlib
 import logging
 import subprocess
 
+from pandas.api.types import is_numeric_dtype
+
+from .query import Querier
+
 from ..defaults import DATA_TYPES
 from ..defaults import GENOME_BUILDS
+from ..defaults import REQ_HEADER
 from ..defaults import HEADER
 from ..defaults import MAXCHROM
+from ..defaults import ANNOTURL
 
 
 def set_chrom_dict():
@@ -137,7 +143,7 @@ class Infiler:
                  update_rsid, 
                  outfile, 
                  chunksize,
-                 columnset={}):
+                 columnset):
 
         if data_type not in DATA_TYPES:
             raise ValueError(' %s is not a valid data_type supported' % data_type)
@@ -182,6 +188,23 @@ class Infiler:
                 logging.info(f' updating variant_id to include build')
                 self.summary_data['build'] = self.genome_build
                 self.summary_data['variant_id'] = variant_ids + '_' + self.genome_build
+    
+
+    def make_variant_id(self):
+        """(Re)make variant_id with updated chrom ID, build #, etc."""
+        logging.debug(f' checking variant_id column...')
+        logging.debug(f' {self.summary_data.variant_id}')
+        self.summary_data['variant_id'] = self.summary_data['chrom'] \
+            + '_' \
+            + self.summary_data['pos'] \
+            + '_' \
+            + self.summary_data['ref'] \
+            + '_' \
+            + self.summary_data['alt'] \
+            + '_' \
+            + self.summary_data['build']
+        logging.debug(f' variant_id column verified.')
+        logging.debug(f' {self.summary_data.variant_id}')
 
 
     def check_chrom(self):
@@ -190,11 +213,10 @@ class Infiler:
         * change if different from the specified format
         * discard non-autosomal chromosomes from main input
         """
-        sumdata = self.summary_data
         chrom_dict, maxchrom = set_chrom_dict()
         chrom_str = list(chrom_dict.values())[0:maxchrom]
         chrom_int = list(chrom_dict.keys())[0:maxchrom]
-        chroms = sumdata['chrom'].drop_duplicates().values
+        chroms = self.summary_data['chrom'].drop_duplicates().values
         
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
             logging.info(f' there are {len(chroms)} chromosomes.')
@@ -207,10 +229,11 @@ class Infiler:
         if len(set(chroms) & set(chrom_str)) > (maxchrom - 2):
             pass
         elif len(set(chroms) & set(chrom_int)) > (maxchrom - 2):
-            sumdata['chrom'] = sumdata['chrom'].map(
+            self.summary_data['chrom'] = self.summary_data['chrom'].map(
                 chrom_dict, na_action='ignore'
-            ).fillna(sumdata['chrom'])
-            sumdata = sumdata[sumdata['chrom'].isin(chrom_str)]
+            ).fillna(self.summary_data['chrom'])
+            # strchroms = self.summary_data['chrom'].isin(chrom_str)
+            # self.summary_data = self.summary_data[strchroms]
             logging.info(f' chromosome ids have been updated.')
         else:
             logging.error(f' chromosome id needs to be checked.')
@@ -223,7 +246,7 @@ class Infiler:
     def check_ref(self):
         from pkg_resources import resource_filename
         
-        var_ref = 'data/annotation/' + self.var_ref
+        var_ref = self.var_ref
         ref_id = self.var_ref_id
         ref_file = resource_filename(
             'cimr', var_ref
@@ -242,7 +265,7 @@ class Infiler:
             merged = samples.merge(
                 refdf, left_on='rsnum', right_on=ref_id+'_reference', 
                 left_index=False, right_index=False, how='left'
-                )
+            )
             merged.drop_duplicates(inplace=True)
             variant_nomatch = merged.loc[~(merged['variant_id']==merged['variant_id_reference'])]
             samplecount = len(samples.index)
@@ -266,22 +289,46 @@ class Infiler:
     def find_reference(self):
         """Find variant and gene references for map checking"""
         if self.genome_build == 'b37':
-            self.gene_ref = 'gene_grch37_gencode_v29.txt.gz'
-            self.var_ref = 'variant_grch37_subset.txt.gz'
+            self.gene_ref = ANNOTURL + 'gene_grch37_gencode_v26.tsv.gz'
+            self.var_ref = ANNOTURL + 'variant_grch37_subset.txt.gz'
             self.var_ref_id = 'rs_id_dbSNP147_GRCh37p13'
         else:
-            self.gene_ref = 'gene_grch38_gencode_v26.txt.gz'
-            self.var_ref = 'variant_grch38_subset.txt.gz'
+            self.gene_ref = ANNOTURL + 'gene_grch38_gencode_v29.tsv.gz'
+            self.var_ref = ANNOTURL + 'variant_grch38_subset.txt.gz'
             self.var_ref_id = 'rs_id_dbSNP150_GRCh38p7'
     
 
+    def trim_ensembl(self):
+        """Make the ensembl gene id list to be agnostic to 
+        subversions for queries
+        
+        e.g. ENSG00000143614.7 -> ENSG00000143614
+        """
+        ensemblid = self.summary_data['feature_id'].str.split('.').str[0]
+        self.summary_data['feature_id'] = ensemblid
+        logging.info(f' ensembl id has been truncated for database queries.')
+
+
     def list_features(self):
         """Find the list of features (e.g. genes)."""
-        if 'feature_id' in self.summary_data.columns:
+        logging.debug(f' {self.included_header}')
+        logging.debug(f' {self.summary_data.head(2)}')
+        if 'feature_id' in self.included_header:
+            if self.summary_data['feature_id'][0].startswith('ENSG'):
+                self.trim_ensembl()
+
+        if 'ensemblgene' in self.summary_data.columns:
+            return self.summary_data.ensemblgene
+        elif 'feature_id' in self.summary_data.columns:
             return self.summary_data.feature_id
         else:
             logging.error(f' feature_id column is not provided.')
-            return None
+            sys.exit(1)
+    
+
+    def append_gene_cols(self, gene_df):
+        """Add gene annotation columns to dataframe"""
+        self.summary_data = pandas.concat([self.summary_data, gene_df], axis=1)
     
 
     def fill_effect_allele(self):
@@ -309,6 +356,8 @@ class Infiler:
             self.get_pos()
             self.check_chrom()
             logging.info(f' chromosome information is checked.')
+            self.make_variant_id()
+            logging.info(f' variant_id has been standardized.')
         else:
             logging.error(f' variant_id column is not provided')
             sys.exit(1)
@@ -320,7 +369,7 @@ class Infiler:
             logging.warning(f' rsnum column is not provided.')
             
         if 'ma_samples' in self.included_header:
-            self.make_int('ma_sample')
+            self.make_int('ma_samples')
         
         if 'ma_count' in self.included_header:
             self.make_int('ma_count')
@@ -331,10 +380,10 @@ class Infiler:
         if 'inc_allele' in self.included_header:
             self.fill_effect_allele()
         else:
-            logging.info(f' inc_allele column is not available')
+            logging.debug(f' inc_allele column is not available')
         
         columns_to_drop = [
-            'chrom', 'pos', 'ref', 'alt', 'chromosome', 
+            'chrom', 'pos', 'ref', 'alt', 'chromosome', 'build',
             'position', 'inc_allele', 'variant_chrom', 'variant_pos'
         ]
 
@@ -364,6 +413,23 @@ class Infiler:
         else:
             logging.error(f' pvalue column is not provided.')
             sys.exit(1)
+
+        if 'pvalue_perm' in self.included_header:
+            check_numeric(self.summary_data, 'pvalue_perm')
+            self.check_probability('pvalue_perm')
+        else:
+            logging.debug(f' pvalue_perm column is not provided.')
+
+        if 'fdr' in self.included_header:
+            check_numeric(self.summary_data, 'fdr')
+            self.check_probability('fdr')
+        else:
+            logging.debug(f' fdr column is not provided.')
+
+        if 'qvalue' in self.included_header:
+            check_numeric(self.summary_data, 'qvalue')
+        else:
+            logging.debug(f' qvalue column is not provided.')
 
 
     def write_header(self):
@@ -436,6 +502,66 @@ class Infiler:
         """
         logging.info(f' renaming columns based on provided info')
         dataframe.rename(self.columnset, axis=1, inplace=True)
+    
+
+    def call_querier(self, genes):
+        queried = Querier(genes)
+        queried.form_query()
+        self.append_gene_cols(queried.list_queried())
+    
+
+    def map_features(self, features):
+        """Find the type of feature_id, map to gene symbols, 
+        if not available.
+        """
+        if features.str.startswith('ENSG').all(skipna=True):
+            self.feature_type = 'ensemblgene'
+        elif features.str.startswith('ENST').all(skipna=True):
+            self.feature_type = 'ensembltranscript'
+        elif features.str.startswith('ENSP').all(skipna=True):
+            self.feature_type = 'ensemblprotein'
+        elif is_numeric_dtype(features):
+            self.feature_type = 'entrezgene'
+        else:
+            logging.error(f' feature reference cannot be determined.')
+            sys.exit(1)
+        
+        logging.debug(f' reading {self.gene_ref}.')
+
+        if not 'feature_name' in self.included_header:
+            gene_annot = pandas.read_csv(
+                self.gene_ref, 
+                sep='\t', 
+                header=0
+            )
+            cols = ['feature_name', self.feature_type, 'feature_type']
+            gene_annot = gene_annot[cols]
+            gene_annot.rename(columns={self.feature_type:'feature_id'}, inplace=True)
+
+            logging.debug(f' current dataframe: ')
+            logging.debug(f' {self.summary_data.head(2)}')
+            logging.debug(f' selected annotations: ')
+            logging.debug(f' {gene_annot.head(2)}')
+
+            self.summary_data = self.summary_data.merge(
+                gene_annot, 
+                on='feature_id', 
+                how='left',
+                left_index=False,
+                right_index=False
+            )
+            self.summary_data.drop_duplicates(inplace=True)
+            self.summary_data.reset_index(inplace=True, drop=True)
+            logging.debug(f' dataframe has been annotated.')
+            logging.debug(f' {self.summary_data.head(2)}')
+    
+
+    def order_columns(self):
+        """Make sure the final output has the required columns
+        listed first."""
+        nonreq_header = self.summary_data.columns.drop(REQ_HEADER).tolist()
+        output_columns = REQ_HEADER + (nonreq_header)
+        self.summary_data = self.summary_data[output_columns]
 
 
     def read_file(self):
@@ -454,7 +580,7 @@ class Infiler:
 
         for chunk in chunks:
             chunk.reset_index(drop=True, inplace=True)
-            logging.info(f' processing input chunk {chunkcount}')
+            logging.info(f' processing input chunk {chunkcount}.')
             # check if empty and check header
             if not chunk.empty:
               
@@ -462,8 +588,25 @@ class Infiler:
                 if self.columnset:
                     self.rename_columns(chunk)
 
-                self.included_header = list(set(HEADER) & set(chunk.columns))
+                self.included_header = list(
+                    set(HEADER) & set(chunk.columns)
+                )
                 self.check_file(chunk)
+                logging.debug(f' processing data type {self.data_type}.')
+
+                if self.data_type == 'eqtl':
+                    features = self.list_features()
+                    # 413 error
+                    # self.call_querier(features)
+                    self.map_features(features)
+                
+                logging.info(f' dropping duplicate columns.')
+                dropcols = self.summary_data.columns.duplicated()
+                self.summary_data = self.summary_data.loc[:, ~dropcols]
+
+                logging.info(f' reordering processed data...')
+                self.order_columns()
+
                 logging.info(f' writing processed data...')
 
                 if chunkcount == 0:

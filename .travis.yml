@@ -17,5 +17,6 @@ branches:
     - /^release-.*$/
 
 script:
-  - ./.travis/install.sh cimr
+  - .travis/install.sh cimr
+  - .travis/build_test.sh
   

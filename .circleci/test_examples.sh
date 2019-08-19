@@ -14,9 +14,10 @@ for DATATYPE in "eqtl" "gwas"; do
     # Verify output result
     diff processed_data/${OUTPUT_PREFIX}.txt expected_processed_data/${OUTPUT_PREFIX}.txt
 
-    # Clear up "submitted_data" and "processed_data"
+    # Delete "submitted_data" and "processed_data" directories
     rm -rf submitted_data processed_data
 done
 
 # Verify catalog file
 diff cimr-d_catalog.txt expected_cimr-d_catalog.txt
+rm -f cimr-d_catalog.txt

@@ -2,7 +2,7 @@
 
 set -ex
 
-cd ~/cimr/tests/gwas-tar-gz/
+cd ~/cimr/examples/gwas-tar-gz/
 cimr processor -process -yaml-file hdl_ldl_cholesterol_tar_gz.yml
 
 # Decompress the output files ("-k" option keeps the original gz file).

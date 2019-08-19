@@ -10,35 +10,21 @@ data_file:
         variant_chrom: chromosome
         variant_pos: position
         rsnum: variant_id
-        ref: na
-        alt: na
         effect_allele: effect_allele
         non_effect_allele: non_effect_allele
-        inc_allele: na
-        inc_afrq: na
         effect_size: effect_size
         standard_error: standard_error
         zscore: zscore
         pvalue: pvalue
-        feature_id: na
-        feature_chrom: na
-        feature_start: na
-        feature_stop: na
         imputation_status: imputation_status
-        frequency: na
-        tss_distance: na
-        ma_samples: na
-        maf: na
-        comment_0: na
 
 data_info:
     citation: 10.1038/ng.2797
     data_source: http://lipidgenetics.org/
     data_type: gwas
     build: b38
-    context: tarball hdl/ldl test
+    context: hdl cholesterol; ldl cholesterol
     sample_size: 187167
-    n_cases: na
     can_be_public: true
 
 method:

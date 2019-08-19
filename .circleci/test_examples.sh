@@ -12,7 +12,7 @@ for DATATYPE in "eqtl" "gwas"; do
     gunzip -k processed_data/${OUTPUT_PREFIX}.txt.gz
 
     # Verify output result
-    diff processed_data/${OUTPUT_PREFIX}.txt expected_processed_data/${OUTPUT_PREFIX}.txt
+    md5sum --check md5_${DATATYPE}.txt
 
     # Delete "submitted_data" and "processed_data" directories
     rm -rf submitted_data processed_data

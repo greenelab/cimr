@@ -1,8 +1,6 @@
 """Set of default values used in cimr"""
 
-#ANNOTURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/annotation/'
-ANNOTURL = 'https://raw.githubusercontent.com/greenelab/cimr/crossmap/cimr/data/annotation/'
-
+ANNOTURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/annotation/'
 
 MAXCHROM = 23
 

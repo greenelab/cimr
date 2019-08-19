@@ -1,0 +1,28 @@
+version: 2.1
+jobs:
+  test:
+    docker:
+      - image: circleci/python:3.6.8
+    working_directory: ~/cimr
+    resource_class: xlarge
+    steps:
+      - checkout
+      - run:
+          name: Install cimr
+          command: |
+            bash .circleci/install_cimr.sh
+      - run:
+          name: Test eqtl and gwas examples
+          command: |
+            bash .circleci/test_examples.sh
+      - run:
+          name: Test gwas tarball file
+          no_output_timeout: 30m
+          command: |
+            bash .circleci/test_gwas_hdl_ldl.sh
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test

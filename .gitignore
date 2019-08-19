@@ -49,3 +49,6 @@ Icon?
 Thumbs.db
 .directory
 
+
+# emacs
+*~

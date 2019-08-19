@@ -1,0 +1,44 @@
+data_file:
+    description: >-
+        Global Lipid Genetics Consortium GWAS results for high-density
+        cholesterol levels
+    location:
+        url: https://zenodo.org/record/3345991/files/gwas_hdl_ldl.tar.gz
+        md5: eccbd3b5b6ff87e78063321846b78dfa
+    columns:
+        variant_id: panel_variant_id
+        variant_chrom: chromosome
+        variant_pos: position
+        rsnum: variant_id
+        effect_allele: effect_allele
+        non_effect_allele: non_effect_allele
+        effect_size: effect_size
+        standard_error: standard_error
+        zscore: zscore
+        pvalue: pvalue
+        imputation_status: imputation_status
+
+data_info:
+    citation: 10.1038/ng.2797
+    data_source: http://lipidgenetics.org/
+    data_type: gwas
+    build: b38
+    context: hdl cholesterol; ldl cholesterol
+    sample_size: 187167
+    can_be_public: true
+
+method:
+    name: linear regression
+    tool: PLINK; SNPTEST; EMMAX; Merlin; GENABEL; MMAP
+    website: >-
+        http://zzz.bwh.harvard.edu/plink/download.shtml;
+        https://mathgen.stats.ox.ac.uk/genetics_software/snptest/snptest.html;
+        https://genome.sph.umich.edu/wiki/EMMAX;
+        https://csg.sph.umich.edu/abecasis/Merlin/tour/assoc.html;
+        http://www.genabel.org/sites/default/files/html_for_import/GenABEL_tutorial_html/GenABEL-tutorial.html;
+        https://mmap.github.io/
+
+contributor:
+    name: YoSon Park
+    github: ypar
+    email: cimrroot@gmail.com

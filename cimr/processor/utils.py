@@ -23,6 +23,7 @@ from ..defaults import HEADER
 from ..defaults import MAXCHROM
 from ..defaults import ANNOTURL
 
+
 def set_chrom_dict():
     """Make a dictionary to standardize chromosome IDs in input files."""
     chrom_dict = {
@@ -212,11 +213,10 @@ class Infiler:
         * change if different from the specified format
         * discard non-autosomal chromosomes from main input
         """
-        sumdata = self.summary_data
         chrom_dict, maxchrom = set_chrom_dict()
         chrom_str = list(chrom_dict.values())[0:maxchrom]
         chrom_int = list(chrom_dict.keys())[0:maxchrom]
-        chroms = sumdata['chrom'].drop_duplicates().values
+        chroms = self.summary_data['chrom'].drop_duplicates().values
         
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
             logging.info(f' there are {len(chroms)} chromosomes.')
@@ -229,10 +229,11 @@ class Infiler:
         if len(set(chroms) & set(chrom_str)) > (maxchrom - 2):
             pass
         elif len(set(chroms) & set(chrom_int)) > (maxchrom - 2):
-            sumdata['chrom'] = sumdata['chrom'].map(
+            self.summary_data['chrom'] = self.summary_data['chrom'].map(
                 chrom_dict, na_action='ignore'
-            ).fillna(sumdata['chrom'])
-            sumdata = sumdata[sumdata['chrom'].isin(chrom_str)]
+            ).fillna(self.summary_data['chrom'])
+            # strchroms = self.summary_data['chrom'].isin(chrom_str)
+            # self.summary_data = self.summary_data[strchroms]
             logging.info(f' chromosome ids have been updated.')
         else:
             logging.error(f' chromosome id needs to be checked.')

@@ -194,6 +194,10 @@ class Infiler:
         """(Re)make variant_id with updated chrom ID, build #, etc."""
         logging.debug(f' checking variant_id column...')
         logging.debug(f' {self.summary_data.variant_id}')
+        logging.debug(f' standardizing allele codes...')
+        self.summary_data['ref'] = self.summary_data['ref'].str.upper()
+        self.summary_data['alt'] = self.summary_data['alt'].str.upper()
+
         self.summary_data['variant_id'] = self.summary_data['chrom'] \
             + '_' \
             + self.summary_data['pos'] \

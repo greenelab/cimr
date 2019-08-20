@@ -112,13 +112,13 @@ def validate_data_type(data_type):
 
 def verify_weblink(path):
     """Verify the provided link to the contributed file."""
-    import urllib
-
-    weburl = urllib.request.urlopen(path)
-
-    if weburl.getcode() == 200:
+    import requests
+    try:
+        response = requests.get(path)
+        response.raise_for_status()
         return True
-    else:
+    except Exception as e:
+        print(e)
         return False
 
 
@@ -430,6 +430,7 @@ class Yamler:
         metadata_file = 'cimr-d_catalog.txt'
         
         if verify_weblink(CATALOG):
+            logging.info(f' reading cimr-d catalog from cimr-d repo.')
             metadata = pandas.read_csv(
                 CATALOG,
                 header=0,
@@ -437,6 +438,7 @@ class Yamler:
                 sep='\t'
             )
         elif os.path.isfile(metadata_file):
+            logging.info(f' reading a local cimr-d catalog file.')
             metadata = pandas.read_csv(
                 metadata_file, 
                 header=0, 
@@ -444,6 +446,7 @@ class Yamler:
                 sep='\t'
             )
         else:
+            logging.info(f' creating a new cimr-d catalog.')
             metadata = pandas.DataFrame(columns=META_HEADER)
         
         for file_name in self.fileset:

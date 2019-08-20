@@ -165,15 +165,15 @@ class Infiler:
         variant_ids = self.summary_data['variant_id']
         if '_' in variant_ids[0]:
             pass
-        elif '-' in variant_ids[0]:
+        if '-' in variant_ids[0]:
             variant_ids = variant_ids.str.replace('-', '_')
             logging.info(f' variant_id delimiter changed from \'-\' to \'_\'')
-        elif ':' in variant_ids[0]:
+        if ':' in variant_ids[0]:
             variant_ids = variant_ids.str.replace(':', '_')
             logging.info(f' variant_id delimiter changed from \':\' to \'_\'')
-        else:
-            logging.error(f' unknown delimiter used in variant_id')
-            sys.exit(1)
+        # else:
+        #     logging.error(f' unknown delimiter used in variant_id')
+        #     sys.exit(1)
 
         temp = variant_ids.str.split('_', expand=True)
 

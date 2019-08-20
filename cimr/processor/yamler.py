@@ -132,28 +132,19 @@ def trim_zenodo_link(path):
     return path
 
 
-def download_gdrive_file(path, filename='submitted_data.txt.gz', outdir='./'):
+def download_gdrive_file(
+    path, 
+    outdir,
+    filename
+    ):
     """Given a link starting with https://drive.google.com,
     initialize a google drive file download.
 
     need two arguments:
       * file id from the share link
       * file name (may be different from the original file name)
-
-      # function gdrive_download () {
-        >   CONFIRM=$(wget --quiet --save-cookies /tmp/cookies.txt \
-            --keep-session-cookies --no-check-certificate \
-            "https://docs.google.com/uc?export=download&id=$1" \
-            -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')
-        >   wget --load-cookies /tmp/cookies.txt \
-            "https://docs.google.com/uc?export=download&confirm=$CONFIRM&id=$1" \
-            -O $2
-        >   rm -rf /tmp/cookies.txt
-        > }
-
     """
     import os
-    path = 'https://drive.google.com/file/d/1dpCqxjZRZtWmiq_6GalCLTweFd15y09n/view?usp=sharing'
     path = path.replace('https://drive.google.com/file/d/', '')
     path = path.replace('/view?usp=sharing','')
 
@@ -175,7 +166,7 @@ def download_gdrive_file(path, filename='submitted_data.txt.gz', outdir='./'):
 
     run_cmd = 'bash download_gdrive_file.sh ' + path + ' ' + outdir + filename
     os.system(run_cmd)
-    os.system('rm download_gdrive_file.sh')
+    # os.system('rm download_gdrive_file.sh')
 
 
 def download_file(path, outdir='./'):
@@ -354,12 +345,13 @@ class Yamler:
                 if 'drive.google.com' in self.file_link:
                     download_gdrive_file(
                         self.file_link, 
-                        self.sub_datatype_dir
+                        self.sub_datatype_dir,
+                        self.infile
                     )
                 else:
                     download_file(
                         self.file_link, 
-                        self.sub_datatype_dir
+                        self.sub_datatype_dir,
                     )
             else:
                 logging.info(f' file found in {self.sub_datatype_dir}')

@@ -166,7 +166,7 @@ def download_gdrive_file(
 
     run_cmd = 'bash download_gdrive_file.sh ' + path + ' ' + outdir + filename
     os.system(run_cmd)
-    # os.system('rm download_gdrive_file.sh')
+    os.system('rm download_gdrive_file.sh')
 
 
 def download_file(path, outdir='./'):

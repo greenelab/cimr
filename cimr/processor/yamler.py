@@ -128,9 +128,45 @@ def trim_zenodo_link(path):
     e.g. https://zenodo.org/record/3369410/files/gwas.txt.gz?download=1
     -> https://zenodo.org/record/3369410/files/gwas.txt.gz
     """
-    if 'zenodo.org' in str(path):
-        path = path.replace('?download=1', '')
-        return path
+    path = path.replace('?download=1', '')
+    return path
+
+
+def download_gdrive_file(
+    path, 
+    outdir,
+    filename
+    ):
+    """Given a link starting with https://drive.google.com,
+    initialize a google drive file download.
+
+    need two arguments:
+      * file id from the share link
+      * file name (may be different from the original file name)
+    """
+    import os
+    path = path.replace('https://drive.google.com/file/d/', '')
+    path = path.replace('/view?usp=sharing','')
+
+    with open('download_gdrive_file.sh', 'w') as downloader:
+        downloader.write(r'''
+        #!/bin/bash
+        
+        FILEID=$1
+        FILENAME=$2
+
+        CONFIRM=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate "https://docs.google.com/uc?export=download&id=$FILEID" -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')
+
+        wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$CONFIRM&id=$FILEID" -O $FILENAME
+
+        rm -rf /tmp/cookies.txt
+
+        '''
+        )
+
+    run_cmd = 'bash download_gdrive_file.sh ' + path + ' ' + outdir + filename
+    os.system(run_cmd)
+    os.system('rm download_gdrive_file.sh')
 
 
 def download_file(path, outdir='./'):
@@ -226,6 +262,7 @@ def convert_yaml(yaml_files):
 def standardize_context(context):
     """Standardizing the context description"""
     context = str(context).lower().replace(' ', '_')
+    # context = context.split(';')
     return context
 
 
@@ -281,7 +318,9 @@ class Yamler:
         Download if verified.
         """
         self.file_link = self.yaml_data['data_file']['location']['url']
-        self.file_link = trim_zenodo_link(self.file_link)
+        if 'zenodo.org' in str(self.file_link):
+            self.file_link = trim_zenodo_link(self.file_link)
+
         if 'input_name' in self.yaml_data['data_file'].keys():
             self.infile = self.yaml_data['data_file']['input_name']
         else:
@@ -303,9 +342,20 @@ class Yamler:
         if verify_weblink(self.file_link):
             if not os.path.isfile(self.sub_datatype_dir + self.infile):
                 logging.info(f' starting download')
-                download_file(self.file_link, self.sub_datatype_dir)
+                if 'drive.google.com' in self.file_link:
+                    download_gdrive_file(
+                        self.file_link, 
+                        self.sub_datatype_dir,
+                        self.infile
+                    )
+                else:
+                    download_file(
+                        self.file_link, 
+                        self.sub_datatype_dir,
+                    )
             else:
                 logging.info(f' file found in {self.sub_datatype_dir}')
+
             self.hash = self.yaml_data['data_file']['location']['md5']
             self.downloaded_file = self.sub_datatype_dir + self.infile
             self.fileset = [self.downloaded_file,]
@@ -411,26 +461,32 @@ class Yamler:
                 new_row['description'] = self.yaml_data['data_file']['description']
             else:
                 logging.info(f' data description is not provided.')
+
             if 'sample_size' in self.yaml_data['data_info'].keys():
                 new_row['sample_size'] = self.yaml_data['data_info']['sample_size']
             else:
                 logging.info(f' sample_size is not provided.')
+
             if 'n_cases' in self.yaml_data['data_info'].keys():
                 new_row['n_cases'] = self.yaml_data['data_info']['n_cases']
             else:
                 logging.info(f' n_cases is not provided.')
+
             if 'citation' in self.yaml_data['data_info'].keys():
                 new_row['citation'] = self.yaml_data['data_info']['citation']
             else:
                 logging.info(f' citation is not provided.')
+
             if 'data_source' in self.yaml_data['data_info'].keys():
                 new_row['data_source'] = self.yaml_data['data_info']['data_source']
             else:
                 logging.info(f' data_source is not provided.')
+
             if 'name' in self.yaml_data['method'].keys():
                 new_row['method_name'] = self.yaml_data['method']['name']
             else:
                 logging.info(f' method name is not provided.')
+
             if 'tool' in self.yaml_data['method'].keys():
                 new_row['method_tool'] = self.yaml_data['method']['tool']
             else:

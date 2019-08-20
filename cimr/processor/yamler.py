@@ -153,9 +153,6 @@ def download_gdrive_file(path, filename='submitted_data.txt.gz', outdir='./'):
 
     """
     import os
-    import subprocess
-    outdir = './'
-    filename = 'lala.txt.gz'
     path = 'https://drive.google.com/file/d/1dpCqxjZRZtWmiq_6GalCLTweFd15y09n/view?usp=sharing'
     path = path.replace('https://drive.google.com/file/d/', '')
     path = path.replace('/view?usp=sharing','')

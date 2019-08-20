@@ -223,9 +223,7 @@ def validate_hash(path, hash):
 def verify_dir(tarred_data):
     """Check directory tree of tarball containing multiple files"""
     for member in tarred_data.getmembers():
-        if member.name.startswith(DATA_TYPES):
-            return True
-        else:
+        if not member.name.startswith(DATA_TYPES):
             logging.error(f' data_type not indicated in dir tree.')
             sys.exit(1)
 
@@ -427,9 +425,18 @@ class Yamler:
         in cimr-d. The updated table will be committed back to repo
         """
         from ..defaults import META_HEADER
+        from ..defaults import CATALOG
         
         metadata_file = 'cimr-d_catalog.txt'
-        if os.path.isfile(metadata_file):
+        
+        if verify_weblink(CATALOG):
+            metadata = pandas.read_csv(
+                CATALOG,
+                header=0,
+                index_col=None,
+                sep='\t'
+            )
+        elif os.path.isfile(metadata_file):
             metadata = pandas.read_csv(
                 metadata_file, 
                 header=0, 

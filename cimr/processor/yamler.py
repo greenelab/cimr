@@ -429,20 +429,20 @@ class Yamler:
         
         metadata_file = 'cimr-d_catalog.txt'
         
-        if verify_weblink(CATALOG):
-            logging.info(f' reading cimr-d catalog from cimr-d repo.')
-            metadata = pandas.read_csv(
-                CATALOG,
-                header=0,
-                index_col=None,
-                sep='\t'
-            )
-        elif os.path.isfile(metadata_file):
+        if os.path.isfile(metadata_file):
             logging.info(f' reading a local cimr-d catalog file.')
             metadata = pandas.read_csv(
                 metadata_file, 
                 header=0, 
                 index_col=None, 
+                sep='\t'
+            )
+        elif verify_weblink(CATALOG):
+            logging.info(f' reading cimr-d catalog from cimr-d repo.')
+            metadata = pandas.read_csv(
+                CATALOG,
+                header=0,
+                index_col=None,
                 sep='\t'
             )
         else:

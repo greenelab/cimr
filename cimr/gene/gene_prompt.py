@@ -5,13 +5,13 @@
 
 import logging
 from .write_job import Writer
-    
+
 
 def gene_cli(args):
     """Main arguement parser for the gene subprocess."""
 
     outdir = args.outdir
-    outdir = args.outdir 
+    outdir = args.outdir
     outdir.mkdir(exist_ok=True)
     logging.info(f' directory {str(outdir)} will be used for cimr jobs.')
     outfile = str(outdir) + '/' + str(args.out)
@@ -21,10 +21,10 @@ def gene_cli(args):
         pass
     elif args.job_dest is not None:
         writer_writes = Writer(
-            args.cell_type, 
-            args.trait_name, 
-            args.feature_name, 
-            args.job_dest, 
+            args.cell_type,
+            args.trait_name,
+            args.feature_name,
+            args.job_dest,
             args.outfile
         )
         writer_writes.get_tad_file_name()

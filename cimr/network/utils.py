@@ -6,7 +6,7 @@
 
 import sys
 import numpy
-import logging 
+import logging
 
 
 class EdgeNetworker:
@@ -26,13 +26,13 @@ class EdgeNetworker:
 
 
     def transform_edgelist(self):
-        """Reads a list of edges and returns a numpy binary 
+        """Reads a list of edges and returns a numpy binary
         Parameters:
         -----------
         node1\tnode2\t(weight)
 
         Notes:
-        
+
         """
         self.data = []
         self.nodemap = {}
@@ -52,7 +52,7 @@ class EdgeNetworker:
                     else:
                         logging.error(f' not correct number of columns in the file.')
                         sys.exit()
-                    
+
                     if g1 not in self.nodemap:
                         self.nodemap[g1] = current_node
                         # to accomodate liblinear, index starts with 1
@@ -67,7 +67,7 @@ class EdgeNetworker:
                     self.data[self.nodemap[g2]][self.nodemap[g1]] = weight
 
             self.nodes = sorted(self.nodemap, key=self.nodemap.get)
-            
+
             return self
 
         except:
@@ -80,7 +80,7 @@ class EdgeNetworker:
         self.outfile = outfile
         matrixscale = len(self.nodes)
         self.adjmatrix = numpy.zeros(matrixscale, matrixscale)
-        
+
         for idx, _ in enumerate(self.data):
             col_inds = list(self.data[idx].keys())
             col_weights = list(self.data[idx].values())
@@ -90,7 +90,7 @@ class EdgeNetworker:
         numpy.savetxt(self.outfile+'_nodelist.txt', self.nodes, fmt='%s')
 
         return self
-    
+
 
 class BaseNetworker:
     """Utilities for matrix input files used in network analysis
@@ -108,9 +108,8 @@ class BaseNetworker:
 
     def load_adjmatrix(self, diags=False):
         self.adjmatrix = numpy.load(self.filename, delimiter='\t')
-        
+
         if diags:
             numpy.fill_diagonal(self.adjmatrix, 1)
-        
+
         self.nodes = numpy.loadtxt(self.nodefile)
-        

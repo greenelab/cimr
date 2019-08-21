@@ -1,6 +1,6 @@
 
 
-"""Utility functions related to annotating the input files or checking 
+"""Utility functions related to annotating the input files or checking
 user-provided annotations such as gene IDs, gene names, etc.
 
 (c) YoSon Park
@@ -15,7 +15,7 @@ import requests
 
 
 def subtract_plus(joined_fields):
-    """Split the feature list by the delimiter to run per-element 
+    """Split the feature list by the delimiter to run per-element
     checks
     """
     return joined_fields.split('+')
@@ -36,39 +36,39 @@ class Querier:
     Parameter
     ---------
 
-    headers : headers used for the requests. default provided by 
+    headers : headers used for the requests. default provided by
               mygene is
               {'content-type':'application/x-www-form-urlencoded'}
 
     url : the current default is v3 and url is set as below
           'https://mygene.info/v3/query'
-          v2 is provided below (outdated, but not deprecated as of 
+          v2 is provided below (outdated, but not deprecated as of
           Jan 2019)
           'https://mygene.info/v2/query'
 
     species : the default is 9606 or human for cimr analyses.
-              for general mygene usage, the doc is available in the 
+              for general mygene usage, the doc is available in the
               below site
               https://docs.mygene.info/en/latest/doc/data.html#species
 
     scopes : the search space of the queried terms can be listed here.
-             default setting includes that the query involves a gene 
+             default setting includes that the query involves a gene
              with identifiers in the below described scopes
 
              symbol - official gene symbol (e.g. APOE)
              entrezgene - entrez gene ID
              ensembl.gene - Ensembl gene ID starting with ENSG
-             ensembl.transcript - Ensembl transcript ID starting with 
+             ensembl.transcript - Ensembl transcript ID starting with
                 ENST
 
-    fields : the below table is from the mygene documentation 
+    fields : the below table is from the mygene documentation
              indicated below
              https://docs.mygene.info/en/latest/doc/query_service.ht
              ml#available-fields
-             
-             I have reordered the table alphabetically and shortened 
+
+             I have reordered the table alphabetically and shortened
              some descriptions.
-             The fields and scopes parameters share the same variable 
+             The fields and scopes parameters share the same variable
              names.
 
     field             | description         | examples
@@ -78,7 +78,7 @@ class Querier:
     ensembl.gene      | Ensembl gene ID     | ensembl.gene:ENSG00000123374
     ensembl.protein   | Ensembl protein ID  | ensembl.protein:ENSP00000243067
     ensembl.transcript| Ensembl transcriptID| ensembl.transcript:ENST00000266970
-    entrezgene        | Entrez gene ID      | entrezgene:1017   
+    entrezgene        | Entrez gene ID      | entrezgene:1017
     flybase           | Drosophila gen(om)es| flybase:FBgn0004107&species=fruitfly
     go                | Gene Ontology ID    | go:0000307
     hgnc              | HUGO                | hgnc:1771
@@ -110,7 +110,7 @@ class Querier:
     Methods
     -------
 
-    
+
 
     Notes
     -----
@@ -118,29 +118,29 @@ class Querier:
     https://mygene.info website documentation can be found here:
     https://docs.mygene.info/en/latest/index.html
 
-    https://mygene.info is a website for gene annotation queries using 
+    https://mygene.info is a website for gene annotation queries using
     the biothings backend. biothings documentation is here
     https://biothingsapi.readthedocs.io/en/latest
 
-    cimr currently only utilizes the batch query function using direct 
+    cimr currently only utilizes the batch query function using direct
     queries to the website api
 
     """
 
     FIELDS = {
-        'accession', 'alias', 'ensembl.gene', 'ensembl.protein', 
+        'accession', 'alias', 'ensembl.gene', 'ensembl.protein',
         'ensembl.transcript', 'entrezgene', 'flybase', 'go', 'hgnc',
-        'homologene', 'hprd', 'interpro', 'mgi', 'mim', 'mirbase', 
+        'homologene', 'hprd', 'interpro', 'mgi', 'mim', 'mirbase',
         'name', 'pdb', 'pfam', 'pharmgkb', 'prosite', 'reagent',
         'refseq', 'reporter', 'retired', 'rgd', 'summary', 'symbol',
         'tair', 'unigene', 'uniprot', 'wormbase', 'xenbase', 'zfin'
     }
 
 
-    def __init__(self, 
+    def __init__(self,
                  genes,
-                 headers={'content-type':'application/x-www-form-urlencoded'}, 
-                 url='https://mygene.info/v3/query', 
+                 headers={'content-type':'application/x-www-form-urlencoded'},
+                 url='https://mygene.info/v3/query',
                  species=9606,
                  scopes='alias+symbol+entrezgene+ensembl.gene+ensembl.transcript',
                  fields='name+symbol+taxid+entrezgene+ensembl+alias+refseq'
@@ -155,7 +155,7 @@ class Querier:
 
 
     def make_string(self):
-        """Take the input from the data table and turn it into a 
+        """Take the input from the data table and turn it into a
         string to be used in form_query
         """
         if type(self.genes) is list:
@@ -164,10 +164,10 @@ class Querier:
         else:
             logging.error(f' is the input a list with gene\'s?')
 
-    
+
     def check_fields(self):
-        """Check if all items indicated in the fields parameter are 
-        legit. The list has been updated based on mygene.info 
+        """Check if all items indicated in the fields parameter are
+        legit. The list has been updated based on mygene.info
         documentation on January 2019.
         """
         splitted = subtract_plus(self.fields)
@@ -177,11 +177,11 @@ class Querier:
             else:
                 splitted.remove(field)
         self.fields = add_plus(splitted)
-    
+
 
     def check_ensembl(self):
-        """Commonly used Ensembl ID may include a version identifier. 
-        Check for any Ensembl IDs in the feature list and remove the 
+        """Commonly used Ensembl ID may include a version identifier.
+        Check for any Ensembl IDs in the feature list and remove the
         version identifier.
         """
         if any('ENSG' in g for g in self.genes):
@@ -195,7 +195,7 @@ class Querier:
 
         if not self.gene_db in subtract_plus(self.scopes):
             self.scopes = str(self.scopes) + '+' + str(self.gene_db)
-        
+
 
     @classmethod
     def from_csv(cls, features):
@@ -204,15 +204,15 @@ class Querier:
             queried = cls(feature_list)
             return queried
         else:
-            raise ValueError(' features appear to be already split.')        
+            raise ValueError(' features appear to be already split.')
 
 
     def form_query(self):
-        """Form a query based on parameters. cimr uses the batch query 
+        """Form a query based on parameters. cimr uses the batch query
         of a gene list to the website api of the database.
-        By default, only gene_ids in the format of symbol, entrez id, 
-        or ensembl (gene/transcript) are accepted but other options 
-        may be indicated by scopes option if cimr Querier is used 
+        By default, only gene_ids in the format of symbol, entrez id,
+        or ensembl (gene/transcript) are accepted but other options
+        may be indicated by scopes option if cimr Querier is used
         without cimr-d integration.
         """
         try:
@@ -222,13 +222,13 @@ class Querier:
 
         params = ('q=' + str(self.genestring) +
                  '&scopes=' + str(self.scopes) +
-                 '&fields=' + str(self.fields) + 
+                 '&fields=' + str(self.fields) +
                  '&species=' + str(self.species)
         )
 
         self.queried = requests.post(
-            self.url, 
-            headers=self.headers, 
+            self.url,
+            headers=self.headers,
             data=params
         )
         try:
@@ -237,12 +237,12 @@ class Querier:
             logging.info(f' {params}')
             logging.info(f' {self.queried}')
 
-    
+
     def list_queried(self):
         """"""
         _columns = ['feature_name', 'entrezgene', 'ensemblgene', 'feature_alias']
         queried_genes = pandas.DataFrame(columns=_columns)
-        try:    
+        try:
             for gene in range(0, len(self.jsoned)):
                 row = {}
 
@@ -268,14 +268,14 @@ class Querier:
                 except:
                     logging.debug(f' %s has a type error' % self.jsoned[gene]['query'])
                     row['ensemblgene'] = 'NA'
-                
-                try: 
+
+                try:
                     row['feature_alias'] = self.jsoned[gene]['alias']
                 except KeyError:
                     row['feature_alias'] = 'NA'
 
                 queried_genes = queried_genes.append(
-                    row, 
+                    row,
                     ignore_index=True
                 )
             return queried_genes
@@ -283,11 +283,11 @@ class Querier:
         except:
             print(self.jsoned[gene]["query"])
             raise ValueError(' the parsed list could not be written.')
-    
+
 
     def return_to_cimr(self):
-        """If Querier is called within cimr(-d) rather than as an 
-        independent annotation call, return queried object to cimr 
+        """If Querier is called within cimr(-d) rather than as an
+        independent annotation call, return queried object to cimr
         to be integrated back to the dataframe
         """
         return self.list_queried()
@@ -305,31 +305,31 @@ class Querier:
 
 
     def write_gene(self, annot_file_out):
-        """Write official gene symbol, entrez IDs and ensembl gene IDs 
+        """Write official gene symbol, entrez IDs and ensembl gene IDs
         for each gene_id.
         """
         queried_genes = self.list_queried()
         queried_genes.to_csv(
-            annot_file_out, 
-            sep='\t', 
-            header=True, 
-            index=False, 
+            annot_file_out,
+            sep='\t',
+            header=True,
+            index=False,
             na_rep='NA'
         )
 
 
 class Snpper:
-    """Query refsnp variation database directly to update RS IDs of 
+    """Query refsnp variation database directly to update RS IDs of
     SNPs.
-    
+
     Returns
     -------
-    Either the original (if newest) or updated RS ID of the SNP along 
+    Either the original (if newest) or updated RS ID of the SNP along
     with its position in the GRCh38.p12 reference genome.
 
     Notes
     -----
-    Primarily queries the refsnp variation database for the latest 
+    Primarily queries the refsnp variation database for the latest
     RS IDs of GRCh38 reference genome.
 
     """
@@ -354,14 +354,14 @@ class Snpper:
 
         genome_build = json_data['primary_snapshot_data']['placements_with_allele'][0]['placement_annot']['seq_id_traits_by_assembly'][0]['assembly_name']
 
-        if genome_build == 'GRCh38.p12':            
+        if genome_build == 'GRCh38.p12':
             refseq_chrom = json_data['primary_snapshot_data']['placements_with_allele'][0]['alleles'][0]['allele']['spdi']['seq_id']
             pos = json_data['primary_snapshot_data']['placements_with_allele'][0]['alleles'][0]['allele']['spdi']['position']
             refseq_mapping_file = '/work/drug/gwas/gwas_catalog/chromosome_to_refseq_mapping.txt'
             refseq_mapping = pandas.read_csv(
-                refseq_mapping_file, 
-                sep='\t', 
-                header=0, 
+                refseq_mapping_file,
+                sep='\t',
+                header=0,
                 na_values=['NA']
             )
             chrom = refseq_mapping[refseq_mapping['RefSeq_sequence'] == refseq_chrom]['Molecule_name'].values[0]

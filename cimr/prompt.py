@@ -34,8 +34,8 @@ def parse_arguments():
         description='cimr: continuously integrated meta-resource'
     )
     parser.add_argument(
-        '-version', 
-        action='version', 
+        '-version',
+        action='version',
         version=f'v{cimr.__version__}'
     )
     subparsers = parser.add_subparsers(
@@ -73,7 +73,7 @@ def parse_arguments():
             nargs='?',
             choices=['debug', 'info', 'warning', 'error', 'critical'],
             help='logger arguement for stderr logging level.',
-        )      
+        )
     args = parser.parse_args()
 
     return args
@@ -190,7 +190,7 @@ def add_subparser_processor(subparsers):
              'the output will include the following columns: '
              'official gene symbol, entrez gene id, and ensembl gene id.',
     )
-    
+
     # integrate-specific arguments
     parser.add_argument(
         '-can-be-public',
@@ -228,7 +228,7 @@ def add_subparser_processor(subparsers):
         dest='protocol',
         help='name of the protocol used. For example, Hi-C for tad coordinates.'
     )
-    
+
     parser.set_defaults(function='cimr.processor.processor_prompt.processor_cli')
 
 
@@ -290,11 +290,11 @@ def add_subparser_gene(subparsers):
 def add_subparser_network(subparsers):
     parser = subparsers.add_parser(
         name='network', help='network analysis using cimr data',
-        description='run network analysis tools ',        
+        description='run network analysis tools ',
     )
 
     parser.add_argument(
-        '-random-count', 
+        '-random-count',
         default=100000,
         dest='random_count',
         nargs='?',
@@ -324,19 +324,19 @@ def add_subparser_network(subparsers):
 
     nargs = parser.add_mutually_exclusive_group()
     nargs.add_argument(
-        '-random', 
+        '-random',
         default=False,
         action='store_true',
         help='select random edges from a network. '
              'use -randomcount to indicate number of edges to select',
     )
     nargs.add_argument(
-        '-svm', 
+        '-svm',
         default=False,
         action='store_true',
         help='network analysis using support vector machines',
     )
-    
+
     parser.set_defaults(function='cimr.network.network_prompt.network_cli')
 
 

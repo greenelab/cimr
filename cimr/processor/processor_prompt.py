@@ -40,8 +40,8 @@ def grow_tadpoles(args):
     tads = Tadpole(
         file_name=args.file_name,
         study_id=args.study_id,
-        pub_id=args.pub_id, 
-        species=args.species, 
+        pub_id=args.pub_id,
+        species=args.species,
         cell_type=args.cell_type,
         data_type=args.data_type,
         protocol=args.protocol
@@ -50,15 +50,15 @@ def grow_tadpoles(args):
     tads.write_file()
 
 
-def main(args, 
-         data_type, 
-         genome_build, 
-         file_name, 
-         outdir, 
-         out_path, 
+def main(args,
+         data_type,
+         genome_build,
+         file_name,
+         outdir,
+         out_path,
          columnset):
     """A standard set of functions for cimr -process argument
-    
+
     Within cimr, main() may be called with a cimr call using
     a set of parameters or a yaml file.
 
@@ -70,22 +70,22 @@ def main(args,
         if data_type == 'gene':
             with open(args.file_name) as f:
                 genes = f.read().splitlines()
-            
+
             queried = Querier(genes)
             queried.form_query()
-            
+
             if args.write_json is not None:
                 annot_gene_file = str(outdir) + '/' + str(args.write_json)
                 queried.write_json(annot_gene_file)
-            
+
             if args.write_gene is not None:
                 annot_gene_file = str(outdir) + '/' + str(args.write_gene)
                 queried.write_gene(annot_gene_file)
             return 0
 
-        elif data_type == 'tad':        
+        elif data_type == 'tad':
             grow_tadpoles(args)
-            
+
         if file_name:
             if not str(out_path).endswith(FILE_EXTENSION):
                 outfile = pathlib.Path(str(out_path) + '.tsv.gz')
@@ -93,24 +93,24 @@ def main(args,
                 outfile = pathlib.Path(out_path)
 
             infile = Infiler(
-                data_type, 
-                file_name, 
-                genome_build, 
-                args.update_rsid, 
+                data_type,
+                file_name,
+                genome_build,
+                args.update_rsid,
                 outfile,
                 args.chunksize,
                 columnset=columnset
             )
-            
+
             infile.read_file()
-            
+
             logging.info(f' finished processing {file_name}')
             logging.info(f' output has been saved as {outfile}')
 
         else:
             logging.error(f' no file_name provided; nothing to process.')
             sys.exit(1)
-        
+
 
 def processor_cli(args):
     """cimr processor subprocess cli"""
@@ -132,12 +132,12 @@ def processor_cli(args):
                 pathlib.Path(outdir).mkdir(exist_ok=True)
                 out_path = outdir + file_name
                 main(
-                    args, 
-                    data_type, 
-                    genome_build, 
-                    _file, 
-                    outdir, 
-                    out_path, 
+                    args,
+                    data_type,
+                    genome_build,
+                    _file,
+                    outdir,
+                    out_path,
                     columnset
                 )
 
@@ -152,21 +152,21 @@ def processor_cli(args):
                 v: k for k, v in args.columnset.items() if v != 'na'
             }
             main(
-                args, 
-                data_type, 
-                genome_build, 
-                file_name, 
-                outdir, 
-                out_path, 
+                args,
+                data_type,
+                genome_build,
+                file_name,
+                outdir,
+                out_path,
                 columnset
             )
-        
+
     elif args.integrate:
         if check_type(data_type):
             integrating = Integrator(
-                data_type, 
-                args.file_name, 
-                can_be_public=args.can_be_public, 
+                data_type,
+                args.file_name,
+                can_be_public=args.can_be_public,
                 genome_build=args.genome_build
             )
             integrating.make_local_db(args.temp_dir)
@@ -174,5 +174,5 @@ def processor_cli(args):
     else:
         logging.error(f' data_type or file_name is not recognized; nothing to do.')
         sys.exit(1)
-    
+
 

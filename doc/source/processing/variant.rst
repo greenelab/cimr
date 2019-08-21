@@ -18,7 +18,6 @@ Input file examples
 * genome-wide association study results
 * expression quantitative loci mapping results
 * splicing quantitative loci mapping results
-* protein quantitative loci mapping results
 * topologically associating domain annotations
 
 
@@ -64,5 +63,12 @@ Example usage
 
 Association files can be checked for common formatting errors.
 
->>> cimr processor --data-type eqtl --file-name eqtl.txt
+-----------------------------
+Example local file processing
+-----------------------------
+
+
+
+>>> 
+
 

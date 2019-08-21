@@ -229,13 +229,13 @@ def verify_dir(tarred_data):
 
         # No any non-file types (links, devices, FIFOs, etc) allowed
         if not member.isfile():
-            logging.error(f' illegal file type: {member.name}')
+            logging.error(f' illegal file type: {member.name}.')
             sys.exit(1)
 
         file_path = member.name
         # Leading '/' in file path NOT allowed
         if file_path.startswith('/'):
-            logging.error(f' Leading / found in archived file.')
+            logging.error(f' leading / found in archived file.')
             sys.exit(1)
 
         # Remove leading './' from file path
@@ -246,11 +246,11 @@ def verify_dir(tarred_data):
         # format of "<data_type>/<filename>"
         tokens = file_path.split('/')
         if len(tokens) != 2:
-            logging.error(f' Illegal file system hierarchy in archive: {member.name}')
+            logging.error(f' illegal file system hierarchy in archive: {member.name}.')
             sys.exit(1)
 
         if tokens[0] not in DATA_TYPES:
-            logging.error(f' Unknown data_type in archive: {tokens[0]}')
+            logging.error(f' data_type in archive not supported: {tokens[0]}.')
             sys.exit(1)
 
 

@@ -7,9 +7,9 @@ import numpy
 from sklearn.preprocessing import normalize
 
 class Rwalker:
-    """Class for multi-graph walk to convergence, 
+    """Class for multi-graph walk to convergence,
     using matrix computation
-     
+
     Attributes:
     -----------
     adj_matrix
@@ -19,18 +19,18 @@ class Rwalker:
     Notes:
     ------
     adopted from https://github.com/greenelab/netwas_rebooted.git
-    
+
     """
 
     def __init__(self, delim):
         self.delim = delim
-    
+
     def _build_matrices(self, original_graph, low_list):
         """
         """
         self.original_graph = original_graph
-        
 
 
-        
+
+
 

@@ -3,9 +3,9 @@
 By default within cimr-d ci processing, 'submitted' dir will be
 scanned for file names ending with 'yaml' and 'yml'.
 
-This is the default uploading skim for single and bulk files 
-using zenodo. For PR-based test file uploader, 
-check .circleci/deploy.sh 
+This is the default uploading skim for single and bulk files
+using zenodo. For PR-based test file uploader,
+check .circleci/deploy.sh
 and .circleci/process_submitted_data.py
 
 (c) YoSon Park
@@ -28,8 +28,8 @@ from ..defaults import FILE_EXTENSION
 
 
 def check_yaml_before_commit():
-    """A git-status-dependent function used when locally applying 
-    parse_yaml.py. It searches for a new or modified yml/yaml file and 
+    """A git-status-dependent function used when locally applying
+    parse_yaml.py. It searches for a new or modified yml/yaml file and
     returns its pathlib path.
     """
     import subprocess
@@ -50,7 +50,7 @@ def check_yaml_before_commit():
 
 
 def check_yaml_in_ci():
-    """A git-status-dependent function used during ci processing. 
+    """A git-status-dependent function used during ci processing.
     It searches for a new or modified yml/yaml file from a new pr.
     User-defined yaml files can be stored in the following dir:
     submitted/
@@ -124,7 +124,7 @@ def verify_weblink(path):
 
 def trim_zenodo_link(path):
     """Trim a zenodo download link to extract file name.
-    
+
     e.g. https://zenodo.org/record/3369410/files/gwas.txt.gz?download=1
     -> https://zenodo.org/record/3369410/files/gwas.txt.gz
     """
@@ -133,7 +133,7 @@ def trim_zenodo_link(path):
 
 
 def download_gdrive_file(
-    path, 
+    path,
     outdir,
     filename
     ):
@@ -151,7 +151,7 @@ def download_gdrive_file(
     with open('download_gdrive_file.sh', 'w') as downloader:
         downloader.write(r'''
         #!/bin/bash
-        
+
         FILEID=$1
         FILENAME=$2
 
@@ -180,25 +180,25 @@ def download_file(path, outdir='./'):
     from tqdm import tqdm
     import requests
     import math
-    
+
     r = requests.get(path, stream=True)
     total_size = int(r.headers.get('content-length', 0))
     block_size = 1024
     wrote = 0
     file_name = path.split('/')[-1]
     file_path = outdir + file_name
-    
+
     with open(file_path, 'wb') as f:
-        for data in tqdm(r.iter_content(block_size), 
-                         total=math.ceil(total_size//block_size), 
-                         unit='KB', 
+        for data in tqdm(r.iter_content(block_size),
+                         total=math.ceil(total_size//block_size),
+                         unit='KB',
                          leave=True,
                          ncols=72,
                          unit_scale=True,
                          unit_divisor=1024):
             wrote = wrote + len(data)
             f.write(data)
-    
+
     if total_size != 0 and wrote != total_size:
         logging.error(f' check the file link and try again.')
         sys.exit(1)
@@ -209,14 +209,14 @@ def validate_hash(path, hash):
     import hashlib
 
     md5 = hashlib.md5()
-    
+
     with open(path, 'rb') as f:
         while True:
             chunk = f.read(10000000)
             if not chunk:
                 break
             md5.update(chunk)
-    
+
     return md5.hexdigest() == hash
 
 
@@ -243,7 +243,7 @@ def convert_yaml(yaml_files):
         yaml_data = load_yaml(yaml_file)
         y = Yamler(yaml_data)
         y.check_data_file()
-        
+
         if hasattr(y, 'columnset'):
             columnset = y.columnset
         else:
@@ -251,7 +251,7 @@ def convert_yaml(yaml_files):
 
         if hasattr(y, 'genome_build'):
             genome_build = y.genome_build
-        
+
         fileset = [*fileset, *y.fileset]
 
     return genome_build, fileset, columnset
@@ -292,7 +292,7 @@ class Yamler:
         except ValueError:
             logging.error(f' there is no data_type indicated.')
             sys.exit(1)
-    
+
 
     def set_genome_build(self):
         """Pull out genome build variable value from yaml"""
@@ -301,7 +301,7 @@ class Yamler:
         else:
             logging.info(f' genome build is not provided in yaml')
             sys.exit(1)
-    
+
 
     def check_hash(self):
         """Compare md5 of the downloaded file to the provided value"""
@@ -312,7 +312,7 @@ class Yamler:
 
 
     def download(self):
-        """Check if provided weblink to the file exists. 
+        """Check if provided weblink to the file exists.
         Download if verified.
         """
         self.file_link = self.yaml_data['data_file']['location']['url']
@@ -323,7 +323,7 @@ class Yamler:
             self.infile = self.yaml_data['data_file']['input_name']
         else:
             self.infile = self.file_link.split('/')[-1]
-        
+
         self.submitted_dir = 'submitted_data/'
         pathlib.Path(self.submitted_dir).mkdir(exist_ok=True)
         self.sub_datatype_dir = self.submitted_dir + str(self.data_type) + '/'
@@ -336,19 +336,19 @@ class Yamler:
         if os.path.isfile(self.sub_datatype_dir + self.infile):
             logging.info(f' file exists in {self.sub_datatype_dir}')
             return
-            
+
         if verify_weblink(self.file_link):
             if not os.path.isfile(self.sub_datatype_dir + self.infile):
                 logging.info(f' starting download')
                 if 'drive.google.com' in self.file_link:
                     download_gdrive_file(
-                        self.file_link, 
+                        self.file_link,
                         self.sub_datatype_dir,
                         self.infile
                     )
                 else:
                     download_file(
-                        self.file_link, 
+                        self.file_link,
                         self.sub_datatype_dir,
                     )
             else:
@@ -374,7 +374,7 @@ class Yamler:
 
         if tarfile.is_tarfile(self.downloaded_file):
             tarred_data = tarfile.open(
-                self.downloaded_file, 
+                self.downloaded_file,
                 mode='r:*'
             )
             # 'multiple' option is added for edge cases where multiple
@@ -396,7 +396,7 @@ class Yamler:
 
         # moving the downloaded archive file to subdir
         # 'downloaded_archive' to avoid being processed later
-        # ref: https://github.com/greenelab/cimr-d/pull/12  
+        # ref: https://github.com/greenelab/cimr-d/pull/12
         self.make_archive_dir()
         new_path = self.archive_dir + self.infile
         os.rename(
@@ -426,15 +426,15 @@ class Yamler:
         """
         from ..defaults import META_HEADER
         from ..defaults import CATALOG
-        
+
         metadata_file = 'cimr-d_catalog.txt'
-        
+
         if os.path.isfile(metadata_file):
             logging.info(f' reading a local cimr-d catalog file.')
             metadata = pandas.read_csv(
-                metadata_file, 
-                header=0, 
-                index_col=None, 
+                metadata_file,
+                header=0,
+                index_col=None,
                 sep='\t'
             )
         elif verify_weblink(CATALOG):
@@ -448,7 +448,7 @@ class Yamler:
         else:
             logging.info(f' creating a new cimr-d catalog.')
             metadata = pandas.DataFrame(columns=META_HEADER)
-        
+
         for file_name in self.fileset:
             new_row = {
                 'file_name': file_name.split('/')[-1],
@@ -456,9 +456,9 @@ class Yamler:
                 'submitted_data_md5': self.hash,
                 'build': self.genome_build
             }
-            
+
             new_row['data_type'] = self.data_type
-            
+
             if 'context' in self.yaml_data['data_info'].keys():
                 context = self.yaml_data['data_info']['context']
                 context = standardize_context(context)
@@ -466,7 +466,7 @@ class Yamler:
             else:
                 logging.error(f' context description is required.')
                 sys.exit(1)
-                
+
             if 'description' in self.yaml_data['data_file'].keys():
                 new_row['description'] = self.yaml_data['data_file']['description']
             else:
@@ -501,7 +501,7 @@ class Yamler:
                 new_row['method_tool'] = self.yaml_data['method']['tool']
             else:
                 logging.info(f' method tool is not provided.')
-            
+
             logging.info(f' updating cimr-d catalog.txt for {file_name}.')
             metadata = metadata.append(new_row, ignore_index=True)
             metadata.reset_index(inplace=True, drop=True)
@@ -509,14 +509,14 @@ class Yamler:
             metadata = metadata[META_HEADER]
 
             metadata.to_csv(
-                metadata_file, 
-                header=True, 
-                index=False, 
-                sep='\t', 
-                na_rep='NA', 
+                metadata_file,
+                header=True,
+                index=False,
+                sep='\t',
+                na_rep='NA',
                 mode='w'
             )
-        
+
 
     def check_data_file(self):
         """Standard set of Yamler functions to check information on the
@@ -529,7 +529,7 @@ class Yamler:
 
         if self.infile.endswith(BULK_EXTENSION):
             self.extract_bulk()
-        
+
         self.get_colnames()
         self.make_metatable()
 
@@ -542,6 +542,6 @@ if __name__ == '__main__':
         yaml_files = find_yaml_in_dir()
     else:
         yaml_files = [pathlib.Path(sys.argv[1]),]
-    
+
     convert_yaml(yaml_files)
 

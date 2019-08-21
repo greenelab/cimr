@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Utilities and common file checks used across different 
+"""Utilities and common file checks used across different
 processor classes
 
 (c) YoSon Park
@@ -30,13 +30,13 @@ def set_chrom_dict():
         str(i):'chr' + str(i) for i in range(1, MAXCHROM)
     }
     chrom_dict.update({
-        'X':'chr23', 
-        'Y':'chr24', 
-        'M':'chr25', 
-        'MT':'chr25', 
-        'chrX':'chr23', 
-        'chrY':'chr24', 
-        'chrM':'chr25', 
+        'X':'chr23',
+        'Y':'chr24',
+        'M':'chr25',
+        'MT':'chr25',
+        'chrX':'chr23',
+        'chrY':'chr24',
+        'chrM':'chr25',
         'chrMT':'chr25'
     })
     return chrom_dict, MAXCHROM
@@ -79,7 +79,7 @@ def make_int(col):
 
 
 class Infiler:
-    """This is the cimr processor base class. functions regarding 
+    """This is the cimr processor base class. functions regarding
     automated checks for contributed summary statistics files are
     included in this class.
 
@@ -102,28 +102,28 @@ class Infiler:
     - variant_id : variant id in the following format
         chromosome_position_referenceallele_alternateallele_genomebuild
     - pval / pvalue: p-value of the beta estimate
-    - beta / effect_size : beta coefficient estimate for the effect 
-        of the variant on the gene 
+    - beta / effect_size : beta coefficient estimate for the effect
+        of the variant on the gene
     - se / standard_error : standard error of the beta
-    - zscore: z-score if no beta/se information is present 
+    - zscore: z-score if no beta/se information is present
         (e.g. imputed summary statistic)
 
     following are optional :
-    - tss_distance : distance to the transcription start site of the 
+    - tss_distance : distance to the transcription start site of the
         gene_id
     - ma_samples : samples with minor alleles
     - maf : minor allele frequency
-    - effect_allele : allele with respect to which variant's effect 
+    - effect_allele : allele with respect to which variant's effect
         sizes are estimated
     - non_effect_allele : non-effect-allele
     - imputation_status : imputation status of the variant. 'original' to
         indicate that the original GWAS contained the variant. 'imputed' to
-        indicate that the data submitter has done (additional) imputation 
+        indicate that the data submitter has done (additional) imputation
         to the initial release of the data.
-    - sample_size : sample size for the variant underlying the effect_size 
+    - sample_size : sample size for the variant underlying the effect_size
         and pvalue estimates. If not available per-variant, the total sample
         size used for the study is accepted.
-    - n_cases : for binary phenotypic traits, n_cases are necessary for 
+    - n_cases : for binary phenotypic traits, n_cases are necessary for
         downstream analyses such as coloc colocalization.
     - frequency : allele frequency of the effect_allele
 
@@ -136,12 +136,12 @@ class Infiler:
 
     """
 
-    def __init__(self, 
-                 data_type, 
-                 file_name, 
-                 genome_build, 
-                 update_rsid, 
-                 outfile, 
+    def __init__(self,
+                 data_type,
+                 file_name,
+                 genome_build,
+                 update_rsid,
+                 outfile,
                  chunksize,
                  columnset):
 
@@ -156,10 +156,10 @@ class Infiler:
         self.outfile = outfile
         self.chunksize = chunksize
         self.columnset = columnset
-    
+
 
     def get_pos(self):
-        """Check variant_id column and make 
+        """Check variant_id column and make
         chrom, pos, ref, alt, build columns"""
         # check first element to find delimiter in variant_id
         variant_ids = self.summary_data['variant_id']
@@ -188,7 +188,7 @@ class Infiler:
                 logging.info(f' updating variant_id to include build')
                 self.summary_data['build'] = self.genome_build
                 self.summary_data['variant_id'] = variant_ids + '_' + self.genome_build
-    
+
 
     def make_variant_id(self):
         """(Re)make variant_id with updated chrom ID, build #, etc."""
@@ -221,7 +221,7 @@ class Infiler:
         chrom_str = list(chrom_dict.values())[0:maxchrom]
         chrom_int = list(chrom_dict.keys())[0:maxchrom]
         chroms = self.summary_data['chrom'].drop_duplicates().values
-        
+
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
             logging.info(f' there are {len(chroms)} chromosomes.')
         elif len(chroms) <= (maxchrom - 2):
@@ -249,7 +249,7 @@ class Infiler:
 
     def check_ref(self):
         from pkg_resources import resource_filename
-        
+
         var_ref = self.var_ref
         ref_id = self.var_ref_id
         ref_file = resource_filename(
@@ -267,7 +267,7 @@ class Infiler:
         if not rsnum_ref.empty:
             samples = rsnum_ref.sample(frac=0.1, replace=False)
             merged = samples.merge(
-                refdf, left_on='rsnum', right_on=ref_id+'_reference', 
+                refdf, left_on='rsnum', right_on=ref_id+'_reference',
                 left_index=False, right_index=False, how='left'
             )
             merged.drop_duplicates(inplace=True)
@@ -280,7 +280,7 @@ class Infiler:
         else:
             logging.error(f' there are no matching rs ids.')
             pass
-    
+
 
     def check_probability(self, col):
         """Check whether probability is between 0 and 1"""
@@ -288,7 +288,7 @@ class Infiler:
             logging.info(f' {str(col)} only contains values between 0 and 1.')
         else:
             logging.error(f' {str(col)} should only contain values between 0 and 1.')
-            
+
 
     def find_reference(self):
         """Find variant and gene references for map checking"""
@@ -300,12 +300,12 @@ class Infiler:
             self.gene_ref = ANNOTURL + 'gene_grch38_gencode_v29.tsv.gz'
             self.var_ref = ANNOTURL + 'variant_grch38_subset.txt.gz'
             self.var_ref_id = 'rs_id_dbSNP150_GRCh38p7'
-    
+
 
     def trim_ensembl(self):
-        """Make the ensembl gene id list to be agnostic to 
+        """Make the ensembl gene id list to be agnostic to
         subversions for queries
-        
+
         e.g. ENSG00000143614.7 -> ENSG00000143614
         """
         ensemblid = self.summary_data['feature_id'].str.split('.').str[0]
@@ -328,19 +328,19 @@ class Infiler:
         else:
             logging.error(f' feature_id column is not provided.')
             sys.exit(1)
-    
+
 
     def append_gene_cols(self, gene_df):
         """Add gene annotation columns to dataframe"""
         self.summary_data = pandas.concat([self.summary_data, gene_df], axis=1)
-    
+
 
     def fill_effect_allele(self):
-        """Fill NA in effect_allele column with inc_allele if 
+        """Fill NA in effect_allele column with inc_allele if
         inc_allele present
         """
         self.summary_data['effect_allele'].fillna(self.summary_data['inc_allele'])
-        
+
 
     def make_int(self, colname):
         """Make int columns int"""
@@ -348,10 +348,10 @@ class Infiler:
 
 
     def check_file(self, summary_data):
-        """Check different columns for dtype, remove missing rows and 
+        """Check different columns for dtype, remove missing rows and
         standardize format to be used for analyses
         """
-        
+
         self.find_reference()
         summary_data.reset_index(inplace=True, drop=True)
         self.summary_data = summary_data
@@ -371,13 +371,13 @@ class Infiler:
                 self.check_ref()
         else:
             logging.warning(f' rsnum column is not provided.')
-            
+
         if 'ma_samples' in self.included_header:
             self.make_int('ma_samples')
-        
+
         if 'ma_count' in self.included_header:
             self.make_int('ma_count')
-        
+
         if 'sample_size' in self.included_header:
             self.make_int('sample_size')
 
@@ -385,7 +385,7 @@ class Infiler:
             self.fill_effect_allele()
         else:
             logging.debug(f' inc_allele column is not available')
-        
+
         columns_to_drop = [
             'chrom', 'pos', 'ref', 'alt', 'chromosome', 'build',
             'position', 'inc_allele', 'variant_chrom', 'variant_pos'
@@ -394,19 +394,19 @@ class Infiler:
         for colname in columns_to_drop:
             if colname in self.summary_data.columns:
                 self.summary_data.drop(
-                    colname, 
-                    axis=1, 
+                    colname,
+                    axis=1,
                     inplace=True
                 )
 
         if 'effect_size' in self.included_header:
-            check_numeric(self.summary_data, 'effect_size') 
+            check_numeric(self.summary_data, 'effect_size')
         else:
             logging.error(f' effect_size column is not provided.')
             sys.exit(1)
 
         if 'standard_error' in self.included_header:
-            check_numeric(self.summary_data, 'standard_error') 
+            check_numeric(self.summary_data, 'standard_error')
         else:
             logging.error(f' standard_error column is not provided.')
             sys.exit(1)
@@ -440,10 +440,10 @@ class Infiler:
         """Write data to file with header"""
         if isinstance(self.summary_data, pandas.DataFrame):
             self.summary_data.to_csv(
-                str(self.outfile), 
-                header=True, 
-                index=False, 
-                sep='\t', 
+                str(self.outfile),
+                header=True,
+                index=False,
+                sep='\t',
                 na_rep='NA',
                 compression='gzip',
                 float_format='%.5f',
@@ -455,16 +455,16 @@ class Infiler:
         """Write data to file without header"""
         if isinstance(self.summary_data, pandas.DataFrame):
             self.summary_data.to_csv(
-                str(self.outfile), 
-                header=False, 
-                index=False, 
-                sep='\t', 
+                str(self.outfile),
+                header=False,
+                index=False,
+                sep='\t',
                 na_rep='NA',
                 compression='gzip',
                 float_format='%.5f',
                 mode='a'
             )
-    
+
     def check_h5_outfile(self):
         """Check file extension for h5 output"""
         if not str(self.outfile).endswith('.h5.bz2'):
@@ -475,13 +475,13 @@ class Infiler:
         """Write data as PyTable in an h5 file system with header"""
         if isinstance(self.summary_data, pandas.DataFrame):
             self.summary_data.to_hdf(
-                str(self.outfile), 
-                header=True, 
-                index=False, 
-                format='table', 
-                complevel=9, 
-                complib='bzip2', 
-                key=self.data_type, 
+                str(self.outfile),
+                header=True,
+                index=False,
+                format='table',
+                complevel=9,
+                complib='bzip2',
+                key=self.data_type,
                 mode='w'
             )
 
@@ -489,13 +489,13 @@ class Infiler:
         """Append data as PyTable in an h5 file system"""
         if isinstance(self.summary_data, pandas.DataFrame):
             self.summary_data.to_hdf(
-                str(self.outfile), 
-                header=True, 
-                index=False, 
-                format='table', 
-                complevel=9, 
-                complib='bzip2', 
-                key=self.data_type, 
+                str(self.outfile),
+                header=True,
+                index=False,
+                format='table',
+                complevel=9,
+                complib='bzip2',
+                key=self.data_type,
                 mode='a'
             )
 
@@ -506,16 +506,16 @@ class Infiler:
         """
         logging.info(f' renaming columns based on provided info')
         dataframe.rename(self.columnset, axis=1, inplace=True)
-    
+
 
     def call_querier(self, genes):
         queried = Querier(genes)
         queried.form_query()
         self.append_gene_cols(queried.list_queried())
-    
+
 
     def map_features(self, features):
-        """Find the type of feature_id, map to gene symbols, 
+        """Find the type of feature_id, map to gene symbols,
         if not available.
         """
         if features.str.startswith('ENSG').all(skipna=True):
@@ -529,13 +529,13 @@ class Infiler:
         else:
             logging.error(f' feature reference cannot be determined.')
             sys.exit(1)
-        
+
         logging.debug(f' reading {self.gene_ref}.')
 
         if not 'feature_name' in self.included_header:
             gene_annot = pandas.read_csv(
-                self.gene_ref, 
-                sep='\t', 
+                self.gene_ref,
+                sep='\t',
                 header=0
             )
             cols = ['feature_name', self.feature_type, 'feature_type']
@@ -548,8 +548,8 @@ class Infiler:
             logging.debug(f' {gene_annot.head(2)}')
 
             self.summary_data = self.summary_data.merge(
-                gene_annot, 
-                on='feature_id', 
+                gene_annot,
+                on='feature_id',
                 how='left',
                 left_index=False,
                 right_index=False
@@ -558,7 +558,7 @@ class Infiler:
             self.summary_data.reset_index(inplace=True, drop=True)
             logging.debug(f' dataframe has been annotated.')
             logging.debug(f' {self.summary_data.head(2)}')
-    
+
 
     def order_columns(self):
         """Make sure the final output has the required columns
@@ -573,9 +573,9 @@ class Infiler:
         self.file_name = find_file(self.file_name)
 
         chunks = pandas.read_csv(
-            self.file_name, 
-            sep='\t', 
-            header=0, 
+            self.file_name,
+            sep='\t',
+            header=0,
             iterator=True,
             chunksize=self.chunksize
         )
@@ -587,7 +587,7 @@ class Infiler:
             logging.info(f' processing input chunk {chunkcount}.')
             # check if empty and check header
             if not chunk.empty:
-              
+
                 chunk.reset_index(drop=True, inplace=True)
                 if self.columnset:
                     self.rename_columns(chunk)
@@ -603,7 +603,7 @@ class Infiler:
                     # 413 error
                     # self.call_querier(features)
                     self.map_features(features)
-                
+
                 logging.info(f' dropping duplicate columns.')
                 dropcols = self.summary_data.columns.duplicated()
                 self.summary_data = self.summary_data.loc[:, ~dropcols]
@@ -620,13 +620,13 @@ class Infiler:
                 else:
                     logging.error(f' file {self.outfile} cannot be written.')
                     sys.exit(1)
-                
+
             else:
                 logging.error(f' no content in {self.file_name}.')
                 sys.exit(1)
-            
+
             chunkcount += 1
-        
+
 
 class Integrator:
     """cimr integrator class connecting contributed data to cimr-d
@@ -637,9 +637,9 @@ class Integrator:
     data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl', 'twas', 'tad'}
     file_name: name of the file containing the data
     data_type = defaults.DATA_TYPES
-    can_be_public: boolean variable indicating whether the contributed 
+    can_be_public: boolean variable indicating whether the contributed
                    data can be released as a part of the public archive.
-                   for cimr >= 0.2.3, can_be_public parameter will 
+                   for cimr >= 0.2.3, can_be_public parameter will
                    determine the destination repository
 
     Notes:
@@ -660,14 +660,14 @@ class Integrator:
     def make_local_db(self, tempdir):
         """Temporarily download a local copy of the cimr-d"""
         # TODO: change into public repo after testing
-        self.tempdir = tempdir 
+        self.tempdir = tempdir
         try:
             clonercmd = 'git clone git@github.com:greenelab/cimr-d.git ' + self.tempdir
             cloner = subprocess.Popen(
-                clonercmd.split(), 
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.PIPE, 
-                shell=True, 
+                clonercmd.split(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True,
                 executable='/bin/bash'
             )
             cloned = cloner.communicate()

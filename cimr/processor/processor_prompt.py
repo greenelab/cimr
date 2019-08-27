@@ -148,7 +148,7 @@ def processor_cli(args):
                     out_path,
                     columnset
                 )
-                wrap_up(y, args)
+            wrap_up(y, args)
 
         else:
             data_type = args.data_type

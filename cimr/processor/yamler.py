@@ -223,8 +223,34 @@ def validate_hash(path, hash):
 def verify_dir(tarred_data):
     """Check directory tree of tarball containing multiple files"""
     for member in tarred_data.getmembers():
-        if not member.name.startswith(DATA_TYPES):
-            logging.error(f' data_type not indicated in dir tree.')
+        # skip sub-directories
+        if member.isdir():
+            continue
+
+        # No any non-file types (links, devices, FIFOs, etc) allowed
+        if not member.isfile():
+            logging.error(f' illegal file type: {member.name}.')
+            sys.exit(1)
+
+        file_path = member.name
+        # Leading '/' in file path NOT allowed
+        if file_path.startswith('/'):
+            logging.error(f' leading / found in archived file.')
+            sys.exit(1)
+
+        # Remove leading './' from file path
+        if file_path.startswith('./'):
+            file_path = file_path.replace('./', '')
+
+        # Ensure that a regular file's name in archive is always in the
+        # format of "<data_type>/<filename>"
+        tokens = file_path.split('/')
+        if len(tokens) != 2:
+            logging.error(f' illegal file system hierarchy in archive: {member.name}.')
+            sys.exit(1)
+
+        if tokens[0] not in DATA_TYPES:
+            logging.error(f' data_type in archive not supported: {tokens[0]}.')
             sys.exit(1)
 
 
@@ -544,4 +570,3 @@ if __name__ == '__main__':
         yaml_files = [pathlib.Path(sys.argv[1]),]
 
     convert_yaml(yaml_files)
-

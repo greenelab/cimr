@@ -106,6 +106,8 @@ def main(args,
 
             logging.info(f' finished processing {file_name}')
             logging.info(f' output has been saved as {outfile}')
+            logging.info(f' -------')
+            logging.info(f' ')
 
         else:
             logging.error(f' no file_name provided; nothing to process.')

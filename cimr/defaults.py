@@ -4,6 +4,13 @@ ANNOTURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/an
 
 MAXCHROM = 23
 
+VAR_COMPONENTS = [
+    'variant_chrom',
+    'variant_pos',
+    'non_effect_allele',
+    'effect_allele'
+]
+
 DATA_TYPES = (
     'gwas', 'eqtl', 'sqtl', 'pqtl', 'gene', 'twas',
     'tad', 'multiple', 'yaml'
@@ -37,7 +44,8 @@ HEADER = [
     'feature_variant_id', 'feature_name',
     'feature_start', 'feature_stop', 'feature_type', 'strand',
     'ma_samples', 'ma_count', 'maf',
-    'pvalue_perm', 'pvalue_beta', 'fdr', 'qvalue'
+    'pvalue_perm', 'pvalue_beta', 'fdr', 'qvalue',
+    'variant_chrom', 'variant_pos'
 ]
 
 CONFIG_FILE_EXTENSION = ('yml', 'yaml')
@@ -45,7 +53,7 @@ CONFIG_FILE_EXTENSION = ('yml', 'yaml')
 # gzip, bz2, and lzma (xz)
 COMPRESSION_EXTENSION = ('gz', 'bz2', 'xz')
 BULK_EXTENSION = ('tgz', 'tar.gz', 'tar.bz2', 'tar.xz')
-FILE_EXTENSION = ('txt.gz', 'tsv.gz')
+FILE_EXTENSION = ('txt.gz', 'tsv.gz', 'tsv', 'txt')
 
 META_HEADER = [
     'data_type', 'context', 'context_id',

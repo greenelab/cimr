@@ -81,7 +81,6 @@ def main(args,
             if args.write_gene is not None:
                 annot_gene_file = str(outdir) + '/' + str(args.write_gene)
                 queried.write_gene(annot_gene_file)
-            return 0
 
         elif data_type == 'tad':
             grow_tadpoles(args)
@@ -104,8 +103,8 @@ def main(args,
 
             infile.read_file()
 
-            logging.info(f' finished processing {file_name}')
-            logging.info(f' output has been saved as {outfile}')
+            logging.info(f' finished processing {file_name}.')
+            logging.info(f' output has been saved as {outfile}.')
             logging.info(f' -------')
             logging.info(f' ')
 
@@ -116,7 +115,8 @@ def main(args,
 
 def wrap_up(y, args):
     """Make metatable and print out a divider to indicate the end of
-    the file processing."""
+    the file processing
+    """
     y.make_metatable(args.catalog_name)
     logging.info(f' -------')
     logging.info(f' ')

@@ -550,7 +550,6 @@ class Yamler:
             self.extract_bulk()
 
         self.get_colnames()
-        # self.make_metatable()
 
 
 if __name__ == '__main__':

@@ -240,7 +240,7 @@ class Infiler:
             # self.summary_data = self.summary_data[strchroms]
             logging.info(f' chromosome ids have been updated.')
         else:
-            logging.error(f' chromosome id needs to be checked.')
+            logging.warning(f' chromosome id needs to be checked.')
 
         remainder = list(set(chroms) - set(chrom_str) - set(chrom_int))
         if len(remainder) > 0:
@@ -318,7 +318,7 @@ class Infiler:
         logging.debug(f' {self.included_header}')
         logging.debug(f' {self.summary_data.head(2)}')
         if 'feature_id' in self.included_header:
-            if self.summary_data['feature_id'][0].startswith('ENSG'):
+            if self.summary_data['feature_id'][0].startswith('ENS'):
                 self.trim_ensembl()
 
         if 'ensemblgene' in self.summary_data.columns:

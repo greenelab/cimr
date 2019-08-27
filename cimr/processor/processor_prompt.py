@@ -119,7 +119,7 @@ def processor_cli(args):
 
         if args.yaml_file:
             yaml_file = [pathlib.Path(args.yaml_file),]
-            genome_build, fileset, columnset = convert_yaml(yaml_file)
+            y, genome_build, fileset, columnset = convert_yaml(yaml_file)
             for _file in fileset:
                 data_type = _file.split('/')[-2]
                 file_name = _file.split('/')[-1]
@@ -140,6 +140,7 @@ def processor_cli(args):
                     out_path,
                     columnset
                 )
+                y.make_metatable()
 
         else:
             data_type = args.data_type
@@ -160,6 +161,7 @@ def processor_cli(args):
                 out_path,
                 columnset
             )
+            y.make_metatable()
 
     elif args.integrate:
         if check_type(data_type):

@@ -280,7 +280,7 @@ def convert_yaml(yaml_files):
 
         fileset = [*fileset, *y.fileset]
 
-    return genome_build, fileset, columnset
+    return y, genome_build, fileset, columnset
 
 
 def standardize_context(context):
@@ -557,7 +557,7 @@ class Yamler:
             self.extract_bulk()
 
         self.get_colnames()
-        self.make_metatable()
+        # self.make_metatable()
 
 
 if __name__ == '__main__':

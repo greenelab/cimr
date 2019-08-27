@@ -112,6 +112,14 @@ def main(args,
             sys.exit(1)
 
 
+def wrap_up(y, args):
+    """Make metatable and print out a divider to indicate the end of
+    the file processing."""
+    y.make_metatable(args.catalog_name)
+    logging.info(f' -------')
+    logging.info(f' ')
+
+
 def processor_cli(args):
     """cimr processor subprocess cli"""
 
@@ -140,7 +148,7 @@ def processor_cli(args):
                     out_path,
                     columnset
                 )
-                y.make_metatable()
+                wrap_up(y, args)
 
         else:
             data_type = args.data_type
@@ -161,7 +169,7 @@ def processor_cli(args):
                 out_path,
                 columnset
             )
-            y.make_metatable()
+            wrap_up(y, args)
 
     elif args.integrate:
         if check_type(data_type):

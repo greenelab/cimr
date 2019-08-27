@@ -117,6 +117,14 @@ def add_subparser_processor(subparsers):
         help='file containing summary statistics or annotation data',
     )
     parser.add_argument(
+        '-catalog-name',
+        default='catalog.txt',
+        type=pathlib.Path,
+        dest='catalog_name',
+        nargs='?',
+        help='catalog file name to store metadata',
+    )
+    parser.add_argument(
         '-data-type',
         dest='data_type',
         help='input file data type',

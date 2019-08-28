@@ -76,9 +76,9 @@ def check_numeric(data, col):
         sys.exit(1)
 
 
-def intersect_set(set1, set2):
+def intersect_set(list1, list2):
     """Make a list of intersect set values"""
-    return list(set(set1) & set(set2))
+    return (set(list1) & set(list2))
 
 
 #######

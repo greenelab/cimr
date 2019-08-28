@@ -382,18 +382,15 @@ class Infiler:
         logging.debug(f' processing information needed to make variant_id.')
 
         if set(VAR_COMPONENTS).issubset(set(self.included_header)):
-            logging.debug(f' {self.summary_data[VAR_COMPONENTS].info()}')
             logging.debug(f' checking {VAR_COMPONENTS} for missing values.')
             self.summary_data.dropna(
                 subset=VAR_COMPONENTS, inplace=True
             )
             logging.debug(f' rows with missing {VAR_COMPONENTS} are dropped.')
-            logging.debug(f' {self.summary_data[VAR_COMPONENTS].info()}')
 
             logging.debug(f' making variant_id using {VAR_COMPONENTS}.')
             self.summary_data['chrom'] = self.summary_data['variant_chrom']
             self.check_chrom()
-            logging.info(f' chromosome information is checked.')
             logging.info(f' verifying variant positions are int values.')
             self.make_int('variant_pos')
             logging.debug(f' changing verified values to str.')
@@ -656,6 +653,7 @@ class Infiler:
             # default behavior will push all missing columns to last
             # delim_whitespace=True,
             header=0,
+            engine='python',
             iterator=True,
             chunksize=self.chunksize
         )

@@ -107,8 +107,7 @@ def main(args,
 
             logging.info(f' finished processing {file_name}.')
             logging.info(f' output has been saved as {outfile}.')
-            logging.info(f' -------')
-            logging.info(f' ')
+            logging.info(' ' + '-' * 60 + '\n')
 
         else:
             logging.error(f' no file_name provided; nothing to process.')
@@ -120,8 +119,7 @@ def wrap_up(y, args):
     the file processing
     """
     y.make_metatable(args.catalog_name)
-    logging.info(f' -------')
-    logging.info(f' ')
+    logging.info(' ' + '-' * 60 + '\n')
 
 
 def processor_cli(args):

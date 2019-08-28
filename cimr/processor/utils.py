@@ -379,6 +379,8 @@ class Infiler:
         new variant_id column. This option can be activated
         by indicating all variant_id component fields in the yaml.
         """
+        logging.debug(f' processing information needed to make variant_id.')
+
         if set(VAR_COMPONENTS).issubset(set(self.included_header)):
             logging.debug(f' {self.summary_data[VAR_COMPONENTS].info()}')
             logging.debug(f' checking {VAR_COMPONENTS} for missing values.')
@@ -414,9 +416,13 @@ class Infiler:
         """Check different columns for dtype, remove missing rows and
         standardize format to be used for analyses
         """
+        logging.debug(f' HEADER: {HEADER}.')
+        logging.debug(f' columns: {summary_data.columns}.')
         self.included_header = intersect_set(
             HEADER, summary_data.columns
         )
+        logging.debug(f' included header overlapping cimr set: {self.included_header}.')
+
         self.find_reference()
         summary_data.reset_index(inplace=True, drop=True)
         self.summary_data = summary_data
@@ -575,6 +581,7 @@ class Infiler:
         """
         logging.info(f' renaming columns based on column dictionary.')
         dataframe.rename(self.columnset, axis=1, inplace=True)
+        logging.debug(f' renamed data.head(2): {dataframe.head(2)}')
 
 
     def call_querier(self, genes):
@@ -645,7 +652,7 @@ class Infiler:
             # c engine does not support regex
             # sep=r'\s{,8}',
             # lots of files are whitespace delimited
-            sep='\t',
+            sep='\t| ',
             # default behavior will push all missing columns to last
             # delim_whitespace=True,
             header=0,
@@ -662,8 +669,6 @@ class Infiler:
 
             # check if empty and check header
             if not chunk.empty:
-
-                chunk.reset_index(drop=True, inplace=True)
                 if self.columnset:
                     self.rename_columns(chunk)
 

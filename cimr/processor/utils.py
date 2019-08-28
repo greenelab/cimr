@@ -16,11 +16,13 @@ from pandas.api.types import is_numeric_dtype
 
 from .query import Querier
 
+from ..defaults import COMPRESSION_EXTENSION
 from ..defaults import DATA_TYPES
 from ..defaults import GENOME_BUILDS
 from ..defaults import REQ_HEADER
 from ..defaults import HEADER
 from ..defaults import MAXCHROM
+from ..defaults import VAR_COMPONENTS
 from ..defaults import ANNOTURL
 
 
@@ -65,7 +67,8 @@ def check_numeric(data, col):
                         .join(data[col].apply(pandas.to_numeric, errors='coerce'))
                         )
             numcol = numdata[col].isnull().values().sum()
-            logging.error(f' %s rows in %s are non-numeric' % (numcol, col,))
+            logging.warning(f' %s rows in %s are non-numeric' % (numcol, col,))
+            logging.warning(f' {col} is tested by coercing into numeric values.')
             return numdata
     except:
         logging.error(f' the format of %s is not testable.' % (col,))
@@ -73,10 +76,12 @@ def check_numeric(data, col):
         sys.exit(1)
 
 
-def make_int(col):
-    """Make sure the column values are represented as int"""
-    return col.astype(int)
+def intersect_set(list1, list2):
+    """Make a list of intersect set values"""
+    return (set(list1) & set(list2))
 
+
+#######
 
 class Infiler:
     """This is the cimr processor base class. functions regarding
@@ -192,11 +197,11 @@ class Infiler:
 
     def make_variant_id(self):
         """(Re)make variant_id with updated chrom ID, build #, etc."""
-        logging.debug(f' checking variant_id column...')
-        logging.debug(f' {self.summary_data.variant_id}')
         logging.debug(f' standardizing allele codes...')
         self.summary_data['ref'] = self.summary_data['ref'].str.upper()
         self.summary_data['alt'] = self.summary_data['alt'].str.upper()
+
+        logging.debug(f' making a new variant_id column.')
 
         self.summary_data['variant_id'] = self.summary_data['chrom'] \
             + '_' \
@@ -208,19 +213,32 @@ class Infiler:
             + '_' \
             + self.summary_data['build']
         logging.debug(f' variant_id column verified.')
-        logging.debug(f' {self.summary_data.variant_id}')
 
 
     def check_chrom(self):
         """Assumes chr+number
-        * check for autosomal chromosomes
         * change if different from the specified format
-        * discard non-autosomal chromosomes from main input
+        * check if integer turned into float
+          e.g. 1 -> 1.0
         """
         chrom_dict, maxchrom = set_chrom_dict()
         chrom_str = list(chrom_dict.values())[0:maxchrom]
         chrom_int = list(chrom_dict.keys())[0:maxchrom]
+        # for files with integer value chromosomes
+        # (i.e. 1 in stead of 'chr1'),
+        # sometimes values are turned into float, which will not
+        # work with default chrom_dict.
+        # creating a chrom_flt to match these, check if int, then
+        # standardize into str 'chr' + int format
+        chrom_flt = [float(x) for x in range(1, maxchrom)]
+
         chroms = self.summary_data['chrom'].drop_duplicates().values
+
+        if len(set(chroms) & set(chrom_flt)) > 2:
+            self.make_int('chrom')
+            self.make_str('chrom')
+            chroms = self.summary_data['chrom'].drop_duplicates().values
+            logging.debug(f' {chroms}')
 
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
             logging.info(f' there are {len(chroms)} chromosomes.')
@@ -236,11 +254,9 @@ class Infiler:
             self.summary_data['chrom'] = self.summary_data['chrom'].map(
                 chrom_dict, na_action='ignore'
             ).fillna(self.summary_data['chrom'])
-            # strchroms = self.summary_data['chrom'].isin(chrom_str)
-            # self.summary_data = self.summary_data[strchroms]
             logging.info(f' chromosome ids have been updated.')
         else:
-            logging.error(f' chromosome id needs to be checked.')
+            logging.warning(f' chromosome id needs to be checked.')
 
         remainder = list(set(chroms) - set(chrom_str) - set(chrom_int))
         if len(remainder) > 0:
@@ -256,7 +272,7 @@ class Infiler:
             'cimr', var_ref
             )
         logging.info(f' using {ref_file} to check variants.')
-        logging.info(f' rs id reference is {ref_id}')
+        logging.info(f' rs id reference is {ref_id}.')
         refdf = pandas.read_csv(
             ref_file, sep='\t', header=0, dtype={'chr':'str'}
             )
@@ -318,7 +334,7 @@ class Infiler:
         logging.debug(f' {self.included_header}')
         logging.debug(f' {self.summary_data.head(2)}')
         if 'feature_id' in self.included_header:
-            if self.summary_data['feature_id'][0].startswith('ENSG'):
+            if self.summary_data['feature_id'][0].startswith('ENS'):
                 self.trim_ensembl()
 
         if 'ensemblgene' in self.summary_data.columns:
@@ -332,14 +348,19 @@ class Infiler:
 
     def append_gene_cols(self, gene_df):
         """Add gene annotation columns to dataframe"""
-        self.summary_data = pandas.concat([self.summary_data, gene_df], axis=1)
+        self.summary_data = pandas.concat(
+            [self.summary_data, gene_df],
+            axis=1
+        )
 
 
     def fill_effect_allele(self):
         """Fill NA in effect_allele column with inc_allele if
         inc_allele present
         """
-        self.summary_data['effect_allele'].fillna(self.summary_data['inc_allele'])
+        self.summary_data['effect_allele'].fillna(
+            self.summary_data['inc_allele']
+        )
 
 
     def make_int(self, colname):
@@ -347,14 +368,62 @@ class Infiler:
         self.summary_data[colname] = self.summary_data[colname].astype(int)
 
 
+    def make_str(self, colname):
+        """Make values in column as str"""
+        self.summary_data[colname] = self.summary_data[colname].astype(str)
+
+
+    def make_composite_id(self):
+        """Files may be missing the standardized variant_id
+        but may contain chrom, pos, ref and alt columns to make a
+        new variant_id column. This option can be activated
+        by indicating all variant_id component fields in the yaml.
+        """
+        if set(VAR_COMPONENTS).issubset(set(self.included_header)):
+            logging.debug(f' {self.summary_data[VAR_COMPONENTS].info()}')
+            logging.debug(f' checking {VAR_COMPONENTS} for missing values.')
+            self.summary_data.dropna(
+                subset=VAR_COMPONENTS, inplace=True
+            )
+            logging.debug(f' rows with missing {VAR_COMPONENTS} are dropped.')
+            logging.debug(f' {self.summary_data[VAR_COMPONENTS].info()}')
+
+            logging.debug(f' making variant_id using {VAR_COMPONENTS}.')
+            self.summary_data['chrom'] = self.summary_data['variant_chrom']
+            self.check_chrom()
+            logging.info(f' chromosome information is checked.')
+            logging.info(f' verifying variant positions are int values.')
+            self.make_int('variant_pos')
+            logging.debug(f' changing verified values to str.')
+            self.make_str('variant_pos')
+
+            self.summary_data['pos'] = self.summary_data['variant_pos']
+            self.summary_data['ref'] = self.summary_data['non_effect_allele']
+            self.summary_data['alt'] = self.summary_data['effect_allele']
+            self.summary_data['build'] = self.genome_build
+
+            # make variant_id from components
+            self.make_variant_id()
+            # recall included_header from columns including variant_id
+            self.included_header = intersect_set(
+                HEADER, self.summary_data.columns
+            )
+
+
     def check_file(self, summary_data):
         """Check different columns for dtype, remove missing rows and
         standardize format to be used for analyses
         """
-
+        self.included_header = intersect_set(
+            HEADER, summary_data.columns
+        )
         self.find_reference()
         summary_data.reset_index(inplace=True, drop=True)
         self.summary_data = summary_data
+
+        if 'variant_id' not in self.included_header:
+            self.make_composite_id()
+            logging.debug(f' data.head(2): {self.summary_data.head(2)}')
 
         if 'variant_id' in self.included_header:
             self.get_pos()
@@ -363,7 +432,7 @@ class Infiler:
             self.make_variant_id()
             logging.info(f' variant_id has been standardized.')
         else:
-            logging.error(f' variant_id column is not provided')
+            logging.error(f' variant_id column is not provided.')
             sys.exit(1)
 
         if 'rsnum' in self.included_header:
@@ -384,7 +453,7 @@ class Infiler:
         if 'inc_allele' in self.included_header:
             self.fill_effect_allele()
         else:
-            logging.debug(f' inc_allele column is not available')
+            logging.debug(f' inc_allele column is not available.')
 
         columns_to_drop = [
             'chrom', 'pos', 'ref', 'alt', 'chromosome', 'build',
@@ -504,7 +573,7 @@ class Infiler:
         """Given a pandas dataframe and a dictionary, rename columns
         Primarily used for yaml column-set-based renaming in cimr.
         """
-        logging.info(f' renaming columns based on provided info')
+        logging.info(f' renaming columns based on column dictionary.')
         dataframe.rename(self.columnset, axis=1, inplace=True)
 
 
@@ -542,10 +611,8 @@ class Infiler:
             gene_annot = gene_annot[cols]
             gene_annot.rename(columns={self.feature_type:'feature_id'}, inplace=True)
 
-            logging.debug(f' current dataframe: ')
-            logging.debug(f' {self.summary_data.head(2)}')
-            logging.debug(f' selected annotations: ')
-            logging.debug(f' {gene_annot.head(2)}')
+            logging.debug(f' current dataframe: {self.summary_data.head(2)}')
+            logging.debug(f' selected annotations: {gene_annot.head(2)}')
 
             self.summary_data = self.summary_data.merge(
                 gene_annot,
@@ -554,6 +621,7 @@ class Infiler:
                 left_index=False,
                 right_index=False
             )
+            logging.debug(f' dropping duplicates, if any...')
             self.summary_data.drop_duplicates(inplace=True)
             self.summary_data.reset_index(inplace=True, drop=True)
             logging.debug(f' dataframe has been annotated.')
@@ -574,7 +642,12 @@ class Infiler:
 
         chunks = pandas.read_csv(
             self.file_name,
+            # c engine does not support regex
+            # sep=r'\s{,8}',
+            # lots of files are whitespace delimited
             sep='\t',
+            # default behavior will push all missing columns to last
+            # delim_whitespace=True,
             header=0,
             iterator=True,
             chunksize=self.chunksize
@@ -583,8 +656,10 @@ class Infiler:
         chunkcount = 0
 
         for chunk in chunks:
+            logging.debug(f' processing data.head(2): {chunk.head(2)}.')
             chunk.reset_index(drop=True, inplace=True)
             logging.info(f' processing input chunk {chunkcount}.')
+
             # check if empty and check header
             if not chunk.empty:
 
@@ -592,9 +667,8 @@ class Infiler:
                 if self.columnset:
                     self.rename_columns(chunk)
 
-                self.included_header = list(
-                    set(HEADER) & set(chunk.columns)
-                )
+                # check each column for variable types,
+                # standardiz chromosome and variant ids, etc.
                 self.check_file(chunk)
                 logging.debug(f' processing data type {self.data_type}.')
 
@@ -608,10 +682,11 @@ class Infiler:
                 dropcols = self.summary_data.columns.duplicated()
                 self.summary_data = self.summary_data.loc[:, ~dropcols]
 
-                logging.info(f' reordering processed data...')
+                logging.info(f' reordering processed data.')
                 self.order_columns()
+                logging.debug(f' data.head(2): {self.summary_data.head(2)}')
 
-                logging.info(f' writing processed data...')
+                logging.info(f' writing processed data.')
 
                 if chunkcount == 0:
                     self.write_header()

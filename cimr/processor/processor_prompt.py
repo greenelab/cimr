@@ -11,6 +11,8 @@ import pathlib
 import logging
 
 
+from ..prompt import set_log
+
 from .utils import Infiler
 from .utils import Integrator
 
@@ -81,7 +83,6 @@ def main(args,
             if args.write_gene is not None:
                 annot_gene_file = str(outdir) + '/' + str(args.write_gene)
                 queried.write_gene(annot_gene_file)
-            return 0
 
         elif data_type == 'tad':
             grow_tadpoles(args)
@@ -104,22 +105,33 @@ def main(args,
 
             infile.read_file()
 
-            logging.info(f' finished processing {file_name}')
-            logging.info(f' output has been saved as {outfile}')
+            logging.info(f' finished processing {file_name}.')
+            logging.info(f' output has been saved as {outfile}.')
+            logging.info(' ' + '-' * 60 + '\n')
 
         else:
             logging.error(f' no file_name provided; nothing to process.')
             sys.exit(1)
 
 
+def wrap_up(y, args):
+    """Make metatable and print out a divider to indicate the end of
+    the file processing
+    """
+    y.make_metatable(args.catalog_name)
+    logging.info(' ' + '-' * 60 + '\n')
+
+
 def processor_cli(args):
     """cimr processor subprocess cli"""
+
+    set_log(args)
 
     if args.process:
 
         if args.yaml_file:
             yaml_file = [pathlib.Path(args.yaml_file),]
-            genome_build, fileset, columnset = convert_yaml(yaml_file)
+            y, genome_build, fileset, columnset = convert_yaml(yaml_file)
             for _file in fileset:
                 data_type = _file.split('/')[-2]
                 file_name = _file.split('/')[-1]
@@ -140,6 +152,7 @@ def processor_cli(args):
                     out_path,
                     columnset
                 )
+            wrap_up(y, args)
 
         else:
             data_type = args.data_type
@@ -160,6 +173,7 @@ def processor_cli(args):
                 out_path,
                 columnset
             )
+            wrap_up(y, args)
 
     elif args.integrate:
         if check_type(data_type):

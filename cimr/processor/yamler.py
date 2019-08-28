@@ -280,7 +280,7 @@ def convert_yaml(yaml_files):
 
         fileset = [*fileset, *y.fileset]
 
-    return genome_build, fileset, columnset
+    return y, genome_build, fileset, columnset
 
 
 def standardize_context(context):
@@ -445,34 +445,27 @@ class Yamler:
             logging.info(f' column header change is not indicated.')
 
 
-    def make_metatable(self):
+    def make_metatable(self, catalog_name):
         """Collect and store information for downstream analyses
         This function is meant to create a catalog for processed data
-        in cimr-d. The updated table will be committed back to repo
+        in cimr-d. The updated table will be committed back to repo.
+
+        The default is to create a local copy of 'catalog.txt'.
         """
         from ..defaults import META_HEADER
-        from ..defaults import CATALOG
 
-        metadata_file = 'cimr-d_catalog.txt'
+        logging.debug(f' looking for {catalog_name}...')
 
-        if os.path.isfile(metadata_file):
-            logging.info(f' reading a local cimr-d catalog file.')
+        if os.path.isfile(catalog_name):
+            logging.info(f' reading a local catalog file {catalog_name}.')
             metadata = pandas.read_csv(
-                metadata_file,
-                header=0,
-                index_col=None,
-                sep='\t'
-            )
-        elif verify_weblink(CATALOG):
-            logging.info(f' reading cimr-d catalog from cimr-d repo.')
-            metadata = pandas.read_csv(
-                CATALOG,
+                catalog_name,
                 header=0,
                 index_col=None,
                 sep='\t'
             )
         else:
-            logging.info(f' creating a new cimr-d catalog.')
+            logging.info(f' creating a new catalog.')
             metadata = pandas.DataFrame(columns=META_HEADER)
 
         for file_name in self.fileset:
@@ -528,14 +521,14 @@ class Yamler:
             else:
                 logging.info(f' method tool is not provided.')
 
-            logging.info(f' updating cimr-d catalog.txt for {file_name}.')
+            logging.info(f' updating {catalog_name} for {file_name}.')
             metadata = metadata.append(new_row, ignore_index=True)
             metadata.reset_index(inplace=True, drop=True)
 
             metadata = metadata[META_HEADER]
 
             metadata.to_csv(
-                metadata_file,
+                catalog_name,
                 header=True,
                 index=False,
                 sep='\t',
@@ -557,7 +550,6 @@ class Yamler:
             self.extract_bulk()
 
         self.get_colnames()
-        self.make_metatable()
 
 
 if __name__ == '__main__':

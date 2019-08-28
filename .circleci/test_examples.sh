@@ -19,5 +19,5 @@ for DATATYPE in "eqtl" "gwas"; do
 done
 
 # Verify catalog file
-diff cimr-d_catalog.txt expected_cimr-d_catalog.txt
-rm -f cimr-d_catalog.txt
+diff catalog.txt expected_catalog.txt
+rm -f catalog.txt

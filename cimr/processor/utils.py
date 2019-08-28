@@ -213,7 +213,6 @@ class Infiler:
             + '_' \
             + self.summary_data['build']
         logging.debug(f' variant_id column verified.')
-        logging.debug(f' {self.summary_data.variant_id}')
 
 
     def check_chrom(self):
@@ -273,7 +272,7 @@ class Infiler:
             'cimr', var_ref
             )
         logging.info(f' using {ref_file} to check variants.')
-        logging.info(f' rs id reference is {ref_id}')
+        logging.info(f' rs id reference is {ref_id}.')
         refdf = pandas.read_csv(
             ref_file, sep='\t', header=0, dtype={'chr':'str'}
             )
@@ -349,14 +348,19 @@ class Infiler:
 
     def append_gene_cols(self, gene_df):
         """Add gene annotation columns to dataframe"""
-        self.summary_data = pandas.concat([self.summary_data, gene_df], axis=1)
+        self.summary_data = pandas.concat(
+            [self.summary_data, gene_df],
+            axis=1
+        )
 
 
     def fill_effect_allele(self):
         """Fill NA in effect_allele column with inc_allele if
         inc_allele present
         """
-        self.summary_data['effect_allele'].fillna(self.summary_data['inc_allele'])
+        self.summary_data['effect_allele'].fillna(
+            self.summary_data['inc_allele']
+        )
 
 
     def make_int(self, colname):
@@ -381,9 +385,8 @@ class Infiler:
             self.summary_data.dropna(
                 subset=VAR_COMPONENTS, inplace=True
             )
-            logging.info(f' rows with missing {VAR_COMPONENTS} are dropped.')
+            logging.debug(f' rows with missing {VAR_COMPONENTS} are dropped.')
             logging.debug(f' {self.summary_data[VAR_COMPONENTS].info()}')
-            logging.debug(f' {self.summary_data[VAR_COMPONENTS].head()}')
 
             logging.debug(f' making variant_id using {VAR_COMPONENTS}.')
             self.summary_data['chrom'] = self.summary_data['variant_chrom']
@@ -398,7 +401,8 @@ class Infiler:
             self.summary_data['ref'] = self.summary_data['non_effect_allele']
             self.summary_data['alt'] = self.summary_data['effect_allele']
             self.summary_data['build'] = self.genome_build
-            # make variant_id
+
+            # make variant_id from components
             self.make_variant_id()
             # recall included_header from columns including variant_id
             self.included_header = intersect_set(
@@ -419,6 +423,7 @@ class Infiler:
 
         if 'variant_id' not in self.included_header:
             self.make_composite_id()
+            logging.debug(f' data.head(2): {self.summary_data.head(2)}')
 
         if 'variant_id' in self.included_header:
             self.get_pos()
@@ -427,7 +432,7 @@ class Infiler:
             self.make_variant_id()
             logging.info(f' variant_id has been standardized.')
         else:
-            logging.error(f' variant_id column is not provided')
+            logging.error(f' variant_id column is not provided.')
             sys.exit(1)
 
         if 'rsnum' in self.included_header:
@@ -448,7 +453,7 @@ class Infiler:
         if 'inc_allele' in self.included_header:
             self.fill_effect_allele()
         else:
-            logging.debug(f' inc_allele column is not available')
+            logging.debug(f' inc_allele column is not available.')
 
         columns_to_drop = [
             'chrom', 'pos', 'ref', 'alt', 'chromosome', 'build',
@@ -568,7 +573,7 @@ class Infiler:
         """Given a pandas dataframe and a dictionary, rename columns
         Primarily used for yaml column-set-based renaming in cimr.
         """
-        logging.info(f' renaming columns based on provided info')
+        logging.info(f' renaming columns based on column dictionary.')
         dataframe.rename(self.columnset, axis=1, inplace=True)
 
 
@@ -606,10 +611,8 @@ class Infiler:
             gene_annot = gene_annot[cols]
             gene_annot.rename(columns={self.feature_type:'feature_id'}, inplace=True)
 
-            logging.debug(f' current dataframe: ')
-            logging.debug(f' {self.summary_data.head(2)}')
-            logging.debug(f' selected annotations: ')
-            logging.debug(f' {gene_annot.head(2)}')
+            logging.debug(f' current dataframe: {self.summary_data.head(2)}')
+            logging.debug(f' selected annotations: {gene_annot.head(2)}')
 
             self.summary_data = self.summary_data.merge(
                 gene_annot,
@@ -637,10 +640,14 @@ class Infiler:
         """Read the input file as a pandas dataframe. check if empty"""
         self.file_name = find_file(self.file_name)
 
-        # assumes whitespace delimiter such as 1+ spaces or tabs
         chunks = pandas.read_csv(
             self.file_name,
-            delim_whitespace=True,
+            # c engine does not support regex
+            # sep=r'\s{,8}',
+            # lots of files are whitespace delimited
+            sep='\t',
+            # default behavior will push all missing columns to last
+            # delim_whitespace=True,
             header=0,
             iterator=True,
             chunksize=self.chunksize
@@ -649,8 +656,10 @@ class Infiler:
         chunkcount = 0
 
         for chunk in chunks:
+            logging.debug(f' processing data.head(2): {chunk.head(2)}.')
             chunk.reset_index(drop=True, inplace=True)
             logging.info(f' processing input chunk {chunkcount}.')
+
             # check if empty and check header
             if not chunk.empty:
 
@@ -673,10 +682,11 @@ class Infiler:
                 dropcols = self.summary_data.columns.duplicated()
                 self.summary_data = self.summary_data.loc[:, ~dropcols]
 
-                logging.info(f' reordering processed data...')
+                logging.info(f' reordering processed data.')
                 self.order_columns()
+                logging.debug(f' data.head(2): {self.summary_data.head(2)}')
 
-                logging.info(f' writing processed data...')
+                logging.info(f' writing processed data.')
 
                 if chunkcount == 0:
                     self.write_header()

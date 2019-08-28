@@ -28,6 +28,8 @@ import importlib
 import cimr
 from .defaults import DATA_TYPES
 
+
+
 def parse_arguments():
     """Parse command line arguments for subprocesses of cimr."""
     parser = argparse.ArgumentParser(
@@ -348,18 +350,32 @@ def add_subparser_network(subparsers):
     parser.set_defaults(function='cimr.network.network_prompt.network_cli')
 
 
+def set_log(args):
+    """Set loglevel and format"""
+    loglevel = args.loglevel
+    numeric_level = getattr(logging, loglevel.upper(), None)
+
+    FORMAT = '[%(asctime)-15s %(name)s:%(levelname)-8s] %(message)s'
+    DATEFMT = '%Y-%m-%d %H:%M:%S'
+
+    if loglevel in ['debug', 'info', 'warning', 'error', 'critical']:
+
+        if not isinstance(numeric_level, int):
+            raise ValueError(' invalid log level: %s' % loglevel)
+
+        logging.basicConfig(
+            level=numeric_level,
+            format=FORMAT,
+            datefmt=DATEFMT
+        )
+    else:
+        raise ValueError(' -log argument must be debug, info, warning, error, or critical.')
+
+
 def main():
     """The main CLI prompt of cimr"""
     args = parse_arguments()
-    loglevel = args.loglevel
-    numeric_level = getattr(logging, loglevel.upper(), None)
-    if loglevel in ['debug', 'info', 'warning', 'error', 'critical']:
-        logging.basicConfig(level=numeric_level)
-        if not isinstance(numeric_level, int):
-            raise ValueError(' invalid log level: %s' % loglevel)
-        logging.basicConfig(level=numeric_level)
-    else:
-        raise ValueError(' -log argument must be debug, info, warning, error, or critical.')
+    set_log(args)
     module_name, function_name = args.function.rsplit('.', 1)
     module = importlib.import_module(module_name)
     function = getattr(module, function_name)

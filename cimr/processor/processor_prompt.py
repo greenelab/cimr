@@ -11,6 +11,8 @@ import pathlib
 import logging
 
 
+from ..prompt import set_log
+
 from .utils import Infiler
 from .utils import Integrator
 
@@ -124,6 +126,8 @@ def wrap_up(y, args):
 
 def processor_cli(args):
     """cimr processor subprocess cli"""
+
+    set_log(args)
 
     if args.process:
 

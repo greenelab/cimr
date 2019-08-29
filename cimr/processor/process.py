@@ -164,6 +164,8 @@ class Infiler:
             + '_' \
             + self.summary_data['build']
         logging.debug(f' variant_id column verified.')
+        logging.info(f' variant_id has been standardized.')
+
 
 
     def check_chrom(self):
@@ -212,6 +214,8 @@ class Infiler:
         remainder = list(set(chroms) - set(chrom_str) - set(chrom_int))
         if len(remainder) > 0:
             logging.warning(f' chromosome(s) not used: %s'%(remainder,))
+
+        logging.info(f' finished checking chromosome ids.')
 
 
     def check_ref(self):
@@ -382,9 +386,7 @@ class Infiler:
         elif 'variant_id' in self.included_header:
             self.get_pos()
             self.check_chrom()
-            logging.info(f' chromosome information is checked.')
             self.make_variant_id()
-            logging.info(f' variant_id has been standardized.')
         else:
             logging.error(f' variant_id column is not provided.')
             sys.exit(1)

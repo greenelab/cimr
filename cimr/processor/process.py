@@ -619,9 +619,9 @@ class Infiler:
             # c engine does not support regex
             # sep=r'\s{,8}',
             # lots of files are whitespace delimited
-            sep='\t| ',
             # default behavior will push all missing columns to last
             # delim_whitespace=True,
+            sep='\t| ',
             header=0,
             engine='python',
             iterator=True,

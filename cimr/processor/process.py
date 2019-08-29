@@ -604,8 +604,8 @@ class Infiler:
           03. Check if empty.
           04. Standardize column names.
           05. Standardize chromosome names.
-          06. Check columns for their expected data types.
-          07. If data_type == eqtl, check feature_id column.
+          06. Check columns for their expected variable data types.
+          07. If file data_type == eqtl, check feature_id column.
              Standardize feature_id.
           08. Drop duplicate columns, if any.
           09. Reset index and reorder mandatory columns to the front.
@@ -613,7 +613,7 @@ class Infiler:
         """
         self.file_name = find_file(self.file_name)
 
-        logging.info(f' loading {self.file_name}...')
+        logging.info(f' loading {self.file_name}.')
         chunks = pandas.read_csv(
             self.file_name,
             # c engine does not support regex

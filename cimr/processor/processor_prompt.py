@@ -13,8 +13,8 @@ import logging
 
 from ..prompt import set_log
 
-from .utils import Infiler
-from .utils import Integrator
+from .process import Infiler
+from .process import Integrator
 
 from .query import Querier
 from .query import Snpper
@@ -103,7 +103,7 @@ def main(args,
                 columnset=columnset
             )
 
-            infile.read_file()
+            infile.process_file()
 
             logging.info(f' finished processing {file_name}.')
             logging.info(f' output has been saved as {outfile}.')

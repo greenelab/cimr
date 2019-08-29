@@ -201,7 +201,7 @@ class Infiler:
 
         if len(set(chroms) & set(chrom_str)) > (maxchrom - 2):
             pass
-        elif len(set(chroms) & set(chrom_int)) > (maxchrom - 2):
+        elif len(set(chroms) & set(chrom_int)) > 2:
             self.summary_data['chrom'] = self.summary_data['chrom'].map(
                 chrom_dict, na_action='ignore'
             ).fillna(self.summary_data['chrom'])

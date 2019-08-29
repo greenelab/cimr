@@ -641,7 +641,7 @@ class Infiler:
                     self.rename_columns(chunk)
 
                 # check each column for variable types,
-                # standardiz chromosome and variant ids, etc.
+                # standardize chromosome and variant ids, etc.
                 self.check_file(chunk)
                 logging.debug(f' processing data type {self.data_type}.')
 
@@ -655,12 +655,14 @@ class Infiler:
                 dropcols = self.summary_data.columns.duplicated()
                 self.summary_data = self.summary_data.loc[:, ~dropcols]
 
+                # reorder columns so that mandatory fields are listed first.
                 logging.info(f' reordering processed data.')
                 self.order_columns()
                 logging.debug(f' data.head(2): {self.summary_data.head(2)}')
 
                 logging.info(f' writing processed data.')
 
+                # write if first chunk. append if not.
                 if chunkcount == 0:
                     self.write_header()
                 elif chunkcount > 0:

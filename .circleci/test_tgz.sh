@@ -14,5 +14,5 @@ gunzip -k processed_data/gwas/*.gz
 # Verify de-compressed files' md5sum.
 # (To disable the output message, use "--status" option.)
 # If this command's return status is not zero, CircleCI will quit immediately.
-md5sum --check ../md5_tgz_gwas.txt
+md5sum --check md5_tgz_gwas.txt
 

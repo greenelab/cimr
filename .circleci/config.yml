@@ -20,6 +20,11 @@ jobs:
           no_output_timeout: 30m
           command: |
             bash .circleci/test_gwas_hdl_ldl.sh
+      - run:
+          name: Test dropbox link
+          no_output_timeout: 30m
+          command: |
+            bash .circleci/test_dbox.sh
 
 workflows:
   version: 2

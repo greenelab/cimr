@@ -12,4 +12,4 @@ cimr processor -process -yaml-file dbox_gwas.yml
 gunzip -k processed_data/gwas/*.gz
 
 # verify md5 hash for processed file
-md5sum --check md5_dbox_gwas.txt
+md5sum --check ../md5_dbox_gwas.txt

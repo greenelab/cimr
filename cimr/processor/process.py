@@ -362,6 +362,8 @@ class Infiler:
             # recall included_header from columns including variant_id
             self.included_header = intersect_set(
                 HEADER, self.summary_data.columns
+            )
+
         else:
             logging.error(f' missing columns necessary to make variant_id.')
             sys.exit(1)

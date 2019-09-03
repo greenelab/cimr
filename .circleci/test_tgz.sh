@@ -2,8 +2,8 @@
 
 set -ex
 
-cd ~/cimr/examples/gwas-tar-gz/
-cimr processor -process -yaml-file hdl_ldl_cholesterol_tar_gz.yml
+cd ~/cimr/examples/tgz/
+cimr processor -process -yaml-file tgz_gwas.yml
 
 # Decompress the output files ("-k" option keeps the original gz file).
 # Note that WE CAN NOT COMPARE TWO GZ FILES DIRECTLY, because by default a gz file
@@ -14,4 +14,5 @@ gunzip -k processed_data/gwas/*.gz
 # Verify de-compressed files' md5sum.
 # (To disable the output message, use "--status" option.)
 # If this command's return status is not zero, CircleCI will quit immediately.
-md5sum --check md5.txt
+md5sum --check md5_tgz_gwas.txt
+

@@ -13,6 +13,8 @@ import logging
 
 from ..prompt import set_log
 
+from .utils import add_line_in_log
+
 from .process import Infiler
 from .process import Integrator
 
@@ -107,7 +109,7 @@ def main(args,
 
             logging.info(f' finished processing {file_name}.')
             logging.info(f' output has been saved as {outfile}.')
-            logging.info(' ' + '-' * 60 + '\n')
+            add_line_in_log()
 
         else:
             logging.error(f' no file_name provided; nothing to process.')
@@ -119,7 +121,7 @@ def wrap_up(y, args):
     the file processing
     """
     y.make_metatable(args.catalog_name)
-    logging.info(' ' + '-' * 60 + '\n')
+    add_line_in_log()
 
 
 def processor_cli(args):

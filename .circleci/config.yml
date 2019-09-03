@@ -12,14 +12,19 @@ jobs:
           command: |
             bash .circleci/install_cimr.sh
       - run:
-          name: Test eqtl and gwas examples
+          name: Test different data_type files and resulting catalog.txt
           command: |
-            bash .circleci/test_examples.sh
+            bash .circleci/test_data_type.sh
       - run:
           name: Test gwas tarball file
           no_output_timeout: 30m
           command: |
-            bash .circleci/test_gwas_hdl_ldl.sh
+            bash .circleci/test_tgz.sh
+      - run:
+          name: Test dropbox link file
+          no_output_timeout: 30m
+          command: |
+            bash .circleci/test_dbox.sh
 
 workflows:
   version: 2

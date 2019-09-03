@@ -73,3 +73,7 @@ def intersect_set(list1, list2):
     return (set(list1) & set(list2))
 
 
+def add_line_in_log():
+    """Add an arbitrary divider to the log output for readability."""
+    logging.info(' ' + '-' * 60 + '\n')
+

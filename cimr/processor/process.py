@@ -233,7 +233,7 @@ class Infiler:
             ref_file, sep='\t', header=0, dtype={'chr':'str'}
             )
         refdf.columns = [x + '_reference' for x in refdf.columns]
-        sumdata = self.summary_data
+        sumdata = self.summary_data.copy()
         checked_ref = sumdata['rsnum'].isin(refdf[ref_id + '_reference'])
         rsnum_ref = sumdata.loc[checked_ref,:]
         if not rsnum_ref.empty:
@@ -364,6 +364,10 @@ class Infiler:
                 HEADER, self.summary_data.columns
             )
 
+        else:
+            logging.error(f' missing columns necessary to make variant_id.')
+            sys.exit(1)
+
 
     def check_file(self, summary_data):
         """Check different columns for dtype, remove missing rows and
@@ -378,7 +382,7 @@ class Infiler:
 
         self.find_reference()
         summary_data.reset_index(inplace=True, drop=True)
-        self.summary_data = summary_data
+        self.summary_data = summary_data.copy()
 
         if 'variant_id' not in self.included_header:
             self.make_composite_id()

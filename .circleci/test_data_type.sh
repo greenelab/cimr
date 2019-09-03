@@ -2,11 +2,11 @@
 
 set -e -x
 
-cd examples/
+cd examples/eqtl_gwas/
 
 # Process yaml examples
 for DATATYPE in "eqtl" "gwas"; do
-    cimr processor -process -yaml-file submitted/${DATATYPE}.yml
+    cimr processor -process -yaml-file ${DATATYPE}.yml
 
     OUTPUT_PREFIX=${DATATYPE}/${DATATYPE}
     gunzip -k processed_data/${OUTPUT_PREFIX}.txt.gz

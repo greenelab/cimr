@@ -132,10 +132,22 @@ def trim_zenodo_link(path):
     return path
 
 
+def trim_dropbox_link(path):
+    """Trim a dropbox link to extract file name.
+
+    e.g.
+    https://www.dropbox.com/s/m8qlfp0cjnn4ka7/20002_1065.gwas.
+    imputed_v3.both_sexes.tsv.bgz?dl=0
+    -->
+    https://www.dropbox.com/s/m8qlfp0cjnn4ka7/20002_1065.gwas.
+    imputed_v3.both_sexes.tsv.bgz
+    """
+    path = path.replace('?dl=0', '')
+    return path
+
+
 def download_gdrive_file(
-    path,
-    outdir,
-    filename
+    path, outdir, filename
     ):
     """Given a link starting with https://drive.google.com,
     initialize a google drive file download.
@@ -167,6 +179,26 @@ def download_gdrive_file(
     run_cmd = 'bash download_gdrive_file.sh ' + path + ' ' + outdir + filename
     os.system(run_cmd)
     os.system('rm download_gdrive_file.sh')
+
+
+def download_dbox_file(
+    path, outdir, filename
+    ):
+    """Given a link including dropbox.com,
+    initialize a dropbox file download.
+
+    need two arguments:
+      * file id from the share link
+      * file name (may be different from the original file name)
+    """
+    import requests
+
+    headers = {'user-agent': 'Wget/1.16 (linux-gnu)'}
+    r = requests.get(path, stream=True, headers=headers)
+    with open(outdir + filename, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:
+                f.write(chunk)
 
 
 def download_file(path, outdir='./'):
@@ -332,6 +364,8 @@ class Yamler:
     def check_hash(self):
         """Compare md5 of the downloaded file to the provided value"""
         if validate_hash(self.downloaded_file, self.hash):
+            logging.debug(f' downloaded file: {self.downloaded_file}')
+            logging.debug(f' matching to provided hash: {self.hash}')
             logging.info(f' md5sum verified.')
         else:
             raise ValueError(' provided md5sum didn\'t match.')
@@ -343,10 +377,17 @@ class Yamler:
         """
         self.file_link = self.yaml_data['data_file']['location']['url']
         if 'zenodo.org' in str(self.file_link):
+            logging.debug(f' zenodo link found: {self.file_link}.')
             self.file_link = trim_zenodo_link(self.file_link)
+            logging.debug(f' link has been trimmed: {self.file_link}.')
+        else:
+            pass
 
         if 'input_name' in self.yaml_data['data_file'].keys():
             self.infile = self.yaml_data['data_file']['input_name']
+        elif 'dropbox.com' in self.file_link:
+            self.infile = self.file_link.split('/')[-1].replace('?dl=0', '')
+            self.infile = self.infile.replace('.tsv.bgz', '.tsv.gz')
         else:
             self.infile = self.file_link.split('/')[-1]
 
@@ -368,6 +409,12 @@ class Yamler:
                 logging.info(f' starting download')
                 if 'drive.google.com' in self.file_link:
                     download_gdrive_file(
+                        self.file_link,
+                        self.sub_datatype_dir,
+                        self.infile
+                    )
+                elif 'dropbox.com' in self.file_link:
+                    download_dbox_file(
                         self.file_link,
                         self.sub_datatype_dir,
                         self.infile

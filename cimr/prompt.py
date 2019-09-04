@@ -26,6 +26,8 @@ import warnings
 import importlib
 
 import cimr
+
+from .defaults import CHUNKSIZE
 from .defaults import DATA_TYPES
 
 
@@ -154,7 +156,7 @@ def add_subparser_processor(subparsers):
     )
     parser.add_argument(
         '-chunksize',
-        default=15000000,
+        default=CHUNKSIZE,
         dest='chunksize',
         type=int,
         help='number of rows in the input file to process at a time',

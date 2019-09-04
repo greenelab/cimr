@@ -4,6 +4,8 @@ ANNOTURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/an
 
 MAXCHROM = 23
 
+CHUNKSIZE = 7000000
+
 VAR_COMPONENTS = [
     'variant_chrom',
     'variant_pos',

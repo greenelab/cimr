@@ -3,6 +3,7 @@
 ANNOTURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/annotation/'
 
 MAXCHROM = 23
+CHUNKSIZE = 100000
 
 VAR_COMPONENTS = [
     'variant_chrom',

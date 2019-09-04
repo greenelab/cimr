@@ -156,7 +156,7 @@ def add_subparser_processor(subparsers):
     )
     parser.add_argument(
         '-chunksize',
-        default=1000000,
+        default=CHUNKSIZE,
         dest='chunksize',
         type=int,
         help='number of rows in the input file to process at a time',

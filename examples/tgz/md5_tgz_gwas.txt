@@ -1,3 +1,3 @@
 3f0cfb973b41ec5a1ef66b303dcc0497  catalog.txt
-6b2ddd7374741a6903f2f1154526006a  processed_data/gwas/gwas1.txt
-4ccda44ed76a55015a46c40f51f00cee  processed_data/gwas/gwas2.txt
+6a7349aaf9ed5266d7c05faa28322593  processed_data/gwas/gwas1.txt
+dfebcc1d3f9f0e98d49597e8a382dbf0  processed_data/gwas/gwas2.txt

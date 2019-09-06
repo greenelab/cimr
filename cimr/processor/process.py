@@ -475,7 +475,7 @@ class Infiler:
                 sep='\t',
                 na_rep='NA',
                 compression='gzip',
-                float_format='%.5f',
+                float_format='%.6f',
                 mode='w'
             )
 
@@ -490,7 +490,7 @@ class Infiler:
                 sep='\t',
                 na_rep='NA',
                 compression='gzip',
-                float_format='%.5f',
+                float_format='%.6f',
                 mode='a'
             )
 

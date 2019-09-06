@@ -196,7 +196,7 @@ class Infiler:
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
             logging.info(f' there are {len(chroms)} chromosomes.')
         elif len(chroms) <= (maxchrom - 2):
-            logging.warning(f' chromosome(s) included: %s'%(chroms,))
+            logging.info(f' chromosome(s) included: %s'%(chroms,))
         else:
             logging.warning(f' input file more than {maxchrom - 1} chromosomes.')
             logging.warning(f' chromosome(s) included: %s'%(chroms,))

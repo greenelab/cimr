@@ -181,6 +181,16 @@ def download_gdrive_file(
     os.system('rm download_gdrive_file.sh')
 
 
+def download_ftp_file(
+    path, outdir
+    ):
+    """Given a link starting with ftp://, use wget to download file."""
+    import os
+
+    run_cmd = 'wget -P ' + outdir + ' ' + path
+    os.system(run_cmd)
+
+
 def download_dbox_file(
     path, outdir, filename
     ):
@@ -404,35 +414,45 @@ class Yamler:
             logging.info(f' file exists in {self.sub_datatype_dir}')
             return
 
-        if verify_weblink(self.file_link):
-            if not os.path.isfile(self.sub_datatype_dir + self.infile):
-                logging.info(f' starting download')
-                if 'drive.google.com' in self.file_link:
-                    download_gdrive_file(
-                        self.file_link,
-                        self.sub_datatype_dir,
-                        self.infile
-                    )
-                elif 'dropbox.com' in self.file_link:
-                    download_dbox_file(
-                        self.file_link,
-                        self.sub_datatype_dir,
-                        self.infile
-                    )
-                else:
-                    download_file(
-                        self.file_link,
-                        self.sub_datatype_dir,
-                    )
+        if 'ftp://' in self.file_link:
+            pass
+        else:
+            try:
+                verify_weblink(self.file_link)
+            except:
+                logging.error(f' file unavailable')
+                sys.exit(1)
+
+        if not os.path.isfile(self.sub_datatype_dir + self.infile):
+            logging.info(f' starting download')
+            if 'drive.google.com' in self.file_link:
+                download_gdrive_file(
+                    self.file_link,
+                    self.sub_datatype_dir,
+                    self.infile
+                )
+            elif 'dropbox.com' in self.file_link:
+                download_dbox_file(
+                    self.file_link,
+                    self.sub_datatype_dir,
+                    self.infile
+                )
+            elif 'ftp://' in self.file_link:
+                download_ftp_file(
+                    self.file_link,
+                    self.sub_datatype_dir
+                )
             else:
-                logging.info(f' file found in {self.sub_datatype_dir}')
+                download_file(
+                    self.file_link,
+                    self.sub_datatype_dir,
+                )
+        else:
+            logging.info(f' file found in {self.sub_datatype_dir}')
 
             self.hash = self.yaml_data['data_file']['location']['md5']
             self.downloaded_file = self.sub_datatype_dir + self.infile
             self.fileset = [self.downloaded_file,]
-        else:
-            logging.error(f' file unavailable')
-            sys.exit(1)
 
 
     def make_archive_dir(self):

@@ -553,6 +553,12 @@ class Yamler:
                 logging.error(f' context description is required.')
                 sys.exit(1)
 
+            if 'context_id' in self.yaml_data['data_info'].keys():
+                context_id = self.yaml_data['data_info']['context_id']
+                new_row['context_id'] = context_id
+            else:
+                logging.info(f' context_id is not provided.')
+
             if 'description' in self.yaml_data['data_file'].keys():
                 new_row['description'] = self.yaml_data['data_file']['description']
             else:

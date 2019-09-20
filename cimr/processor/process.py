@@ -625,10 +625,11 @@ class Infiler:
             # lots of files are whitespace delimited
             # default behavior will push all missing columns to last
             # delim_whitespace=True,
-            sep='\t| ',
+            sep='\t',
             header=0,
             engine='python',
             iterator=True,
+            index_col=None,
             chunksize=self.chunksize
         )
 
@@ -643,7 +644,12 @@ class Infiler:
             if not chunk.empty:
                 if self.columnset:
                     self.rename_columns(chunk)
-
+                    if '#CHROM' in chunk.columns:
+                        logging.debug(f' renaming #CHROM to variant_chrom.')
+                        chunk.rename(
+                            columns={'#CHROM':'variant_chrom'},
+                            inplace=True
+                        )
                 # check each column for variable types,
                 # standardize chromosome and variant ids, etc.
                 self.check_file(chunk)

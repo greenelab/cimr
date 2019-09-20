@@ -90,6 +90,12 @@ def main(args,
             grow_tadpoles(args)
 
         if file_name:
+
+            # phecode file workaround
+            if 'PheCode' in str(out_path):
+                if str(out_path).endswith('.txt.vcf.gz'):
+                    outfile = pathlib.Path(str(out_path).replace('.txt.vcf.gz', '.tsv.gz'))
+
             if not str(out_path).endswith(FILE_EXTENSION):
                 outfile = pathlib.Path(str(out_path) + '.tsv.gz')
             else:

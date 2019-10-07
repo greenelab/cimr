@@ -154,15 +154,15 @@ class Infiler:
 
         logging.debug(f' making a new variant_id column.')
 
-        self.summary_data['variant_id'] = self.summary_data['chrom'] \
+        self.summary_data['variant_id'] = self.summary_data['chrom'].astype(str) \
             + '_' \
-            + self.summary_data['pos'] \
+            + self.summary_data['pos'].astype(str) \
             + '_' \
-            + self.summary_data['ref'] \
+            + self.summary_data['ref'].astype(str) \
             + '_' \
-            + self.summary_data['alt'] \
+            + self.summary_data['alt'].astype(str) \
             + '_' \
-            + self.summary_data['build']
+            + self.summary_data['build'].astype(str)
         logging.debug(f' variant_id column verified.')
         logging.info(f' variant_id has been standardized.')
 
@@ -187,7 +187,7 @@ class Infiler:
 
         chroms = self.summary_data['chrom'].drop_duplicates().values
 
-        if len(set(chroms) & set(chrom_flt)) > 2:
+        if len(set(chroms) & set(chrom_flt)) > 0:
             self.make_int('chrom')
             self.make_str('chrom')
             chroms = self.summary_data['chrom'].drop_duplicates().values
@@ -201,9 +201,7 @@ class Infiler:
             logging.warning(f' input file more than {maxchrom - 1} chromosomes.')
             logging.warning(f' chromosome(s) included: %s'%(chroms,))
 
-        if len(set(chroms) & set(chrom_str)) > (maxchrom - 2):
-            pass
-        elif len(set(chroms) & set(chrom_int)) > 2:
+        if len(set(chroms) & set(chrom_int)) > 0:
             self.summary_data['chrom'] = self.summary_data['chrom'].map(
                 chrom_dict, na_action='ignore'
             ).fillna(self.summary_data['chrom'])

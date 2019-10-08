@@ -626,7 +626,8 @@ class Infiler:
             # lots of files are whitespace delimited
             # default behavior will push all missing columns to last
             # delim_whitespace=True,
-            sep='\t| ',
+            # sep='\t| ',
+            sep='\t',
             header=0,
             engine='python',
             iterator=True,

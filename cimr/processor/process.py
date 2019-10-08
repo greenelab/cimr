@@ -201,6 +201,9 @@ class Infiler:
             logging.warning(f' input file more than {maxchrom - 1} chromosomes.')
             logging.warning(f' chromosome(s) included: %s'%(chroms,))
 
+        if len(set(chroms) & set(chrom_str)) > (maxchrom - 2):
+            pass
+
         if len(set(chroms) & set(chrom_int)) > 0:
             self.summary_data['chrom'] = self.summary_data['chrom'].map(
                 chrom_dict, na_action='ignore'
@@ -623,7 +626,8 @@ class Infiler:
             # lots of files are whitespace delimited
             # default behavior will push all missing columns to last
             # delim_whitespace=True,
-            sep='\t| ',
+            # sep='\t| ',
+            sep='\t',
             header=0,
             engine='python',
             iterator=True,

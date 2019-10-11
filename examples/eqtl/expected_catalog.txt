@@ -1,0 +1,2 @@
+data_type	context	context_id	file_name	processed_data_url	submitted_data_url	submitted_data_md5	citation	data_source	build	context_variable_type	sample_size	n_cases	method_name	method_tool	description
+eqtl	whole_blood	NA	eqtl.txt.gz	NA	https://zenodo.org/record/3369410/files/eqtl.txt.gz	b154b53a8ceddd6703d91036845623d3	10.1038/nature24277	http:/gtexportal.org	b37	continuous	369	na	linear regression	fastqtl	Genotype-Tissue Expression (GTEx) consortium v7 data release for genome-wide expression quantitative trait loci (eQTL) scans

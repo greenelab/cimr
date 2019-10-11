@@ -16,3 +16,7 @@ gunzip -k processed_data/gwas/*.gz
 # If this command's return status is not zero, CircleCI will quit immediately.
 md5sum --check md5_tgz_gwas.txt
 
+# Check catalog.txt
+diff catalog.txt expected_catalog.txt
+rm -f catalog.txt
+

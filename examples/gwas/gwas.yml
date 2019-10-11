@@ -1,6 +1,6 @@
 data_file:
     description: >-
-        Global Lipid Genetics Consortium GWAS results for high-density 
+        Global Lipid Genetics Consortium GWAS results for high-density
         cholesterol levels
     location:
         url: https://zenodo.org/record/3369410/files/gwas.txt.gz
@@ -23,7 +23,8 @@ data_info:
     data_source: http://lipidgenetics.org/
     data_type: gwas
     build: b38
-    context: coronary_artery_disease
+    context: high-density lipid cholesterol levels
+    context_variable_type: continuous
     sample_size: 187167
     n_cases: na
     can_be_public: true
@@ -32,7 +33,7 @@ method:
     name: linear regression
     tool: PLINK; SNPTEST; EMMAX; Merlin; GENABEL; MMAP
     website: >-
-        http://zzz.bwh.harvard.edu/plink/download.shtml; 
+        http://zzz.bwh.harvard.edu/plink/download.shtml;
         https://mathgen.stats.ox.ac.uk/genetics_software/snptest/snptest.html;
         https://genome.sph.umich.edu/wiki/EMMAX;
         https://csg.sph.umich.edu/abecasis/Merlin/tour/assoc.html;

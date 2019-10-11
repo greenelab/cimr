@@ -2,10 +2,22 @@
 
 ANNOTURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/annotation/'
 
+# Current maximum is set with human chromosomes:
+# 1 - 22 autosomal chromosomes
+# X chromosome (n+1; 23)
+# Y chromosome (n+2; 24)
+# XY chromosome (n+3; 25)
+# MT chromosome (n+4; 26)
 MAXCHROM = 27
+
+# Chunk size to read in submitted data
+# Current default is set to accomodate complex format data
+# (with dtype=object columns in pandas)
+# in CI environment with limited memory
+# Can be overwritten with commandline argument '-chunksize'
 CHUNKSIZE = 5000000
 
-
+# Minimally sufficient information to make unique variant IDs
 VAR_COMPONENTS = [
     'variant_chrom',
     'variant_pos',
@@ -30,12 +42,12 @@ WORKING_HEADER = [
     'feature_stop', 'feature_type', 'feature_name'
 ]
 
-# required header
+# Required header
 REQ_HEADER = [
     'variant_id', 'pvalue', 'effect_size', 'standard_error'
 ]
 
-# union of expected columns in variant- or variant-feature
+# Union of expected columns in variant- or variant-feature
 # association test results
 HEADER = [
     'variant_id', 'pvalue', 'effect_size', 'standard_error',
@@ -51,7 +63,8 @@ HEADER = [
 ]
 
 CONFIG_FILE_EXTENSION = ('yml', 'yaml')
-# transparent compressions recognized by tarfile 'r:*' are:
+
+# Transparent compressions recognized by tarfile 'r:*' are:
 # gzip, bz2, and lzma (xz)
 COMPRESSION_EXTENSION = ('gz', 'bz2', 'xz')
 BULK_EXTENSION = ('tgz', 'tar.gz', 'tar.bz2', 'tar.xz')
@@ -61,6 +74,7 @@ META_HEADER = [
     'data_type', 'context', 'context_id',
     'file_name', 'processed_data_url', 'submitted_data_url',
     'submitted_data_md5', 'citation', 'data_source',
-    'build', 'sample_size', 'n_cases', 'method_name', 'method_tool',
+    'build', 'context_variable_type', 'sample_size', 'n_cases',
+    'method_name', 'method_tool',
     'description'
 ]

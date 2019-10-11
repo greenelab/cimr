@@ -1,6 +1,6 @@
 data_file:
     description: >-
-        Genotype-Tissue Expression (GTEx) consortium v7 data release 
+        Genotype-Tissue Expression (GTEx) consortium v7 data release
         for genome-wide expression quantitative trait loci (eQTL) scans
     location:
         url: https://zenodo.org/record/3369410/files/eqtl.txt.gz
@@ -17,6 +17,7 @@ data_info:
     data_type: eqtl
     build: b37
     context: whole blood
+    context_variable_type: continuous
     sample_size: 369
     n_cases: na
     can_be_public: true

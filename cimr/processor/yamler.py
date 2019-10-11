@@ -327,7 +327,24 @@ def standardize_context(context):
 
 class Yamler:
     """A collection of utilities to parse the yaml file, check metadata
-    and trigger cimr processing of the contributed file
+    and trigger cimr processing of the contributed file.
+
+    The default initializations include the following:
+    self.yaml_data = yaml_data
+        loaded yaml object from load_yaml(yaml_file_name)
+    self.data_type = None
+        data type of the submitted data. e.g. gwas, eqtl, ...
+    self.genome_build = None
+        genome build id for reference used to map variants in data
+        e.g. b37, b38
+    self.keys = None
+        list of keys in the yaml file. assigned by pick_keys()
+    self.hash = None
+        md5 hash of the submitted file.
+    self.sub_datatype_dir = None
+    self.downloaded_file = None
+    self.infile_extension = None
+    self.infile_compressed = None
     """
     def __init__(self, yaml_data):
         self.yaml_data = yaml_data
@@ -337,6 +354,8 @@ class Yamler:
         self.hash = None
         self.sub_datatype_dir = None
         self.downloaded_file = None
+        self.infile_extension = None
+        self.infile_compressed = None
 
 
     def pick_keys(self):
@@ -418,24 +437,34 @@ class Yamler:
 
         if not os.path.isfile(self.sub_datatype_dir + self.infile):
             logging.info(f' starting download')
+            # Identifiable partial strings in links are used
+            # to prompt different download functions
+
+            # Google drive file links are contain hashed IDs
+            # Input file name is passed to name the donwloaded file
             if 'drive.google.com' in self.file_link:
                 download_gdrive_file(
                     self.file_link,
                     self.sub_datatype_dir,
                     self.infile
                 )
+            # Dropbox links can be used with 'wget' via requests
+            # to download files
             elif 'dropbox.com' in self.file_link:
                 download_dbox_file(
                     self.file_link,
                     self.sub_datatype_dir,
                     self.infile
                 )
+            # ftp server files are easier to download via calling
+            # 'wget' in the shell
             elif 'ftp://' in self.file_link:
                 download_ftp_file(
                     self.file_link,
                     self.sub_datatype_dir
                 )
             else:
+            # All other downloads are currently using 'requests'
                 download_file(
                     self.file_link,
                     self.sub_datatype_dir,

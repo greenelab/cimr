@@ -1,0 +1,2 @@
+data_type	context	context_id	file_name	processed_data_url	submitted_data_url	submitted_data_md5	citation	data_source	build	context_variable_type	sample_size	n_cases	method_name	method_tool	description
+gwas	hypertension_(self-reported)	NA	dbox_gwas.txt.gz	NA	https://www.dropbox.com/s/bjg5ly1fhwr9jzv/dbox_gwas.txt.gz?dl=0	697a9b45e407baa179879980c60aca17	http://www.nealelab.is/uk-biobank	http://www.nealelab.is/uk-biobank	b37	NA	361141	93560	linear regression	hail	Dummy dataset for cimr testing on dropbox file links.

@@ -2,7 +2,7 @@
 
 set -ex
 
-cd examples/dbox/
+cd ~/cimr/examples/dbox/
 
 # Run example yaml file for a dummy data
 cimr processor -process -yaml-file dbox_gwas.yml

@@ -2,7 +2,7 @@
 
 set -e -x
 
-cd examples/
+cd ~/cimr/examples/
 
 # Process yaml examples
 for DATATYPE in "eqtl" "gwas"; do

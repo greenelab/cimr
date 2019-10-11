@@ -2,7 +2,7 @@
 
 set -ex
 
-cd examples/tgz/
+cd ~/cimr/examples/tgz/
 cimr processor -process -yaml-file tgz_gwas.yml
 
 # Decompress the output files ("-k" option keeps the original gz file).

@@ -74,6 +74,7 @@ META_HEADER = [
     'data_type', 'context', 'context_id',
     'file_name', 'processed_data_url', 'submitted_data_url',
     'submitted_data_md5', 'citation', 'data_source',
-    'build', 'sample_size', 'n_cases', 'method_name', 'method_tool',
+    'build', 'trait_variable_type', 'sample_size', 'n_cases',
+    'method_name', 'method_tool',
     'description'
 ]

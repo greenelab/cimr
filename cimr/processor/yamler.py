@@ -581,10 +581,10 @@ class Yamler:
             else:
                 logging.info(f' context_id is not provided.')
 
-            if 'trait_variable_type' in self.yaml_data['data_info'].keys():
-                new_row['trait_variable_type'] = self.yaml_data['data_info']['trait_variable_type']
+            if 'context_variable_type' in self.yaml_data['data_info'].keys():
+                new_row['context_variable_type'] = self.yaml_data['data_info']['context_variable_type']
             else:
-                logging.info(f' trait variable type is not provided.')
+                logging.info(f' context variable type is not provided.')
 
             if 'description' in self.yaml_data['data_file'].keys():
                 new_row['description'] = self.yaml_data['data_file']['description']

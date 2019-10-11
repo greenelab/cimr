@@ -152,12 +152,8 @@ def processor_cli(args):
             y, fileset = convert_yaml(yaml_file)
 
             # Check Yamler for required arguments
-            if hasattr(y, 'columnset'):
-                columnset = y.columnset
-            else:
-                columnset = {}
-            if hasattr(y, 'genome_build'):
-                genome_build = y.genome_build
+            columnset = getattr(y, 'columnset', {})
+            genome_build = y.genome_build
 
             for _file in fileset:
                 data_type = _file.split('/')[-2]

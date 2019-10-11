@@ -342,9 +342,15 @@ class Yamler:
     self.hash = None
         md5 hash of the submitted file.
     self.sub_datatype_dir = None
+        datatype dir name
     self.downloaded_file = None
+        downloaded file name
     self.infile_extension = None
+        input file extension
+        (used for non-standard file names)
     self.infile_compressed = None
+        whether input file is compressed
+        (used for non-standard file names)
     """
     def __init__(self, yaml_data):
         self.yaml_data = yaml_data

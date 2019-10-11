@@ -438,7 +438,7 @@ class Yamler:
             # Identifiable partial strings in links are used
             # to prompt different download functions
 
-            # Google drive file links are contain hashed IDs
+            # Google drive file links contain hashed IDs
             # Input file name is passed to name the donwloaded file
             if 'drive.google.com' in self.file_link:
                 download_gdrive_file(

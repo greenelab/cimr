@@ -149,7 +149,16 @@ def processor_cli(args):
 
         if args.yaml_file:
             yaml_file = [pathlib.Path(args.yaml_file),]
-            y, genome_build, fileset, columnset = convert_yaml(yaml_file)
+            y, fileset = convert_yaml(yaml_file)
+
+            # Check Yamler for required arguments
+            if hasattr(y, 'columnset'):
+                columnset = y.columnset
+            else:
+                columnset = {}
+            if hasattr(y, 'genome_build'):
+                genome_build = y.genome_build
+
             for _file in fileset:
                 data_type = _file.split('/')[-2]
                 file_name = _file.split('/')[-1]

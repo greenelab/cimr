@@ -312,17 +312,10 @@ def convert_yaml(yaml_files):
         y = Yamler(yaml_data)
         y.check_data_file()
 
-        if hasattr(y, 'columnset'):
-            columnset = y.columnset
-        else:
-            columnset = {}
-
-        if hasattr(y, 'genome_build'):
-            genome_build = y.genome_build
-
+        # Accomodate both single and multiple file sets
         fileset = [*fileset, *y.fileset]
 
-    return y, genome_build, fileset, columnset
+    return y, fileset
 
 
 def standardize_context(context):

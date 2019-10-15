@@ -98,19 +98,57 @@ Analysis examples
 Quality assurance and processing of association summary statistics files
 ------------------------------------------------------------------------
 
-cimr contains various functionalities in
-`processor <https://cimr.readthedocs.io/cimr/processor>`_
-for processing summary statistics files for downstream analysis.
+You can use cimr to standardize public datasets using a yaml file, e.g.::
+
+    # example.yaml
+
+    data_file:
+        description: >-
+            Global Lipid Genetics Consortium GWAS results for high-density
+            cholesterol levels
+        location:
+            url: https://zenodo.org/record/3338180/files/HDL_Cholesterol.txt.gz
+            md5: 2b28816a0a363db1a09ad9a6ba1a6620
+        columns:
+            variant_id: panel_variant_id
+            variant_chrom: chromosome
+            variant_pos: position
+            rsnum: variant_id
+
+    data_info:
+        citation: 10.1038/ng.2797
+        data_source: http://lipidgenetics.org/
+        data_type: gwas
+        context: hdl cholesterol
+        build: b38
+        sample_size: 187167
+        n_cases: na
+        can_be_public: true
+
+    method:
+        name: linear regression
+        tool: PLINK;SNPTEST;EMMAX;Merlin;GENABEL;MMAP
+        website: >-
+            http://zzz.bwh.harvard.edu/plink/download.shtml;
+            https://mathgen.stats.ox.ac.uk/genetics_software/snptest/snptest.html;
+            https://genome.sph.umich.edu/wiki/EMMAX;
+            https://csg.sph.umich.edu/abecasis/Merlin/tour/assoc.html;
+            http://www.genabel.org/sites/default/files/html_for_import/GenABEL_tutorial_html/GenABEL-tutorial.html;
+            https://mmap.github.io/
+
+    contributor:
+        name: Contributor Name
+        github: contributorgithub
+        email: contributoremail@emaildomain.emailextension
 
 
-====================
-Contributing to cimr
-====================
+
+Details can be found in the
+`cimr-d contributions.md <https://github.com/greenelab/cimr-d/blob/master/doc/contributing.md>`_.
 
 
-Contribute to cimr-d code or resources `here <https://github.com/greenelab/cimr-d>`_ .
-Guidelines are provided `here <https://github.com/greenelab/cimr-d/CONTRIBUTING.md>`_ .
+Once the yaml file is prepared, you can run cimr locally::
 
-Contribute to cimr code or resources `here <https://github.com/greenelab/cimr>`_ .
-Guidelines are provided `here <https://github.com/greenelab/cimr/CONTRIBUTING.md>`_ .
+    cimr processor -process -yaml-file example.yaml
+
 

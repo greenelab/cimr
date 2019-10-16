@@ -17,6 +17,8 @@ MAXCHROM = 27
 # Can be overwritten with commandline argument '-chunksize'
 CHUNKSIZE = 5000000
 
+VERY_SMALL_P = 1e-70
+
 # Minimally sufficient information to make unique variant IDs
 VAR_COMPONENTS = [
     'variant_chrom',
@@ -43,7 +45,7 @@ WORKING_HEADER = [
 ]
 
 # Required header
-REQ_HEADER = [
+REQ_COLUMNS = [
     'variant_id', 'pvalue', 'effect_size', 'standard_error'
 ]
 
@@ -61,6 +63,13 @@ HEADER = [
     'pvalue_perm', 'pvalue_beta', 'fdr', 'qvalue',
     'variant_chrom', 'variant_pos'
 ]
+
+NUMERIC_COLUMNS = [
+    'effect_size', 'standard_error', 'pvalue', 'pvalue_perm',
+    'fdr', 'qvalue', 'odds_ratio', 'zscore'
+]
+
+PROB_COLUMNS = ['pvalue', 'pvalue_perm', 'fdr']
 
 CONFIG_FILE_EXTENSION = ('yml', 'yaml')
 

@@ -69,6 +69,10 @@ NUMERIC_COLUMNS = [
     'fdr', 'qvalue', 'odds_ratio', 'zscore'
 ]
 
+INT_COLUMNS = [
+    'ma_samples', 'sample_size', 'ma_count'
+]
+
 PROB_COLUMNS = ['pvalue', 'pvalue_perm', 'fdr']
 
 CONFIG_FILE_EXTENSION = ('yml', 'yaml')

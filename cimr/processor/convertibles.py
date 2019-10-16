@@ -65,7 +65,7 @@ def get_z(data, VERY_SMALL_P):
         return data
 
 
-def convert_p_to_z(data, VERY_SMALL_P):
+def _convert_p_to_z(data, VERY_SMALL_P):
     """Calculate zscores from pvalues"""
     p = data[PVALUE].values
 
@@ -88,9 +88,9 @@ def convert_p_to_z(data, VERY_SMALL_P):
     return z
 
 
-def convert_z_to_p(zscore):
+def _convert_z_to_p(data):
     """Given zscore, calculate pvalue."""
-    return 2 * stats.norm.sf(numpy.absolute(zscore))
+    return 2 * stats.norm.sf(numpy.absolute(data[ZSCORE]))
 
 
 def convert_or_to_beta(odd_ratio):
@@ -102,7 +102,39 @@ def convert_or_to_beta(odd_ratio):
     return numpy.log(odd_ratio)
 
 
-def estimate_se(data):
+def _estimate_se(data):
     """Given effect_size and zscore, calculate standard_error."""
     return data[EFFECT_SIZE] / data[ZSCORE]
+
+
+def estimate_se(data):
+    if (ZSCORE in data.columns and
+        EFFECT_SIZE in data.columns and
+        STANDARD_ERROR not in data.columns):
+        logging.info(f' estimating {STANDARD_ERROR} from {EFFECT_SIZE} and {ZSCORE}.')
+        data[STANDARD_ERROR] = _estimate_se(data)
+        data['se_est_from_z_beta'] = 'True'
+    else:
+        logging.debug(f' {STANDARD_ERROR} is included.')
+    return data
+
+
+def convert_z_to_p(data):
+    if (ZSCORE in data.columns and
+        PVALUE not in data.columns):
+        data[PVALUE] = _convert_z_to_p(data)
+        data['p_est_from_z'] = 'True'
+    else:
+        logging.debug(f' {PVALUE} is included.')
+    return data
+
+
+def convert_p_to_z(data):
+    if (PVALUE in data.columns and
+        ZSCORE not in data.columns):
+        data[ZSCORE] = _convert_p_to_z(data, VERY_SMALL_P)
+        data['z_est_from_p'] = 'True'
+    else:
+        logging.debug(f' {ZSCORE} is included.')
+    return data
 

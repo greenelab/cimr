@@ -14,12 +14,8 @@ import logging
 
 from scipy import stats
 
-from .constants import EFFECT_SIZE
-from .constants import ODDS_RATIO
-from .constants import ZSCORE
-from .constants import PVALUE
-from .constants import STANDARD_ERROR
-from .constants import EFFECT_DIRECTION
+from .constants import (EFFECT_SIZE, ODDS_RATIO, ZSCORE,
+    PVALUE, STANDARD_ERROR, EFFECT_DIRECTION)
 
 from ..defaults import VERY_SMALL_P
 
@@ -106,7 +102,7 @@ def convert_or_to_beta(odd_ratio):
     return numpy.log(odd_ratio)
 
 
-def estimate_se(effect_size, zscore):
+def estimate_se(data):
     """Given effect_size and zscore, calculate standard_error."""
-    return effect_size / zscore
+    return data[EFFECT_SIZE] / data[ZSCORE]
 

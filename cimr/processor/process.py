@@ -348,22 +348,22 @@ class Infiler:
             sys.exit(1)
 
 
-    def check_file(self, summary_data):
+    def check_file(self, data):
         """Check different columns for dtype, remove missing rows and
         standardize format to be used for analyses
         """
         logging.debug(f' HEADER: {HEADER}.')
-        logging.debug(f' columns: {summary_data.columns}.')
+        logging.debug(f' columns: {data.columns}.')
         self.included_header = intersect_set(
-            HEADER, summary_data.columns
+            HEADER, data.columns
         )
-        logging.debug(f' included header overlapping cimr set: {self.included_header}.')
+        logging.debug(f' included header overlapping cimr default set: {self.included_header}.')
 
         self.find_reference()
-        summary_data.reset_index(inplace=True, drop=True)
-        self.data = summary_data.copy()
+        data.reset_index(inplace=True, drop=True)
+        self.data = data.copy()
 
-        if 'variant_id' not in self.included_header:
+        if 'variant_id' not in self.data.columns:
             self.make_composite_id()
             logging.debug(f' data.head(2): {self.data.head(2)}')
         elif 'variant_id' in self.included_header:
@@ -374,17 +374,17 @@ class Infiler:
             logging.error(f' variant_id column is not provided.')
             sys.exit(1)
 
-        if 'rsnum' in self.included_header:
+        if 'rsnum' in self.data.columns:
             if self.update_rsid:
                 self.check_ref()
         else:
             logging.warning(f' rsnum column is not provided.')
 
         for col in INT_COLUMNS:
-            if col in self.included_header:
+            if col in self.data.columns:
                 self.data = make_int(self.data, col)
 
-        if 'inc_allele' in self.included_header:
+        if 'inc_allele' in self.data.columns:
             self.fill_effect_allele()
         else:
             logging.debug(f' inc_allele column is not available.')
@@ -402,19 +402,26 @@ class Infiler:
                     inplace=True
                 )
 
+        if ('zscore' in self.data.columns and
+            'effect_size' in self.data.columns and
+            'standard_error' not in self.data.columns):
+            logging.info(f' estimating se from effect_size and zscore.')
+            self.data['standard_error'] = estimate_se(self.data)
+            self.data['se_est_from_z_beta'] = 'True'
+
         for col in REQ_COLUMNS:
-            if col in self.included_header:
+            if col in self.data.columns:
                 pass
             else:
                 logging.error(f' {col} is required.')
                 sys.exit(1)
 
         for col in NUMERIC_COLUMNS:
-            if col in self.included_header:
+            if col in self.data.columns:
                 self.data = check_numeric(self.data, col)
 
         for col in PROB_COLUMNS:
-            if col in self.included_header:
+            if col in self.data.columns:
                 check_probability(self.data, col)
 
 

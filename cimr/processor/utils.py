@@ -2,9 +2,10 @@
 
 """Utilities and common file checks used across different
 processor classes
-
-(c) YoSon Park
 """
+
+__author__ = 'yoson park'
+
 
 
 import sys
@@ -26,12 +27,14 @@ def set_chrom_dict():
     chrom_dict.update({
         'X':'chr23',
         'Y':'chr24',
-        'M':'chr25',
-        'MT':'chr25',
+        'XY':'chr25',
+        'M':'chr26',
+        'MT':'chr26',
         'chrX':'chr23',
         'chrY':'chr24',
-        'chrM':'chr25',
-        'chrMT':'chr25'
+        'chrXY':'chr25',
+        'chrM':'chr26',
+        'chrMT':'chr26'
     })
     return chrom_dict, MAXCHROM
 

@@ -68,6 +68,14 @@ def check_numeric(data, col):
         sys.exit(1)
 
 
+def check_probability(data, col):
+    """Check whether probability is between 0 and 1"""
+    if data[col].between(0, 1, inclusive=True).any():
+        logging.info(f' {str(col)} only contains values between 0 and 1.')
+    else:
+        logging.error(f' {str(col)} should only contain values between 0 and 1.')
+
+
 def intersect_set(list1, list2):
     """Make a list of intersect set values"""
     return (set(list1) & set(list2))

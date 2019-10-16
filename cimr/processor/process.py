@@ -402,12 +402,9 @@ class Infiler:
                     inplace=True
                 )
 
-        if ('zscore' in self.data.columns and
-            'effect_size' in self.data.columns and
-            'standard_error' not in self.data.columns):
-            logging.info(f' estimating se from effect_size and zscore.')
-            self.data['standard_error'] = estimate_se(self.data)
-            self.data['se_est_from_z_beta'] = 'True'
+        self.data = estimate_se(self.data)
+        self.data = convert_z_to_p(self.data)
+        self.data = convert_p_to_z(self.data)
 
         for col in REQ_COLUMNS:
             if col in self.data.columns:

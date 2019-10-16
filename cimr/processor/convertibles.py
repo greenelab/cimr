@@ -58,7 +58,7 @@ def get_z(data, VERY_SMALL_P):
         z = None
         if PVALUE in data:
             logging.info(f' calculating zscore from pvalue.')
-            z = p_to_z(data, VERY_SMALL_P)
+            z = convert_p_to_z(data, VERY_SMALL_P)
         elif STANDARD_ERROR in data and EFFECT_SIZE in data:
             logging.info('calculating zscore from se and beta')
             z = data[EFFECT_SIZE] / data[STANDARD_ERROR]

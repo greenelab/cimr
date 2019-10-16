@@ -16,21 +16,18 @@ from pandas.api.types import is_numeric_dtype
 # Querier class for feature_id mapping
 from .query import Querier
 
+# utilities to convert values
+from .convertibles import (get_effect_direction, get_z,
+    convert_p_to_z, convert_z_to_p, convert_or_to_beta, estimate_se)
+
 # utilities
-from .utils import set_chrom_dict
-from .utils import find_file
-from .utils import check_numeric
-from .utils import intersect_set
+from .utils import (set_chrom_dict, find_file, intersect_set,
+    check_numeric, check_probability, make_int, make_str)
 
 # default values
-from ..defaults import COMPRESSION_EXTENSION
-from ..defaults import DATA_TYPES
-from ..defaults import GENOME_BUILDS
-from ..defaults import REQ_HEADER
-from ..defaults import HEADER
-from ..defaults import MAXCHROM
-from ..defaults import VAR_COMPONENTS
-from ..defaults import ANNOTURL
+from ..defaults import (COMPRESSION_EXTENSION, ANNOTURL,
+    DATA_TYPES, GENOME_BUILDS, VAR_COMPONENTS, MAXCHROM,
+    HEADER, REQ_COLUMNS, NUMERIC_COLUMNS, PROB_COLUMNS, INT_COLUMNS)
 
 
 
@@ -118,7 +115,7 @@ class Infiler:
         """Check variant_id column and make
         chrom, pos, ref, alt, build columns"""
         # check first element to find delimiter in variant_id
-        variant_ids = self.summary_data['variant_id']
+        variant_ids = self.data['variant_id']
         if '_' in variant_ids[0]:
             pass
         if '-' in variant_ids[0]:
@@ -134,38 +131,37 @@ class Infiler:
         temp = variant_ids.str.split('_', expand=True)
 
         if not temp.empty:
-            self.summary_data['chrom'] = temp[0]
-            self.summary_data['pos'] = temp[1]
-            self.summary_data['ref'] = temp[2]
-            self.summary_data['alt'] = temp[3]
+            self.data['chrom'] = temp[0]
+            self.data['pos'] = temp[1]
+            self.data['ref'] = temp[2]
+            self.data['alt'] = temp[3]
             if len(temp.columns) == 5:
-                self.summary_data['build'] = temp[4]
+                self.data['build'] = temp[4]
             else:
                 logging.info(f' updating variant_id to include build')
-                self.summary_data['build'] = self.genome_build
-                self.summary_data['variant_id'] = variant_ids + '_' + self.genome_build
+                self.data['build'] = self.genome_build
+                self.data['variant_id'] = variant_ids + '_' + self.genome_build
 
 
     def make_variant_id(self):
         """(Re)make variant_id with updated chrom ID, build #, etc."""
         logging.debug(f' standardizing allele codes...')
-        self.summary_data['ref'] = self.summary_data['ref'].str.upper()
-        self.summary_data['alt'] = self.summary_data['alt'].str.upper()
+        self.data['ref'] = self.data['ref'].str.upper()
+        self.data['alt'] = self.data['alt'].str.upper()
 
         logging.debug(f' making a new variant_id column.')
 
-        self.summary_data['variant_id'] = self.summary_data['chrom'].astype(str) \
+        self.data['variant_id'] = self.data['chrom'].astype(str) \
             + '_' \
-            + self.summary_data['pos'].astype(str) \
+            + self.data['pos'].astype(str) \
             + '_' \
-            + self.summary_data['ref'].astype(str) \
+            + self.data['ref'].astype(str) \
             + '_' \
-            + self.summary_data['alt'].astype(str) \
+            + self.data['alt'].astype(str) \
             + '_' \
-            + self.summary_data['build'].astype(str)
+            + self.data['build'].astype(str)
         logging.debug(f' variant_id column verified.')
         logging.info(f' variant_id has been standardized.')
-
 
 
     def check_chrom(self):
@@ -185,12 +181,12 @@ class Infiler:
         # standardize into str 'chr' + int format
         chrom_flt = [float(x) for x in range(1, maxchrom)]
 
-        chroms = self.summary_data['chrom'].drop_duplicates().values
+        chroms = self.data['chrom'].drop_duplicates().values
 
         if len(set(chroms) & set(chrom_flt)) > 0:
-            self.make_int('chrom')
-            self.make_str('chrom')
-            chroms = self.summary_data['chrom'].drop_duplicates().values
+            self.data = make_int(self.data, 'chrom')
+            self.data = make_str(self.data, 'chrom')
+            chroms = self.data['chrom'].drop_duplicates().values
             logging.debug(f' {chroms}')
 
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
@@ -205,9 +201,9 @@ class Infiler:
             pass
 
         if len(set(chroms) & set(chrom_int)) > 0:
-            self.summary_data['chrom'] = self.summary_data['chrom'].map(
+            self.data['chrom'] = self.data['chrom'].map(
                 chrom_dict, na_action='ignore'
-            ).fillna(self.summary_data['chrom'])
+            ).fillna(self.data['chrom'])
             logging.info(f' chromosome ids have been updated.')
         else:
             logging.warning(f' chromosome id needs to be checked.')
@@ -232,9 +228,9 @@ class Infiler:
         logging.info(f' rs id reference is {ref_id}.')
         refdf = pandas.read_csv(
             ref_file, sep='\t', header=0, dtype={'chr':'str'}
-            )
+        )
         refdf.columns = [x + '_reference' for x in refdf.columns]
-        sumdata = self.summary_data.copy()
+        sumdata = self.data.copy()
         checked_ref = sumdata['rsnum'].isin(refdf[ref_id + '_reference'])
         rsnum_ref = sumdata.loc[checked_ref,:]
         if not rsnum_ref.empty:
@@ -255,14 +251,6 @@ class Infiler:
             pass
 
 
-    def check_probability(self, col):
-        """Check whether probability is between 0 and 1"""
-        if self.summary_data[col].between(0, 1, inclusive=True).any():
-            logging.info(f' {str(col)} only contains values between 0 and 1.')
-        else:
-            logging.error(f' {str(col)} should only contain values between 0 and 1.')
-
-
     def find_reference(self):
         """Find variant and gene references for map checking"""
         if self.genome_build == 'b37':
@@ -281,23 +269,23 @@ class Infiler:
 
         e.g. ENSG00000143614.7 -> ENSG00000143614
         """
-        ensemblid = self.summary_data['feature_id'].str.split('.').str[0]
-        self.summary_data['feature_id'] = ensemblid
+        ensemblid = self.data['feature_id'].str.split('.').str[0]
+        self.data['feature_id'] = ensemblid
         logging.info(f' ensembl id has been truncated for database queries.')
 
 
     def list_features(self):
         """Find the list of features (e.g. genes)."""
         logging.debug(f' {self.included_header}')
-        logging.debug(f' {self.summary_data.head(2)}')
+        logging.debug(f' {self.data.head(2)}')
         if 'feature_id' in self.included_header:
-            if self.summary_data['feature_id'][0].startswith('ENS'):
+            if self.data['feature_id'][0].startswith('ENS'):
                 self.trim_ensembl()
 
-        if 'ensemblgene' in self.summary_data.columns:
-            return self.summary_data.ensemblgene
-        elif 'feature_id' in self.summary_data.columns:
-            return self.summary_data.feature_id
+        if 'ensemblgene' in self.data.columns:
+            return self.data.ensemblgene
+        elif 'feature_id' in self.data.columns:
+            return self.data.feature_id
         else:
             logging.error(f' feature_id column is not provided.')
             sys.exit(1)
@@ -305,8 +293,8 @@ class Infiler:
 
     def append_gene_cols(self, gene_df):
         """Add gene annotation columns to dataframe"""
-        self.summary_data = pandas.concat(
-            [self.summary_data, gene_df],
+        self.data = pandas.concat(
+            [self.data, gene_df],
             axis=1
         )
 
@@ -315,19 +303,9 @@ class Infiler:
         """Fill NA in effect_allele column with inc_allele if
         inc_allele present
         """
-        self.summary_data['effect_allele'].fillna(
-            self.summary_data['inc_allele']
+        self.data['effect_allele'].fillna(
+            self.data['inc_allele']
         )
-
-
-    def make_int(self, colname):
-        """Make int columns int"""
-        self.summary_data[colname] = self.summary_data[colname].astype(int)
-
-
-    def make_str(self, colname):
-        """Make values in column as str"""
-        self.summary_data[colname] = self.summary_data[colname].astype(str)
 
 
     def make_composite_id(self):
@@ -340,29 +318,29 @@ class Infiler:
 
         if set(VAR_COMPONENTS).issubset(set(self.included_header)):
             logging.debug(f' checking {VAR_COMPONENTS} for missing values.')
-            self.summary_data.dropna(
+            self.data.dropna(
                 subset=VAR_COMPONENTS, inplace=True
             )
             logging.debug(f' rows with missing {VAR_COMPONENTS} are dropped.')
 
             logging.debug(f' making variant_id using {VAR_COMPONENTS}.')
-            self.summary_data['chrom'] = self.summary_data['variant_chrom']
+            self.data['chrom'] = self.data['variant_chrom']
             self.check_chrom()
             logging.info(f' verifying variant positions are int values.')
-            self.make_int('variant_pos')
+            self.data = make_int(self.data, 'variant_pos')
             logging.debug(f' changing verified values to str.')
-            self.make_str('variant_pos')
+            self.data = make_str(self.data, 'variant_pos')
 
-            self.summary_data['pos'] = self.summary_data['variant_pos']
-            self.summary_data['ref'] = self.summary_data['non_effect_allele']
-            self.summary_data['alt'] = self.summary_data['effect_allele']
-            self.summary_data['build'] = self.genome_build
+            self.data['pos'] = self.data['variant_pos']
+            self.data['ref'] = self.data['non_effect_allele']
+            self.data['alt'] = self.data['effect_allele']
+            self.data['build'] = self.genome_build
 
             # make variant_id from components
             self.make_variant_id()
             # recall included_header from columns including variant_id
             self.included_header = intersect_set(
-                HEADER, self.summary_data.columns
+                HEADER, self.data.columns
             )
 
         else:
@@ -383,11 +361,11 @@ class Infiler:
 
         self.find_reference()
         summary_data.reset_index(inplace=True, drop=True)
-        self.summary_data = summary_data.copy()
+        self.data = summary_data.copy()
 
         if 'variant_id' not in self.included_header:
             self.make_composite_id()
-            logging.debug(f' data.head(2): {self.summary_data.head(2)}')
+            logging.debug(f' data.head(2): {self.data.head(2)}')
         elif 'variant_id' in self.included_header:
             self.get_pos()
             self.check_chrom()
@@ -402,14 +380,9 @@ class Infiler:
         else:
             logging.warning(f' rsnum column is not provided.')
 
-        if 'ma_samples' in self.included_header:
-            self.make_int('ma_samples')
-
-        if 'ma_count' in self.included_header:
-            self.make_int('ma_count')
-
-        if 'sample_size' in self.included_header:
-            self.make_int('sample_size')
+        for col in INT_COLUMNS:
+            if col in self.included_header:
+                self.data = make_int(self.data, col)
 
         if 'inc_allele' in self.included_header:
             self.fill_effect_allele()
@@ -421,55 +394,34 @@ class Infiler:
             'position', 'inc_allele', 'variant_chrom', 'variant_pos'
         ]
 
-        for colname in columns_to_drop:
-            if colname in self.summary_data.columns:
-                self.summary_data.drop(
-                    colname,
+        for col in columns_to_drop:
+            if col in self.data.columns:
+                self.data.drop(
+                    col,
                     axis=1,
                     inplace=True
                 )
 
-        if 'effect_size' in self.included_header:
-            check_numeric(self.summary_data, 'effect_size')
-        else:
-            logging.error(f' effect_size column is not provided.')
-            sys.exit(1)
+        for col in REQ_COLUMNS:
+            if col in self.included_header:
+                pass
+            else:
+                logging.error(f' {col} is required.')
+                sys.exit(1)
 
-        if 'standard_error' in self.included_header:
-            check_numeric(self.summary_data, 'standard_error')
-        else:
-            logging.error(f' standard_error column is not provided.')
-            sys.exit(1)
+        for col in NUMERIC_COLUMNS:
+            if col in self.included_header:
+                self.data = check_numeric(self.data, col)
 
-        if 'pvalue' in self.included_header:
-            check_numeric(self.summary_data, 'pvalue')
-            self.check_probability('pvalue')
-        else:
-            logging.error(f' pvalue column is not provided.')
-            sys.exit(1)
-
-        if 'pvalue_perm' in self.included_header:
-            check_numeric(self.summary_data, 'pvalue_perm')
-            self.check_probability('pvalue_perm')
-        else:
-            logging.debug(f' pvalue_perm column is not provided.')
-
-        if 'fdr' in self.included_header:
-            check_numeric(self.summary_data, 'fdr')
-            self.check_probability('fdr')
-        else:
-            logging.debug(f' fdr column is not provided.')
-
-        if 'qvalue' in self.included_header:
-            check_numeric(self.summary_data, 'qvalue')
-        else:
-            logging.debug(f' qvalue column is not provided.')
+        for col in PROB_COLUMNS:
+            if col in self.included_header:
+                check_probability(self.data, col)
 
 
     def write_header(self):
         """Write data to file with header"""
-        if isinstance(self.summary_data, pandas.DataFrame):
-            self.summary_data.to_csv(
+        if isinstance(self.data, pandas.DataFrame):
+            self.data.to_csv(
                 str(self.outfile),
                 header=True,
                 index=False,
@@ -483,8 +435,8 @@ class Infiler:
 
     def write_file(self):
         """Write data to file without header"""
-        if isinstance(self.summary_data, pandas.DataFrame):
-            self.summary_data.to_csv(
+        if isinstance(self.data, pandas.DataFrame):
+            self.data.to_csv(
                 str(self.outfile),
                 header=False,
                 index=False,
@@ -503,8 +455,8 @@ class Infiler:
 
     def write_h5_header(self):
         """Write data as PyTable in an h5 file system with header"""
-        if isinstance(self.summary_data, pandas.DataFrame):
-            self.summary_data.to_hdf(
+        if isinstance(self.data, pandas.DataFrame):
+            self.data.to_hdf(
                 str(self.outfile),
                 header=True,
                 index=False,
@@ -517,8 +469,8 @@ class Infiler:
 
     def write_h5_file(self):
         """Append data as PyTable in an h5 file system"""
-        if isinstance(self.summary_data, pandas.DataFrame):
-            self.summary_data.to_hdf(
+        if isinstance(self.data, pandas.DataFrame):
+            self.data.to_hdf(
                 str(self.outfile),
                 header=True,
                 index=False,
@@ -573,10 +525,10 @@ class Infiler:
             gene_annot = gene_annot[cols]
             gene_annot.rename(columns={self.feature_type:'feature_id'}, inplace=True)
 
-            logging.debug(f' current dataframe: {self.summary_data.head(2)}')
+            logging.debug(f' current dataframe: {self.data.head(2)}')
             logging.debug(f' selected annotations: {gene_annot.head(2)}')
 
-            self.summary_data = self.summary_data.merge(
+            self.data = self.data.merge(
                 gene_annot,
                 on='feature_id',
                 how='left',
@@ -584,18 +536,18 @@ class Infiler:
                 right_index=False
             )
             logging.debug(f' dropping duplicates, if any...')
-            self.summary_data.drop_duplicates(inplace=True)
-            self.summary_data.reset_index(inplace=True, drop=True)
+            self.data.drop_duplicates(inplace=True)
+            self.data.reset_index(inplace=True, drop=True)
             logging.debug(f' dataframe has been annotated.')
-            logging.debug(f' {self.summary_data.head(2)}')
+            logging.debug(f' {self.data.head(2)}')
 
 
     def order_columns(self):
         """Make sure the final output has the required columns
         listed first."""
-        nonreq_header = self.summary_data.columns.drop(REQ_HEADER).tolist()
-        output_columns = REQ_HEADER + (nonreq_header)
-        self.summary_data = self.summary_data[output_columns]
+        nonreq_columns = self.data.columns.drop(REQ_COLUMNS).tolist()
+        output_columns = REQ_COLUMNS + (nonreq_columns)
+        self.data = self.data[output_columns]
 
 
     def process_file(self):
@@ -664,13 +616,13 @@ class Infiler:
                     self.map_features(features)
 
                 logging.info(f' dropping duplicate columns.')
-                dropcols = self.summary_data.columns.duplicated()
-                self.summary_data = self.summary_data.loc[:, ~dropcols]
+                dropcols = self.data.columns.duplicated()
+                self.data = self.data.loc[:, ~dropcols]
 
                 # reorder columns so that mandatory fields are listed first.
                 logging.info(f' reordering processed data.')
                 self.order_columns()
-                logging.debug(f' data.head(2): {self.summary_data.head(2)}')
+                logging.debug(f' data.head(2): {self.data.head(2)}')
 
                 logging.info(f' writing processed data.')
 

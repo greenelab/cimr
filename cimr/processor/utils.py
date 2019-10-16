@@ -53,6 +53,7 @@ def check_numeric(data, col):
     try:
         if is_numeric_dtype(data[col]):
             logging.info(f' {col} is numeric.')
+            return data
         else:
             numdata = (data
                         .drop([col], axis=1)
@@ -74,6 +75,19 @@ def check_probability(data, col):
         logging.info(f' {str(col)} only contains values between 0 and 1.')
     else:
         logging.error(f' {str(col)} should only contain values between 0 and 1.')
+        sys.exit(1)
+
+
+def make_int(data, colname):
+    """Make int columns int"""
+    data[colname] = data[colname].astype(int)
+    return data
+
+
+def make_str(data, colname):
+    """Make values in column as str"""
+    data[colname] = data[colname].astype(str)
+    return data
 
 
 def intersect_set(list1, list2):

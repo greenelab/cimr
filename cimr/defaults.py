@@ -45,9 +45,9 @@ WORKING_HEADER = {
 }
 
 # Required header
-REQ_COLUMNS = {
+REQ_COLUMNS = [
     'variant_id', 'pvalue', 'effect_size', 'standard_error'
-}
+]
 
 # Union of expected columns in variant- or variant-feature
 # association test results
@@ -83,11 +83,11 @@ COMPRESSION_EXTENSION = ('gz', 'bz2', 'xz')
 BULK_EXTENSION = ('tgz', 'tar.gz', 'tar.bz2', 'tar.xz')
 FILE_EXTENSION = ('txt.gz', 'tsv.gz', 'tsv', 'txt')
 
-META_HEADER = {
+META_HEADER = [
     'data_type', 'context', 'context_id',
     'file_name', 'processed_data_url', 'submitted_data_url',
     'submitted_data_md5', 'citation', 'data_source',
     'build', 'context_variable_type', 'sample_size', 'n_cases',
     'method_name', 'method_tool',
     'description'
-}
+]

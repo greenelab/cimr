@@ -81,18 +81,6 @@ def check_probability(data, col):
         sys.exit(1)
 
 
-def make_int(data, colname):
-    """Make int columns int"""
-    data[colname] = data[colname].astype(int)
-    return data
-
-
-def make_str(data, colname):
-    """Make values in column as str"""
-    data[colname] = data[colname].astype(str)
-    return data
-
-
 def intersect_set(list1, list2):
     """Make a list of intersect set values"""
     return (set(list1) & set(list2))

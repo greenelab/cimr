@@ -22,7 +22,7 @@ from .convertibles import (get_effect_direction, get_z,
 
 # utilities
 from .utils import (set_chrom_dict, find_file, intersect_set,
-    check_numeric, check_probability, make_int, make_str)
+    check_numeric, check_probability)
 
 # default values
 from ..defaults import (COMPRESSION_EXTENSION, ANNOTURL,
@@ -36,12 +36,16 @@ class Infiler:
     automated checks for contributed summary statistics files are
     included in this class.
 
-    Parameters
-    ----------
+    ------------
 
     data_type: {'gwas', 'eqtl', 'sqtl', 'pqtl', 'twas', 'tad'}
     file_name: name of the file to read in summary statistics
     genome_build: human genome reference id {'b37', 'b38'}
+    data: pandas DataFrame of {'chunksize'}
+    update_rsid: whether to update rsid, currently deprecated
+    outfile: string variable for outfile name
+    chunksize: chunksize to be read at a time for pandas.read_csv()
+    columnset: a dictionary of columns to be renamed
 
 
     Notes:
@@ -102,6 +106,7 @@ class Infiler:
             raise ValueError(' %s is not a valid data_type supported' % data_type)
         if genome_build not in GENOME_BUILDS:
             raise ValueError(' %s is not a valid genome_build supported' % genome_build)
+        self.data = pandas.DataFrame()
         self.data_type = data_type
         self.file_name = file_name
         self.genome_build = genome_build
@@ -184,8 +189,8 @@ class Infiler:
         chroms = self.data['chrom'].drop_duplicates().values
 
         if len(set(chroms) & set(chrom_flt)) > 0:
-            self.data = make_int(self.data, 'chrom')
-            self.data = make_str(self.data, 'chrom')
+            self.data['chrom'] = self.data['chrom'].astype(int)
+            self.data['chrom'] = self.data['chrom'].astype(str)
             chroms = self.data['chrom'].drop_duplicates().values
             logging.debug(f' {chroms}')
 
@@ -327,9 +332,9 @@ class Infiler:
             self.data['chrom'] = self.data['variant_chrom']
             self.check_chrom()
             logging.info(f' verifying variant positions are int values.')
-            self.data = make_int(self.data, 'variant_pos')
+            self.data['variant_pos'] = self.data['variant_pos'].astype(int)
             logging.debug(f' changing verified values to str.')
-            self.data = make_str(self.data, 'variant_pos')
+            self.data['variant_pos'] = self.data['variant_pos'].astype(str)
 
             self.data['pos'] = self.data['variant_pos']
             self.data['ref'] = self.data['non_effect_allele']
@@ -348,7 +353,7 @@ class Infiler:
             sys.exit(1)
 
 
-    def check_file(self, data):
+    def check_data(self, data):
         """Check different columns for dtype, remove missing rows and
         standardize format to be used for analyses
         """
@@ -382,7 +387,7 @@ class Infiler:
 
         for col in INT_COLUMNS:
             if col in self.data.columns:
-                self.data = make_int(self.data, col)
+                self.data[col] = self.data[col].astype(int)
 
         if 'inc_allele' in self.data.columns:
             self.fill_effect_allele()
@@ -405,11 +410,11 @@ class Infiler:
         self.data = estimate_se(self.data)
         self.data = convert_z_to_p(self.data)
         self.data = convert_p_to_z(self.data)
+        self.data = convert_or_to_beta(self.data)
+        self.data = get_z(self.data)
 
         for col in REQ_COLUMNS:
-            if col in self.data.columns:
-                pass
-            else:
+            if col not in self.data.columns:
                 logging.error(f' {col} is required.')
                 sys.exit(1)
 
@@ -550,7 +555,7 @@ class Infiler:
         """Make sure the final output has the required columns
         listed first."""
         nonreq_columns = self.data.columns.drop(REQ_COLUMNS).tolist()
-        output_columns = REQ_COLUMNS + (nonreq_columns)
+        output_columns = list(REQ_COLUMNS) + (nonreq_columns)
         self.data = self.data[output_columns]
 
 
@@ -610,7 +615,7 @@ class Infiler:
                         )
                 # check each column for variable types,
                 # standardize chromosome and variant ids, etc.
-                self.check_file(chunk)
+                self.check_data(chunk)
                 logging.debug(f' processing data type {self.data_type}.')
 
                 if self.data_type == 'eqtl':

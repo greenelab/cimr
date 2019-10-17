@@ -34,7 +34,7 @@ DATA_TYPES = (
 
 GENOME_BUILDS = ('b37', 'b38')
 
-WORKING_HEADER = [
+WORKING_HEADER = {
     'rsnum', 'variant_id', 'pvalue',
     'effect_size', 'odds_ratio', 'standard_error', 'zscore',
     'tss_distance', 'effect_allele', 'non_effect_allele',
@@ -42,16 +42,16 @@ WORKING_HEADER = [
     'chrom', 'pos', 'ref', 'alt', 'build', 'chromosome',
     'position', 'inc_allele', 'feature_id', 'feature_start',
     'feature_stop', 'feature_type', 'feature_name'
-]
+}
 
 # Required header
-REQ_COLUMNS = [
+REQ_COLUMNS = {
     'variant_id', 'pvalue', 'effect_size', 'standard_error'
-]
+}
 
 # Union of expected columns in variant- or variant-feature
 # association test results
-HEADER = [
+HEADER = {
     'variant_id', 'pvalue', 'effect_size', 'standard_error',
     'feature_id',
     'zscore', 'odds_ratio', 'rsnum', 'tss_distance',
@@ -62,18 +62,18 @@ HEADER = [
     'ma_samples', 'ma_count', 'maf',
     'pvalue_perm', 'pvalue_beta', 'fdr', 'qvalue',
     'variant_chrom', 'variant_pos'
-]
+}
 
-NUMERIC_COLUMNS = [
+NUMERIC_COLUMNS = {
     'effect_size', 'standard_error', 'pvalue', 'pvalue_perm',
     'fdr', 'qvalue', 'odds_ratio', 'zscore'
-]
+}
 
-INT_COLUMNS = [
+INT_COLUMNS = {
     'ma_samples', 'sample_size', 'ma_count'
-]
+}
 
-PROB_COLUMNS = ['pvalue', 'pvalue_perm', 'fdr']
+PROB_COLUMNS = {'pvalue', 'pvalue_perm', 'fdr'}
 
 CONFIG_FILE_EXTENSION = ('yml', 'yaml')
 
@@ -83,11 +83,11 @@ COMPRESSION_EXTENSION = ('gz', 'bz2', 'xz')
 BULK_EXTENSION = ('tgz', 'tar.gz', 'tar.bz2', 'tar.xz')
 FILE_EXTENSION = ('txt.gz', 'tsv.gz', 'tsv', 'txt')
 
-META_HEADER = [
+META_HEADER = {
     'data_type', 'context', 'context_id',
     'file_name', 'processed_data_url', 'submitted_data_url',
     'submitted_data_md5', 'citation', 'data_source',
     'build', 'context_variable_type', 'sample_size', 'n_cases',
     'method_name', 'method_tool',
     'description'
-]
+}

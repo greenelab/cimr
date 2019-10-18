@@ -2,9 +2,10 @@
 
 """Utilities and common file checks used across different
 processor classes
-
-(c) YoSon Park
 """
+
+__author__ = 'yoson park'
+
 
 
 import sys
@@ -26,12 +27,14 @@ def set_chrom_dict():
     chrom_dict.update({
         'X':'chr23',
         'Y':'chr24',
-        'M':'chr25',
-        'MT':'chr25',
+        'XY':'chr25',
+        'M':'chr26',
+        'MT':'chr26',
         'chrX':'chr23',
         'chrY':'chr24',
-        'chrM':'chr25',
-        'chrMT':'chr25'
+        'chrXY':'chr25',
+        'chrM':'chr26',
+        'chrMT':'chr26'
     })
     return chrom_dict, MAXCHROM
 
@@ -53,6 +56,7 @@ def check_numeric(data, col):
     try:
         if is_numeric_dtype(data[col]):
             logging.info(f' {col} is numeric.')
+            return data
         else:
             numdata = (data
                         .drop([col], axis=1)
@@ -65,6 +69,15 @@ def check_numeric(data, col):
     except:
         logging.error(f' the format of %s is not testable.' % (col,))
         print(data.head(n=2))
+        sys.exit(1)
+
+
+def check_probability(data, col):
+    """Check whether probability is between 0 and 1"""
+    if data[col].between(0, 1, inclusive=True).any():
+        logging.info(f' {str(col)} only contains values between 0 and 1.')
+    else:
+        logging.error(f' {str(col)} should only contain values between 0 and 1.')
         sys.exit(1)
 
 

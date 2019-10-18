@@ -17,6 +17,8 @@ MAXCHROM = 27
 # Can be overwritten with commandline argument '-chunksize'
 CHUNKSIZE = 5000000
 
+VERY_SMALL_P = 1e-70
+
 # Minimally sufficient information to make unique variant IDs
 VAR_COMPONENTS = [
     'variant_chrom',
@@ -32,7 +34,7 @@ DATA_TYPES = (
 
 GENOME_BUILDS = ('b37', 'b38')
 
-WORKING_HEADER = [
+WORKING_HEADER = {
     'rsnum', 'variant_id', 'pvalue',
     'effect_size', 'odds_ratio', 'standard_error', 'zscore',
     'tss_distance', 'effect_allele', 'non_effect_allele',
@@ -40,16 +42,16 @@ WORKING_HEADER = [
     'chrom', 'pos', 'ref', 'alt', 'build', 'chromosome',
     'position', 'inc_allele', 'feature_id', 'feature_start',
     'feature_stop', 'feature_type', 'feature_name'
-]
+}
 
 # Required header
-REQ_HEADER = [
+REQ_COLUMNS = [
     'variant_id', 'pvalue', 'effect_size', 'standard_error'
 ]
 
 # Union of expected columns in variant- or variant-feature
 # association test results
-HEADER = [
+HEADER = {
     'variant_id', 'pvalue', 'effect_size', 'standard_error',
     'feature_id',
     'zscore', 'odds_ratio', 'rsnum', 'tss_distance',
@@ -60,7 +62,18 @@ HEADER = [
     'ma_samples', 'ma_count', 'maf',
     'pvalue_perm', 'pvalue_beta', 'fdr', 'qvalue',
     'variant_chrom', 'variant_pos'
-]
+}
+
+NUMERIC_COLUMNS = {
+    'effect_size', 'standard_error', 'pvalue', 'pvalue_perm',
+    'fdr', 'qvalue', 'odds_ratio', 'zscore'
+}
+
+INT_COLUMNS = {
+    'ma_samples', 'sample_size', 'ma_count'
+}
+
+PROB_COLUMNS = {'pvalue', 'pvalue_perm', 'fdr'}
 
 CONFIG_FILE_EXTENSION = ('yml', 'yaml')
 

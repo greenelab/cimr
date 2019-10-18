@@ -1,0 +1,2 @@
+data_type	context	context_id	file_name	processed_data_url	submitted_data_url	submitted_data_md5	citation	data_source	build	context_variable_type	sample_size	n_cases	method_name	method_tool	description
+gwas	high-density_lipid_cholesterol_levels	NA	gwas_no_zscore.txt.gz	NA	https://zenodo.org/record/3494640/files/gwas_no_zscore.txt.gz	67ac762c6d2e42a59e052ae286bbb3e9	10.1038/ng.2797	http://lipidgenetics.org/	b38	continuous	187167	na	linear regression	PLINK; SNPTEST; EMMAX; Merlin; GENABEL; MMAP	Global Lipid Genetics Consortium GWAS results for high-density cholesterol levels

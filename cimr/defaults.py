@@ -89,5 +89,5 @@ META_HEADER = [
     'submitted_data_md5', 'citation', 'data_source',
     'build', 'context_variable_type', 'sample_size', 'n_cases',
     'method_name', 'method_tool',
-    'description'
+    'description', 'cimr_version'
 ]

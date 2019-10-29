@@ -570,12 +570,18 @@ class Infiler:
           03. Check if empty.
           04. Standardize column names.
           05. Standardize chromosome names.
-          06. Check columns for their expected variable data types.
-          07. If file data_type == eqtl, check feature_id column.
-             Standardize feature_id.
-          08. Drop duplicate columns, if any.
-          09. Reset index and reorder mandatory columns to the front.
-          10. Write to file.
+          06. If variant_id is not provided or non-standard format,
+              search for chromosome, position, ref, alt and genome_build
+              information to create a standardized variant_id column
+          07. If effect_size, pvalue or zscore columns are not provided,
+              search for necessary information to estimate using
+              convertibles
+          08. Check columns for their expected variable data types.
+          09. If file data_type == eqtl, check feature_id column.
+              Standardize feature_id.
+          10. Drop duplicate columns, if any.
+          11. Reset index and reorder mandatory columns to the front.
+          12. Write to file.
         """
         self.file_name = find_file(self.file_name)
 

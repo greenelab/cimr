@@ -124,6 +124,15 @@ def verify_weblink(path):
         return False
 
 
+def trim_doi(path):
+    """Trim doi link.
+    e.g. https://doi.org/10.1093/hmg/ddy327
+    -> 10.1093/hmg/ddy327
+    """
+    path = path.replace('https://doi.org/', '')
+    return path
+
+
 def trim_zenodo_link(path):
     """Trim a zenodo download link to extract file name.
 
@@ -602,7 +611,10 @@ class Yamler:
                 logging.info(f' n_cases is not provided.')
 
             if 'citation' in self.yaml_data['data_info'].keys():
-                new_row['citation'] = self.yaml_data['data_info']['citation']
+                if self.yaml_data['data_info']['citation'].startswith('http'):
+                    new_row['citation'] = trim_doi(self.yaml_data['data_info']['citation'])
+                else:
+                    new_row['citation'] = self.yaml_data['data_info']['citation']
             else:
                 logging.info(f' citation is not provided.')
 

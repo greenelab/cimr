@@ -21,6 +21,8 @@ import logging
 
 from pandas.api.types import is_numeric_dtype
 
+from cimr import __version__
+
 from ..defaults import DATA_TYPES
 from ..defaults import CONFIG_FILE_EXTENSION
 from ..defaults import BULK_EXTENSION
@@ -618,6 +620,10 @@ class Yamler:
                 new_row['method_tool'] = self.yaml_data['method']['tool']
             else:
                 logging.info(f' method tool is not provided.')
+
+            # as of cimr v0.1.6, the catalog.txt includes
+            # the version of cimr used to process the data
+            new_row['cimr_version'] = __version__
 
             logging.info(f' updating {catalog_name} for {file_name}.')
             metadata = metadata.append(new_row, ignore_index=True)

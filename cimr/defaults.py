@@ -29,6 +29,15 @@ VAR_COMPONENTS = [
     'effect_allele'
 ]
 
+SEPARATORS = {
+    'TAB': '\t',
+    'SPACE': ' ',
+    'TABSPACE': '\t| ',
+    'MULTISPACE': r'\s+',
+    '8SPACE': r'\s{,8}',
+    'COMMA': ','
+}
+
 DATA_TYPES = (
     'gwas', 'eqtl', 'sqtl', 'pqtl', 'gene', 'twas',
     'tad', 'multiple', 'yaml'

@@ -531,7 +531,7 @@ class Yamler:
 
 
     def get_colnames(self):
-        """Initializing submitted column names to cimr variables"""
+        """Initializing submitted column names to cimr variables."""
         if 'columns' in self.yaml_data['data_file'].keys():
             columnset = self.yaml_data['data_file']['columns']
             self.columnset = {

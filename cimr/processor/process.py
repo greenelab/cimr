@@ -26,8 +26,9 @@ from .utils import (set_chrom_dict, find_file, intersect_set,
 
 # default values
 from ..defaults import (COMPRESSION_EXTENSION, ANNOTURL,
-    DATA_TYPES, GENOME_BUILDS, VAR_COMPONENTS, MAXCHROM,
-    HEADER, REQ_COLUMNS, NUMERIC_COLUMNS, PROB_COLUMNS, INT_COLUMNS)
+    DATA_TYPES, GENOME_BUILDS, VAR_COMPONENTS, SEPARATORS,
+    MAXCHROM, HEADER, REQ_COLUMNS, NUMERIC_COLUMNS,
+    PROB_COLUMNS, INT_COLUMNS)
 
 
 
@@ -114,6 +115,25 @@ class Infiler:
         self.outfile = outfile
         self.chunksize = chunksize
         self.columnset = columnset
+
+
+    def get_sep(self):
+        """Get column separator, if provided."""
+        if 'column_separator' in self.columnset.values():
+            logging.debug(f' column_separator is provided.')
+            _keys = list(self.columnset.keys())
+            _values = list(self.columnset.values())
+            sep = _keys[_values.index('column_separator')]
+            sep = sep.upper()
+
+            if sep in SEPARATORS.keys():
+                self.sep = SEPARATORS[sep]
+            else:
+                logging.warning(f' column separator unknown. using default.')
+                self.sep = '\t'
+
+        else:
+            self.sep = '\t'
 
 
     def get_pos(self):
@@ -370,6 +390,8 @@ class Infiler:
         self.data = data.copy()
 
         if 'variant_id' not in self.data.columns:
+            logging.info(f' variant_id column is not provided.')
+            logging.info(f' checking columns necessary to make variant_id...')
             self.make_composite_id()
             logging.debug(f' data.head(2): {self.data.head(2)}')
         elif 'variant_id' in self.included_header:
@@ -588,6 +610,9 @@ class Infiler:
         """
         self.file_name = find_file(self.file_name)
 
+        logging.debug(f' looking for column separators.')
+        self.get_sep()
+
         logging.info(f' loading {self.file_name}.')
         chunks = pandas.read_csv(
             self.file_name,
@@ -597,9 +622,9 @@ class Infiler:
             # default behavior will push all missing columns to last
             # delim_whitespace=True,
             # sep='\t| ',
-            sep='\t',
+            sep=self.sep,
             header=0,
-            engine='python',
+            # engine='python',
             iterator=True,
             index_col=None,
             chunksize=self.chunksize

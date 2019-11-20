@@ -560,7 +560,9 @@ class Yamler:
                 catalog_name,
                 header=0,
                 index_col=None,
-                sep='\t'
+                sep='\t',
+                na_values='na',
+                keep_default_na=True
             )
         else:
             logging.info(f' creating a new catalog.')

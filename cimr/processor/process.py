@@ -22,7 +22,7 @@ from .convertibles import (get_effect_direction, get_z,
 
 # utilities
 from .utils import (set_chrom_dict, find_file, intersect_set,
-    check_numeric, check_probability)
+    check_numeric, check_probability, remove_palindromic)
 
 # default values
 from ..defaults import (COMPRESSION_EXTENSION, ANNOTURL,
@@ -343,7 +343,8 @@ class Infiler:
 
             # make variant_id from components
             self.make_variant_id()
-            # recall included_header from columns including variant_id
+
+            # redefine included_header from columns including variant_id
             self.included_header = intersect_set(
                 HEADER, self.data.columns
             )
@@ -406,6 +407,8 @@ class Infiler:
                     axis=1,
                     inplace=True
                 )
+
+        self.data = remove_palindromic(self.data)
 
         self.data = estimate_se(self.data)
         self.data = convert_z_to_p(self.data)

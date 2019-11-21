@@ -28,7 +28,8 @@ from .utils import (set_chrom_dict, find_file, intersect_set,
 from ..defaults import (COMPRESSION_EXTENSION, ANNOTURL,
     DATA_TYPES, GENOME_BUILDS, VAR_COMPONENTS, SEPARATORS,
     MAXCHROM, HEADER, REQ_COLUMNS, NUMERIC_COLUMNS,
-    PROB_COLUMNS, INT_COLUMNS)
+    PROB_COLUMNS, INT_COLUMNS,
+    SNP125HG17, SNP130HG18, SNP150HG19, SNP150HG38, HG19TO38)
 
 
 
@@ -282,10 +283,16 @@ class Infiler:
             self.gene_ref = ANNOTURL + 'gene_grch37_gencode_v26.tsv.gz'
             self.var_ref = ANNOTURL + 'variant_grch37_subset.txt.gz'
             self.var_ref_id = 'rs_id_dbSNP147_GRCh37p13'
-        else:
+            self.dbsnp = SNP150HG19
+            self.chain = HG19TO38
+        elif self.genome_build == 'b38':
             self.gene_ref = ANNOTURL + 'gene_grch38_gencode_v29.tsv.gz'
             self.var_ref = ANNOTURL + 'variant_grch38_subset.txt.gz'
             self.var_ref_id = 'rs_id_dbSNP150_GRCh38p7'
+            self.dbsnp = SNP150HG38
+        else:
+            logging.error(f' accepted genome_build values: b37, b38.')
+            sys.exit(1)
 
 
     def trim_ensembl(self):

@@ -29,6 +29,7 @@ VAR_COMPONENTS = [
     'effect_allele'
 ]
 
+# Column separators commonly found in input files
 SEPARATORS = {
     'TAB': '\t',
     'SPACE': ' ',

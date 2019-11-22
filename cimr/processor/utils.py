@@ -7,7 +7,6 @@ processor classes
 __author__ = 'yoson park'
 
 
-
 import sys
 import pandas
 import pathlib
@@ -51,6 +50,22 @@ def find_file(file_name):
     else:
         logging.error(f' no file {file_name} found for processing.')
         sys.exit()
+
+##
+def iterate_file(file, skip_first=False):
+    if type(file.mode) == str:
+        is_binary = 'b' in file.mode
+    elif 'fileobj' in dir(file):
+        is_binary = 'b' in file.fileobj.mode
+    else:
+        logging.error(f' file mode cannot be inferred.')
+        sys.exit(1)
+
+def iterating_file(path, skip_first=False):
+    with open_any(path) as file:
+        for i, line in iterate_file(file, skip_first):
+            yield i, line
+##
 
 
 def check_numeric(data, col):

@@ -396,6 +396,7 @@ class Infiler:
         data.reset_index(inplace=True, drop=True)
         self.data = data.copy()
 
+        # standardize variant_id based on info provided in the input file
         if 'variant_id' not in self.data.columns:
             logging.info(f' variant_id column is not provided.')
             logging.info(f' checking columns necessary to make variant_id...')
@@ -408,6 +409,14 @@ class Infiler:
         else:
             logging.error(f' variant_id column is not provided.')
             sys.exit(1)
+
+        # update map + variant_id if genome_build is not hg38
+        if self.genome_build is not 'hg38':
+            from .lift import call_liftover
+            self.data = call_liftover(self.data)
+            # with the updated map, genome_build variable can be updated
+            self.genome_build = 'b38'
+            self.make_variant_id()
 
         if 'rsnum' in self.data.columns:
             if self.update_rsid:

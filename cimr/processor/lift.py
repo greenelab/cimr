@@ -10,7 +10,7 @@ import pandas
 import logging
 import pyliftover
 
-from ..defaults import HG19TO38
+from ..defaults import (HG19TO38, HG18TO38)
 
 
 def convert_coords(lifting, chrom, pos):
@@ -34,10 +34,22 @@ def convert_coords(lifting, chrom, pos):
 
 def call_liftover(df):
     """Call pyliftover.LiftOver to update genomic coordinates."""
-    logging.info(f' Updating genomic coordinates.')
-    lifting = pyliftover.LiftOver(HG19TO38)
+    logging.info(f' updating genomic coordinates.')
+    build = df['build'][0]
+
+    if (build == 'hg37') | (build == 'hg19') | (build == 'b37'):
+        chain = HG19TO38
+    elif (build == 'hg18') | (build == 'b18'):
+        chain = HG18TO38
+    else:
+        logging.error(f' genome build information if not available.')
+
+    lifting = pyliftover.LiftOver(chain)
     new_chrom = []
     new_pos = []
+    df['chrom_'+build] = df['chrom']
+    df['pos_'+build] = df['pos']
+    df['variant_id_'+build] = df['variant_id']
     for t in df.itertuples():
         _lifted_chrom, _lifted_pos = convert_coords(lifting, t.chrom, t.pos)
         new_chrom.append(_lifted_chrom)
@@ -45,6 +57,9 @@ def call_liftover(df):
 
     df = df.assign(chrom=new_chrom)
     df = df.assign(pos=new_pos)
-    logging.info(f' str{df.shape[0]} variants after liftover')
+    # update build information in the dataframe
+    df['build'] = 'b38'
+    logging.info(f' {str(df.shape[0])} variants after liftover')
     return df
+
 

@@ -52,8 +52,8 @@ def _p_to_z(data, VERY_SMALL_P):
 
     if numpy.any(p == 0):
         logging.warning(f' p-value column contains zero(s).')
-        logging.warning(f' This may be caused by numerical resolution limits.')
-        logging.warning(f' Consider using beta/se columns or check your input data.')
+        logging.warning(f' this may be caused by numerical resolution limits.')
+        logging.warning(f' consider using beta/se columns or check your input data.')
 
     effect_direction = get_effect_direction(data)
     abs_z = -stats.norm.ppf(p / 2)

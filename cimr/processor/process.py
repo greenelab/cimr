@@ -411,7 +411,7 @@ class Infiler:
             sys.exit(1)
 
         # update map + variant_id if genome_build is not hg38
-        if self.genome_build is not 'hg38':
+        if (self.genome_build != 'hg38') & (self.genome_build != 'b38'):
             from .lift import call_liftover
             self.data = call_liftover(self.data)
             # with the updated map, genome_build variable can be updated
@@ -433,11 +433,12 @@ class Infiler:
         else:
             logging.debug(f' inc_allele column is not available.')
 
+
+        self.data = remove_palindromic(self.data)
         columns_to_drop = [
             'chrom', 'pos', 'ref', 'alt', 'chromosome', 'build',
             'position', 'inc_allele', 'variant_chrom', 'variant_pos'
         ]
-
         for col in columns_to_drop:
             if col in self.data.columns:
                 self.data.drop(
@@ -445,8 +446,6 @@ class Infiler:
                     axis=1,
                     inplace=True
                 )
-
-        self.data = remove_palindromic(self.data)
 
         self.data = estimate_se(self.data)
         self.data = convert_z_to_p(self.data)

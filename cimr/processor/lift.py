@@ -42,7 +42,7 @@ def call_liftover(df):
     elif (build == 'hg18') | (build == 'b18'):
         chain = HG18TO38
     else:
-        logging.error(f' genome build information if not available.')
+        logging.error(f' genome build information is not available.')
 
     lifting = pyliftover.LiftOver(chain)
     new_chrom = []

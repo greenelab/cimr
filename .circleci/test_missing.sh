@@ -17,7 +17,7 @@ for MISSING in "standard_error" "pvalue" "zscore"; do
     gunzip -k processed_data/${OUTPUT_PREFIX}.txt.gz
 
     # Verify output result
-    md5sum --check md5_${DATATYPE}_no_${MISSING}.txt
+    md5sum --check md5_${DATA_TYPE}_no_${MISSING}.txt
 
     # Delete "submitted_data" and "processed_data" directories
     rm -rf submitted_data processed_data

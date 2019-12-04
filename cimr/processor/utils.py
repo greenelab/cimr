@@ -98,10 +98,10 @@ def remove_palindromic(df):
     df = df.copy()
     logging.debug(f'{df.head(2)}')
     logging.debug(f'{df.columns}')
-    if 'effect_allele' in df.columns:
-        df['g'] = df['effect_allele'].str.upper() + df['non_effect_allele'].str.upper()
-    elif 'ref' in df.columns:
+    if 'ref' in df.columns:
         df['g'] = df['alt'].str.upper() + df['ref'].str.upper()
+    elif 'effect_allele' in df.columns:
+        df['g'] = df['effect_allele'].str.upper() + df['non_effect_allele'].str.upper()
     else:
         logging.error(f' alleles need to be indicated.')
         sys.exit(1)

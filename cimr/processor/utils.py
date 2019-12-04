@@ -51,22 +51,6 @@ def find_file(file_name):
         logging.error(f' no file {file_name} found for processing.')
         sys.exit()
 
-##
-def iterate_file(file, skip_first=False):
-    if type(file.mode) == str:
-        is_binary = 'b' in file.mode
-    elif 'fileobj' in dir(file):
-        is_binary = 'b' in file.fileobj.mode
-    else:
-        logging.error(f' file mode cannot be inferred.')
-        sys.exit(1)
-
-def iterating_file(path, skip_first=False):
-    with open_any(path) as file:
-        for i, line in iterate_file(file, skip_first):
-            yield i, line
-##
-
 
 def check_numeric(data, col):
     """Check for numeric columns"""
@@ -112,7 +96,16 @@ def add_line_in_log():
 def remove_palindromic(df):
     """Removing palindromic variants from processed data."""
     df = df.copy()
-    df['g'] = df['effect_allele'].str.upper() + df['non_effect_allele'].str.upper()
+    logging.debug(f'{df.head(2)}')
+    logging.debug(f'{df.columns}')
+    if 'effect_allele' in df.columns:
+        df['g'] = df['effect_allele'].str.upper() + df['non_effect_allele'].str.upper()
+    elif 'ref' in df.columns:
+        df['g'] = df['alt'].str.upper() + df['ref'].str.upper()
+    else:
+        logging.error(f' alleles need to be indicated.')
+        sys.exit(1)
+
     df = df.loc[~((df.g == 'AT') | (df.g == 'TA') | (df.g == 'CG') | (df.g == 'GC'))]
     return df.drop('g', axis=1)
 

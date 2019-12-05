@@ -127,10 +127,10 @@ class Infiler:
             sep = _keys[_values.index('column_separator')]
             sep = sep.upper()
 
-            if sep in SEPARATORS.keys():
+            if sep in SEPARATORS:
                 self.sep = SEPARATORS[sep]
             else:
-                logging.warning(f' column separator unknown. using default.')
+                logging.warning(f' using tab as the default.')
                 self.sep = '\t'
 
         else:
@@ -411,7 +411,7 @@ class Infiler:
             sys.exit(1)
 
         # update map + variant_id if genome_build is not hg38
-        if (self.genome_build != 'hg38') & (self.genome_build != 'b38'):
+        if (self.genome_build != 'hg38') and (self.genome_build != 'b38'):
             from .lift import call_liftover
             self.data = call_liftover(self.data)
             # with the updated map, genome_build variable can be updated
@@ -639,7 +639,6 @@ class Infiler:
             # sep='\t| ',
             sep=self.sep,
             header=0,
-            # engine='python',
             iterator=True,
             index_col=None,
             chunksize=self.chunksize

@@ -106,6 +106,13 @@ def remove_palindromic(df):
         logging.error(f' alleles need to be indicated.')
         sys.exit(1)
 
+
+    # Check the genotype column to remove palindromic alleles.
+    # Palindromic alleles are pairs of complementary nucleotides.
+    # Strand flips cannot be distinguished and may bias results in
+    # downstream applications where accurate strand prediction is
+    # necessary. e.g. imputation or haplotype-based analysis.
+    # A and T or G and C pairs are removed from the data.
     df = df.loc[~((df.g == 'AT') | (df.g == 'TA') | (df.g == 'CG') | (df.g == 'GC'))]
     return df.drop('g', axis=1)
 

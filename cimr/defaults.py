@@ -4,7 +4,6 @@ from collections import namedtuple
 
 
 ANNOTURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/annotation/'
-# CHAINURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/chain/'
 CHAINURL = 'https://raw.githubusercontent.com/greenelab/cimr/harmon/cimr/data/chain/'
 
 # Current maximum is set with human chromosomes:
@@ -64,7 +63,7 @@ DBSNP_HEADER = namedtuple('DBSNP',
   ['binary_index', 'chromosome', 'start', 'end', 'name', 'score',
   'strand', 'ref_ncbi', 'ref_ucsc', 'observed', 'mol_type',
   'variant_class', 'valid', 'average_heterozigosity', 'average_heterozigosity_se',
-  'functional_category', 'location_type', 'qaulity_weight', 'exceptions',
+  'functional_category', 'location_type', 'quality_weight', 'exceptions',
   'submitter_count', 'submitters', 'alleles_with_freq', 'alleles',
   'allele_chromosome_count', 'allele_frequencies', 'bitfields']
 )

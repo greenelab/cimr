@@ -30,7 +30,8 @@ def convert_coords(lifting, chrom, pos):
             _lifted_chrom = lifted[0][0]
             _lifted_pos = lifted[0][1]
     except:
-        pass
+        logging.debug(f' {t.variant_id} is not an integer.')
+
     return _lifted_chrom, _lifted_pos
 
 
@@ -58,6 +59,7 @@ def call_liftover(df):
         chainlink = HG18TO38
     else:
         logging.error(f' genome build information is not available.')
+        sys.exit(1)
 
     chain = download_file(chainlink)
 

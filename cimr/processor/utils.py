@@ -7,7 +7,6 @@ processor classes
 __author__ = 'yoson park'
 
 
-
 import sys
 import pandas
 import pathlib
@@ -20,21 +19,24 @@ from ..defaults import MAXCHROM
 
 
 def set_chrom_dict():
-    """Make a dictionary to standardize chromosome IDs in input files."""
+    """Make a dictionary to standardize chromosome IDs.
+    For sex chromosomes and mitochondria, chr + 'representative letter'
+    format is used for better interpretability.
+    """
     chrom_dict = {
         str(i):'chr' + str(i) for i in range(1, MAXCHROM)
     }
     chrom_dict.update({
-        'X':'chr23',
-        'Y':'chr24',
-        'XY':'chr25',
-        'M':'chr26',
-        'MT':'chr26',
-        'chrX':'chr23',
-        'chrY':'chr24',
-        'chrXY':'chr25',
-        'chrM':'chr26',
-        'chrMT':'chr26'
+        'X':'chrX',
+        'Y':'chrY',
+        'XY':'chrXY',
+        'M':'chrM',
+        'MT':'chrM',
+        'chr23':'chrX',
+        'chr24':'chrY',
+        'chr25':'chrXY',
+        'chr26':'chrM',
+        'chr26':'chrM'
     })
     return chrom_dict, MAXCHROM
 
@@ -89,4 +91,52 @@ def intersect_set(list1, list2):
 def add_line_in_log():
     """Add an arbitrary divider to the log output for readability."""
     logging.info(' ' + '-' * 60 + '\n')
+
+
+def remove_palindromic(df):
+    """Removing palindromic variants from processed data."""
+    df = df.copy()
+    logging.debug(f'{df.head(2)}')
+    logging.debug(f'{df.columns}')
+    if 'ref' in df.columns:
+        df['g'] = df['alt'].str.upper() + df['ref'].str.upper()
+    elif 'effect_allele' in df.columns:
+        df['g'] = df['effect_allele'].str.upper() + df['non_effect_allele'].str.upper()
+    else:
+        logging.error(f' alleles need to be indicated.')
+        sys.exit(1)
+
+
+    # Check the genotype column to remove palindromic alleles.
+    # Palindromic alleles are pairs of complementary nucleotides.
+    # Strand flips cannot be distinguished and may bias results in
+    # downstream applications where accurate strand prediction is
+    # necessary. e.g. imputation or haplotype-based analysis.
+    # A and T or G and C pairs are removed from the data.
+    df = df.loc[~((df.g == 'AT') | (df.g == 'TA') | (df.g == 'CG') | (df.g == 'GC'))]
+    return df.drop('g', axis=1)
+
+
+def try_convert(value, typing):
+    """Try converting input value to specific variable types,
+    e.g. int, float..
+    """
+    converted = True
+    try:
+        value = typing(value)
+    except:
+        converted = False
+    return converted
+
+
+def inferred(value):
+    """Try converting values to specific variable types,
+    return converted value.
+    """
+    if try_convert(value, int):
+        return int(value)
+    elif try_convert(value, float):
+        return float(value, float)
+    return value
+
 

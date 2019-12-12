@@ -21,6 +21,8 @@ import logging
 
 from pandas.api.types import is_numeric_dtype
 
+from cimr import __version__
+
 from ..defaults import DATA_TYPES
 from ..defaults import CONFIG_FILE_EXTENSION
 from ..defaults import BULK_EXTENSION
@@ -120,6 +122,15 @@ def verify_weblink(path):
     except Exception as e:
         print(e)
         return False
+
+
+def trim_doi(path):
+    """Trim doi link.
+    e.g. https://doi.org/10.1093/hmg/ddy327
+    -> 10.1093/hmg/ddy327
+    """
+    path = path.replace('https://doi.org/', '')
+    return path
 
 
 def trim_zenodo_link(path):
@@ -520,7 +531,7 @@ class Yamler:
 
 
     def get_colnames(self):
-        """Initializing submitted column names to cimr variables"""
+        """Initializing submitted column names to cimr variables."""
         if 'columns' in self.yaml_data['data_file'].keys():
             columnset = self.yaml_data['data_file']['columns']
             self.columnset = {
@@ -549,7 +560,9 @@ class Yamler:
                 catalog_name,
                 header=0,
                 index_col=None,
-                sep='\t'
+                sep='\t',
+                na_values='na',
+                keep_default_na=True
             )
         else:
             logging.info(f' creating a new catalog.')
@@ -600,7 +613,10 @@ class Yamler:
                 logging.info(f' n_cases is not provided.')
 
             if 'citation' in self.yaml_data['data_info'].keys():
-                new_row['citation'] = self.yaml_data['data_info']['citation']
+                if self.yaml_data['data_info']['citation'].startswith('http'):
+                    new_row['citation'] = trim_doi(self.yaml_data['data_info']['citation'])
+                else:
+                    new_row['citation'] = self.yaml_data['data_info']['citation']
             else:
                 logging.info(f' citation is not provided.')
 
@@ -618,6 +634,10 @@ class Yamler:
                 new_row['method_tool'] = self.yaml_data['method']['tool']
             else:
                 logging.info(f' method tool is not provided.')
+
+            # as of cimr v0.1.6, the catalog.txt includes
+            # the version of cimr used to process the data
+            new_row['cimr_version'] = __version__
 
             logging.info(f' updating {catalog_name} for {file_name}.')
             metadata = metadata.append(new_row, ignore_index=True)

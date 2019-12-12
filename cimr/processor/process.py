@@ -22,12 +22,14 @@ from .convertibles import (get_effect_direction, get_z,
 
 # utilities
 from .utils import (set_chrom_dict, find_file, intersect_set,
-    check_numeric, check_probability)
+    check_numeric, check_probability, remove_palindromic)
 
 # default values
 from ..defaults import (COMPRESSION_EXTENSION, ANNOTURL,
-    DATA_TYPES, GENOME_BUILDS, VAR_COMPONENTS, MAXCHROM,
-    HEADER, REQ_COLUMNS, NUMERIC_COLUMNS, PROB_COLUMNS, INT_COLUMNS)
+    DATA_TYPES, GENOME_BUILDS, VAR_COMPONENTS, SEPARATORS,
+    MAXCHROM, HEADER, REQ_COLUMNS, NUMERIC_COLUMNS,
+    PROB_COLUMNS, INT_COLUMNS,
+    SNP125HG17, SNP130HG18, SNP150HG19, SNP150HG38, HG19TO38)
 
 
 
@@ -114,6 +116,25 @@ class Infiler:
         self.outfile = outfile
         self.chunksize = chunksize
         self.columnset = columnset
+
+
+    def get_sep(self):
+        """Get column separator, if provided."""
+        if 'column_separator' in self.columnset.values():
+            logging.debug(f' column_separator is provided.')
+            _keys = list(self.columnset.keys())
+            _values = list(self.columnset.values())
+            sep = _keys[_values.index('column_separator')]
+            sep = sep.upper()
+
+            if sep in SEPARATORS:
+                self.sep = SEPARATORS[sep]
+            else:
+                logging.warning(f' using tab as the default.')
+                self.sep = '\t'
+
+        else:
+            self.sep = '\t'
 
 
     def get_pos(self):
@@ -262,10 +283,16 @@ class Infiler:
             self.gene_ref = ANNOTURL + 'gene_grch37_gencode_v26.tsv.gz'
             self.var_ref = ANNOTURL + 'variant_grch37_subset.txt.gz'
             self.var_ref_id = 'rs_id_dbSNP147_GRCh37p13'
-        else:
+            self.dbsnp = SNP150HG19
+            self.chain = HG19TO38
+        elif self.genome_build == 'b38':
             self.gene_ref = ANNOTURL + 'gene_grch38_gencode_v29.tsv.gz'
             self.var_ref = ANNOTURL + 'variant_grch38_subset.txt.gz'
             self.var_ref_id = 'rs_id_dbSNP150_GRCh38p7'
+            self.dbsnp = SNP150HG38
+        else:
+            logging.error(f' accepted genome_build values: b37, b38.')
+            sys.exit(1)
 
 
     def trim_ensembl(self):
@@ -343,7 +370,8 @@ class Infiler:
 
             # make variant_id from components
             self.make_variant_id()
-            # recall included_header from columns including variant_id
+
+            # redefine included_header from columns including variant_id
             self.included_header = intersect_set(
                 HEADER, self.data.columns
             )
@@ -368,7 +396,10 @@ class Infiler:
         data.reset_index(inplace=True, drop=True)
         self.data = data.copy()
 
+        # standardize variant_id based on info provided in the input file
         if 'variant_id' not in self.data.columns:
+            logging.info(f' variant_id column is not provided.')
+            logging.info(f' checking columns necessary to make variant_id...')
             self.make_composite_id()
             logging.debug(f' data.head(2): {self.data.head(2)}')
         elif 'variant_id' in self.included_header:
@@ -378,6 +409,14 @@ class Infiler:
         else:
             logging.error(f' variant_id column is not provided.')
             sys.exit(1)
+
+        # update map + variant_id if genome_build is not hg38
+        if (self.genome_build != 'hg38') and (self.genome_build != 'b38'):
+            from .lift import call_liftover
+            self.data = call_liftover(self.data)
+            # with the updated map, genome_build variable can be updated
+            self.genome_build = 'b38'
+            self.make_variant_id()
 
         if 'rsnum' in self.data.columns:
             if self.update_rsid:
@@ -394,11 +433,12 @@ class Infiler:
         else:
             logging.debug(f' inc_allele column is not available.')
 
+
+        self.data = remove_palindromic(self.data)
         columns_to_drop = [
             'chrom', 'pos', 'ref', 'alt', 'chromosome', 'build',
             'position', 'inc_allele', 'variant_chrom', 'variant_pos'
         ]
-
         for col in columns_to_drop:
             if col in self.data.columns:
                 self.data.drop(
@@ -570,14 +610,23 @@ class Infiler:
           03. Check if empty.
           04. Standardize column names.
           05. Standardize chromosome names.
-          06. Check columns for their expected variable data types.
-          07. If file data_type == eqtl, check feature_id column.
-             Standardize feature_id.
-          08. Drop duplicate columns, if any.
-          09. Reset index and reorder mandatory columns to the front.
-          10. Write to file.
+          06. If variant_id is not provided or non-standard format,
+              search for chromosome, position, ref, alt and genome_build
+              information to create a standardized variant_id column
+          07. If effect_size, pvalue or zscore columns are not provided,
+              search for necessary information to estimate using
+              convertibles
+          08. Check columns for their expected variable data types.
+          09. If file data_type == eqtl, check feature_id column.
+              Standardize feature_id.
+          10. Drop duplicate columns, if any.
+          11. Reset index and reorder mandatory columns to the front.
+          12. Write to file.
         """
         self.file_name = find_file(self.file_name)
+
+        logging.debug(f' looking for column separators.')
+        self.get_sep()
 
         logging.info(f' loading {self.file_name}.')
         chunks = pandas.read_csv(
@@ -588,9 +637,8 @@ class Infiler:
             # default behavior will push all missing columns to last
             # delim_whitespace=True,
             # sep='\t| ',
-            sep='\t',
+            sep=self.sep,
             header=0,
-            engine='python',
             iterator=True,
             index_col=None,
             chunksize=self.chunksize

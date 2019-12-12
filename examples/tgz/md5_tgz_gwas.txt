@@ -1,2 +1,2 @@
-6a7349aaf9ed5266d7c05faa28322593  processed_data/gwas/gwas1.txt
-dfebcc1d3f9f0e98d49597e8a382dbf0  processed_data/gwas/gwas2.txt
+6892933caa1df0b38161219d1e705566  processed_data/gwas/gwas1.txt
+3736ee2bc42eaf8c78e46ecf401a7574  processed_data/gwas/gwas2.txt

@@ -52,8 +52,8 @@ def _p_to_z(data, VERY_SMALL_P):
 
     if numpy.any(p == 0):
         logging.warning(f' p-value column contains zero(s).')
-        logging.warning(f' This may be caused by numerical resolution limits.')
-        logging.warning(f' Consider using beta/se columns or check your input data.')
+        logging.warning(f' this may be caused by numerical resolution limits.')
+        logging.warning(f' consider using beta/se columns or check your input data.')
 
     effect_direction = get_effect_direction(data)
     abs_z = -stats.norm.ppf(p / 2)
@@ -71,16 +71,16 @@ def _p_to_z(data, VERY_SMALL_P):
     return z
 
 
-def _or_to_beta(odd_ratio):
+def _or_to_beta(odds_ratio):
     """Checks odds_ratio column values and returns beta."""
-    if numpy.any(numpy.where(odd_ratio < 0)):
+    if numpy.any(numpy.where(odds_ratio < 0)):
         logging.error(f' odds_ratio column includes negative values.')
         sys.exit(1)
-    if numpy.any(numpy.where(odd_ratio == 0)):
+    if numpy.any(numpy.where(odds_ratio == 0)):
         logging.error(f' odds_ratio column includes zeroes.')
         sys.exit(1)
 
-    return numpy.log(odd_ratio)
+    return numpy.log(odds_ratio)
 
 
 def estimate_se(data):

@@ -1,1 +1,1 @@
-83920aac12c1e7bca9e0c23352515cb5  processed_data/gwas/dbox_gwas.txt
+b72ab9e5c6dfe0ed6375d401fb88c458  processed_data/gwas/dbox_gwas.txt

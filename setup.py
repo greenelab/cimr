@@ -71,6 +71,7 @@ setuptools.setup(
         'requests',
         'pyyaml',
         'tqdm',
+        'pyliftover',
     ],
 
     # Additional groups of dependencies

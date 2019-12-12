@@ -1,9 +1,15 @@
 """Set of default values used in cimr"""
 
+from collections import namedtuple
+
+
 ANNOTURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/annotation/'
+CHAINURL = 'https://raw.githubusercontent.com/greenelab/cimr/harmon/cimr/data/chain/'
 
 # Current maximum is set with human chromosomes:
 # 1 - 22 autosomal chromosomes
+
+# plink and related software treat other chromosomes as:
 # X chromosome (n+1; 23)
 # Y chromosome (n+2; 24)
 # XY chromosome (n+3; 25)
@@ -27,12 +33,40 @@ VAR_COMPONENTS = [
     'effect_allele'
 ]
 
+# Column separators commonly found in input files
+SEPARATORS = {
+    'TAB': '\t',
+    'SPACE': ' ',
+    'TABSPACE': '\t| ',
+    'MULTISPACE': r'\s+',
+    '8SPACE': r'\s{,8}',
+    'COMMA': ','
+}
+
 DATA_TYPES = (
     'gwas', 'eqtl', 'sqtl', 'pqtl', 'gene', 'twas',
     'tad', 'multiple', 'yaml'
 )
 
 GENOME_BUILDS = ('b37', 'b38')
+
+# temporary local file locations
+SNP125HG17 = '/data/refs/dbsnp/snp125_hg17.txt.gz'
+SNP130HG18 = '/data/refs/dbsnp/snp130_hg18.txt.gz'
+SNP150HG19 = '/data/refs/dbsnp/snp150_hg19.txt.gz'
+SNP150HG38 = '/data/refs/dbsnp/snp150_hg38.txt.gz'
+
+HG19TO38 = CHAINURL + 'hg19ToHg38.over.chain.gz'
+HG18TO38 = CHAINURL + 'hg18ToHg38.over.chain.gz'
+
+DBSNP_HEADER = namedtuple('DBSNP',
+  ['binary_index', 'chromosome', 'start', 'end', 'name', 'score',
+  'strand', 'ref_ncbi', 'ref_ucsc', 'observed', 'mol_type',
+  'variant_class', 'valid', 'average_heterozigosity', 'average_heterozigosity_se',
+  'functional_category', 'location_type', 'quality_weight', 'exceptions',
+  'submitter_count', 'submitters', 'alleles_with_freq', 'alleles',
+  'allele_chromosome_count', 'allele_frequencies', 'bitfields']
+)
 
 WORKING_HEADER = {
     'rsnum', 'variant_id', 'pvalue',
@@ -89,5 +123,5 @@ META_HEADER = [
     'submitted_data_md5', 'citation', 'data_source',
     'build', 'context_variable_type', 'sample_size', 'n_cases',
     'method_name', 'method_tool',
-    'description'
+    'description', 'cimr_version'
 ]

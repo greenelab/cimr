@@ -4,7 +4,7 @@ from collections import namedtuple
 
 
 ANNOTURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/annotation/'
-CHAINURL = 'https://raw.githubusercontent.com/greenelab/cimr/harmon/cimr/data/chain/'
+CHAINURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/chain/'
 
 # Current maximum is set with human chromosomes:
 # 1 - 22 autosomal chromosomes

@@ -311,8 +311,16 @@ class Infiler:
         logging.debug(f' {self.included_header}')
         logging.debug(f' {self.data.head(2)}')
         if 'feature_id' in self.included_header:
+            # dhu test
+            #print("dhu:", "=" * 60)
+            #print("dhu", self.data['feature_id'])
+            #print("dhu...[0]", self.data['feature_id'][0])
+            #print("dhu:", "=" * 60)
+            # end of dhu test
+
             if self.data['feature_id'][0].startswith('ENS'):
                 self.trim_ensembl()
+            #self.trim_ensembl()  # dhu test
 
         if 'ensemblgene' in self.data.columns:
             return self.data.ensemblgene
@@ -649,6 +657,7 @@ class Infiler:
         for chunk in chunks:
             logging.debug(f' processing data.head(2): {chunk.head(2)}.')
             chunk.reset_index(drop=True, inplace=True)
+            logging.info('*' * 100)  # dhu test
             logging.info(f' processing input chunk {chunkcount}.')
 
             # check if empty and check header
@@ -750,5 +759,3 @@ class Integrator:
         except:
             print(sys.exc_info()[0])
         return 0
-
-

@@ -186,7 +186,6 @@ class Infiler:
             + self.data['alt'].astype(str) \
             + '_' \
             + self.data['build'].astype(str)
-        logging.debug(f' variant_id column verified.')
         logging.info(f' variant_id has been standardized.')
 
 
@@ -301,6 +300,7 @@ class Infiler:
 
         e.g. ENSG00000143614.7 -> ENSG00000143614
         """
+        self.data['original_feature_id'] = self.data['feature_id']
         ensemblid = self.data['feature_id'].str.split('.').str[0]
         self.data['feature_id'] = ensemblid
         logging.info(f' ensembl id has been truncated for database queries.')
@@ -478,7 +478,8 @@ class Infiler:
                 na_rep='NA',
                 compression='gzip',
                 float_format='%.6f',
-                mode='w'
+                mode='w',
+                encoding='utf-8'
             )
 
 
@@ -493,7 +494,8 @@ class Infiler:
                 na_rep='NA',
                 compression='gzip',
                 float_format='%.6f',
-                mode='a'
+                mode='a',
+                encoding='utf-8'
             )
 
     def check_h5_outfile(self):

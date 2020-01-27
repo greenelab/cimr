@@ -318,9 +318,9 @@ class Infiler:
             #print("dhu:", "=" * 60)
             # end of dhu test
 
-            if self.data['feature_id'][0].startswith('ENS'):
-                self.trim_ensembl()
-            #self.trim_ensembl()  # dhu test
+            #if self.data['feature_id'][0].startswith('ENS'):
+            #    self.trim_ensembl()
+            self.trim_ensembl()  # dhu test
 
         if 'ensemblgene' in self.data.columns:
             return self.data.ensemblgene
@@ -651,6 +651,8 @@ class Infiler:
             index_col=None,
             chunksize=self.chunksize
         )
+
+        logging.info('chunksize:', self.chunksize)  # dhu test line
 
         chunkcount = 0
 

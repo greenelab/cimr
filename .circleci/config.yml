@@ -11,20 +11,8 @@ jobs:
           name: Install cimr
           command: bash .circleci/install_cimr.sh
       - run:
-          name: Test different data_type files and resulting catalog.txt
-          command: bash .circleci/test_data_type.sh
-      - run:
-          name: Test gwas tarball file
-          no_output_timeout: 30m
-          command: bash .circleci/test_tgz.sh
-      - run:
-          name: Test dropbox link file
-          no_output_timeout: 30m
-          command: bash .circleci/test_dbox.sh
-      - run:
-          name: Test missing data checkers
-          no_output_timeout: 30m
-          command: bash .circleci/test_missing.sh
+          name: dhu big EQTL test
+          command: bash .circleci/dhu_eqtl.sh
 
 workflows:
   version: 2

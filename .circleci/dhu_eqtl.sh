@@ -8,7 +8,7 @@ date
 # default chunksize: 5 million
 #cimr processor -process -yaml-file dhu_test.yml
 
-# New chunksize: 2 million
-cimr processor -process -yaml-file dhu_test.yml -chunksize 2000000
+# New chunksize: 1 million
+cimr processor -process -yaml-file dhu_test.yml -chunksize 1000000
 
 date

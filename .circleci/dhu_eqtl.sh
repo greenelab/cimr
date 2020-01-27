@@ -2,7 +2,7 @@
 
 set -e -x
 
-cd ~/.circleci
+cd ~/cimr/.circleci/
 date
 cimr processor -process -yaml-file dhu_test.yml -chunksize 50000000
 date

@@ -652,7 +652,7 @@ class Infiler:
             chunksize=self.chunksize
         )
 
-        logging.info(f'chunksize: {self.chunksize}')  # dhu test line
+        logging.info(f'chunksize: {self.chunksize / 1000000} million')  # dhu test line
 
         chunkcount = 0
 

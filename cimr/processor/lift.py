@@ -15,22 +15,25 @@ import pyliftover
 from ..defaults import (HG19TO38, HG18TO38)
 
 
-def convert_coords(lifting, chrom, pos):
+def convert_coords(lifting, t):
     """Using pyliftover to convert genomic positions from
     older reference to the GRCh38/hg38 reference.
     """
     _lifted_chrom = 'NA'
     _lifted_pos = 'NA'
+    chrom = t.chrom
+    pos = t.pos
+    variant_id = t.variant_id
     try:
         pos = int(pos)
         lifted = lifting.convert_coordinate(chrom, pos)
         if lifted:
             if len(lifted) > 1:
-                logging.warning(f' Liftover with more than one candidate: {t.variant_id}')
+                logging.warning(f' Liftover with more than one candidate: {variant_id}')
             _lifted_chrom = lifted[0][0]
             _lifted_pos = lifted[0][1]
     except:
-        logging.debug(f' {t.variant_id} is not an integer.')
+        logging.debug(f' {variant_id} is not an integer.')
 
     return _lifted_chrom, _lifted_pos
 
@@ -38,14 +41,18 @@ def convert_coords(lifting, chrom, pos):
 def download_file(path):
     """Use wget to download file."""
 
-    run_cmd = 'wget ' + path
-    os.system(run_cmd)
     filename = path.split('/')[-1]
+
     if os.path.isfile(filename):
         return filename
     else:
-        logging.error(f' chain file is not available.')
-        sys.exit(1)
+        try:
+            run_cmd = 'wget ' + path
+            os.system(run_cmd)
+            return filename
+        except:
+            logging.error(f' chain file is not available.')
+            sys.exit(1)
 
 
 def call_liftover(df):
@@ -70,7 +77,7 @@ def call_liftover(df):
     df['pos_'+build] = df['pos']
     df['variant_id_'+build] = df['variant_id']
     for t in df.itertuples():
-        _lifted_chrom, _lifted_pos = convert_coords(lifting, t.chrom, t.pos)
+        _lifted_chrom, _lifted_pos = convert_coords(lifting, t)
         new_chrom.append(_lifted_chrom)
         new_pos.append(_lifted_pos)
 
@@ -79,8 +86,8 @@ def call_liftover(df):
     # update build information in the dataframe
     df['build'] = 'b38'
     logging.info(f' {str(df.shape[0])} variants after liftover')
-    os.remove(chain)
-    logging.info(f' {chain} file is removed.')
+    # os.remove(chain)
+    # logging.info(f' {chain} file is removed.')
     return df
 
 

@@ -32,6 +32,280 @@ from ..defaults import (COMPRESSION_EXTENSION, ANNOTURL,
     SNP125HG17, SNP130HG18, SNP150HG19, SNP150HG38, HG19TO38)
 
 
+########################################################################
+#            dhu process_chunk() and related functions
+########################################################################
+import time
+from datetime import datetime
+
+# Based on Infiler.rename_columns() method (called by process_chunk)
+def rename_columns(columnset, df):
+    logging.info(f' renaming columns based on column dictionary.')
+    df.rename(columnset, axis=1, inplace=True)
+    logging.debug(f' renamed df.head(2): {df.head(2)}')
+
+# Based on Infiler.make_composite_id() method
+def make_composite_id(df, included_header):
+    """Files may be missing the standardized variant_id
+    but may contain chrom, pos, ref and alt columns to make a
+    new variant_id column. This option can be activated
+    by indicating all variant_id component fields in the yaml.
+    """
+
+    logging.debug(f' processing information needed to make variant_id.')
+
+    if set(VAR_COMPONENTS).issubset(set(included_header)):
+        logging.debug(f' checking {VAR_COMPONENTS} for missing values.')
+        df.dropna(subset=VAR_COMPONENTS, inplace=True)
+        logging.debug(f' rows with missing {VAR_COMPONENTS} are dropped.')
+
+        logging.debug(f' making variant_id using {VAR_COMPONENTS}.')
+        df['chrom'] = df['variant_chrom']
+        self.check_chrom()
+        logging.info(f' verifying variant positions are int values.')
+        self.data['variant_pos'] = self.data['variant_pos'].astype(int)
+        logging.debug(f' changing verified values to str.')
+        self.data['variant_pos'] = self.data['variant_pos'].astype(str)
+
+        self.data['pos'] = self.data['variant_pos']
+        self.data['ref'] = self.data['non_effect_allele']
+        self.data['alt'] = self.data['effect_allele']
+        self.data['build'] = self.genome_build
+
+        # make variant_id from components
+        self.make_variant_id()
+
+        # redefine included_header from columns including variant_id
+        self.included_header = intersect_set(
+            HEADER, df.columns
+        )
+
+    else:
+        logging.error(f' missing columns necessary to make variant_id.')
+        sys.exit(1)
+
+
+# Based on Infiler.check_data() method (called by process_chunk)
+def check_data(infiler_instance, df):
+    """Check different columns for dtype, remove missing rows and
+    standardize format to be used for analyses
+    """
+
+    #logging.debug(f' HEADER: {HEADER}.')
+    #logging.debug(f' columns: {data.columns}.'
+    logging.info(f' HEADER: {HEADER}.')
+    logging.info(f' columns: {data.columns}.')
+    included_header = intersect_set(HEADER, data.columns)
+    #logging.debug(f' included header overlapping cimr default set: {included_header}.')
+    logging.info(f' included header overlapping cimr default set: {included_header}.')
+
+    # dhu: find_reference() is now called in process_file() before each chunk is processed.
+    #self.find_reference()
+
+    df.reset_index(inplace=True, drop=True)
+    #self.data = data.copy()
+
+    # standardize variant_id based on info provided in the input file
+    if 'variant_id' not in df.columns:
+        logging.info(f' variant_id column is not provided.')
+        logging.info(f' checking columns necessary to make variant_id...')
+        self.make_composite_id()
+        logging.debug(f' data.head(2): {self.data.head(2)}')
+    elif 'variant_id' in included_header:
+        self.get_pos()
+        self.check_chrom()
+        self.make_variant_id()
+    else:
+        logging.error(f' variant_id column is not provided.')
+        sys.exit(1)
+
+    # update map + variant_id if genome_build is not hg38
+    if (self.genome_build != 'hg38') and (self.genome_build != 'b38'):
+        from .lift import call_liftover
+        self.data = call_liftover(self.data)
+        # with the updated map, genome_build variable can be updated
+        self.genome_build = 'b38'
+        self.make_variant_id()
+
+    if 'rsnum' in self.data.columns:
+        if self.update_rsid:
+            self.check_ref()
+    else:
+        logging.warning(f' rsnum column is not provided.')
+
+    for col in INT_COLUMNS:
+        if col in self.data.columns:
+            self.data[col] = self.data[col].astype(int)
+
+    if 'inc_allele' in self.data.columns:
+        self.fill_effect_allele()
+    else:
+        logging.debug(f' inc_allele column is not available.')
+
+
+    self.data = remove_palindromic(self.data)
+    columns_to_drop = [
+        'chrom', 'pos', 'ref', 'alt', 'chromosome', 'build',
+        'position', 'inc_allele', 'variant_chrom', 'variant_pos'
+    ]
+    for col in columns_to_drop:
+        if col in self.data.columns:
+            self.data.drop(
+                col,
+                axis=1,
+                inplace=True
+            )
+
+    self.data = estimate_se(self.data)
+    self.data = convert_z_to_p(self.data)
+    self.data = convert_p_to_z(self.data)
+    self.data = convert_or_to_beta(self.data)
+    self.data = get_z(self.data)
+
+    for col in REQ_COLUMNS:
+        if col not in self.data.columns:
+            logging.error(f' {col} is required.')
+            sys.exit(1)
+
+    for col in NUMERIC_COLUMNS:
+        if col in self.data.columns:
+            self.data = check_numeric(self.data, col)
+
+    for col in PROB_COLUMNS:
+        if col in self.data.columns:
+            check_probability(self.data, col)
+
+
+def process_chunk(infiler_instance, chunk, chunkcount):
+    """Process a certain chunk."""
+
+    logging.debug(f' processing data.head(2): {chunk.head(2)}.')
+    chunk.reset_index(drop=True, inplace=True)
+    logging.info('*' * 80)  # dhu test
+    logging.info(f' chunk #{chunkcount}: start processing.')
+
+    # check if empty and check header
+    if not chunk.empty:
+        if infiler_instance.columnset:
+            rename_columns(infiler_instance.columnset, chunk)
+            if '#CHROM' in chunk.columns:
+                #logging.debug(f' renaming #CHROM to variant_chrom.')
+                logging.info(f' renaming #CHROM to variant_chrom.')  # dhu
+                chunk.rename(
+                    columns={'#CHROM':'variant_chrom'},
+                    inplace=True
+                )
+
+        # check each column for variable types,
+        # standardize chromosome and variant ids, etc.
+        check_data(infiler_instance, chunk)
+        logging.info(f' processing data type {self.data_type}.')
+
+        #if infiler_instance.data_type == 'eqtl':
+        #    features = infiler_instance.list_features()
+            # 413 error
+            # self.call_querier(features)
+        #    infiler_instance.map_features(features)
+
+        #logging.info(f' dropping duplicate columns.')
+        #dropcols = infiler_instance.data.columns.duplicated()
+        #infiler_instance.data = infiler_instance.data.loc[:, ~dropcols]
+
+        # reorder columns so that mandatory fields are listed first.
+        #logging.info(f' reordering processed data.')
+        #infiler_instance.order_columns()
+        #logging.debug(f' data.head(2): {self.data.head(2)}')
+
+        #start_ts = datetime.timestamp(datetime.now())
+        #processed = False
+        #while datetime.timestamp(datetime.now()) - start_ts < 60:
+        #    if not processed:
+        #        new_gene_id = chunk['gene_id'].str.split('.').str[0]
+        #        chunk['gene_id'] = new_gene_id
+        #        processed = True
+        #    #time.sleep(1)
+
+        new_gene_id = chunk['gene_id'].str.split('.').str[0]
+        chunk['gene_id'] = new_gene_id
+
+        logging.info(f' writing processed data.')
+        write_chunk_file(chunk, chunkcount)
+
+    else:
+        logging.error(f' no content in {self.file_name}.')
+        sys.exit(1)
+
+
+def process_chunk2(infiler_instance, chunk, chunkcount):
+    logging.debug(f' processing data.head(2): {chunk.head(2)}.')
+    chunk.reset_index(drop=True, inplace=True)
+    logging.info('*' * 100)  # dhu test
+    logging.info(f' processing input chunk {chunkcount}.')
+
+    # check if empty and check header
+    if not chunk.empty:
+        if infiler_instance.columnset:
+            infiler_instance.rename_columns(chunk)
+            if '#CHROM' in chunk.columns:
+                logging.debug(f' renaming #CHROM to variant_chrom.')
+                chunk.rename(
+                    columns={'#CHROM':'variant_chrom'},
+                    inplace=True
+                )
+        # check each column for variable types,
+        # standardize chromosome and variant ids, etc.
+        infiler_instance.check_data(chunk)
+        logging.debug(f' processing data type {infiler_instance.data_type}.')
+
+        if infiler_instance.data_type == 'eqtl':
+            features = infiler_instance.list_features()
+            # 413 error
+            # infiler_instance.call_querier(features)
+            infiler_instance.map_features(features)
+
+        logging.info(f' dropping duplicate columns.')
+        dropcols = infiler_instance.data.columns.duplicated()
+        infiler_instance.data = infiler_instance.data.loc[:, ~dropcols]
+
+        # reorder columns so that mandatory fields are listed first.
+        logging.info(f' reordering processed data.')
+        infiler_instance.order_columns()
+        logging.debug(f' data.head(2): {infiler_instance.data.head(2)}')
+
+        logging.info(f' writing processed data.')
+
+        # write if first chunk. append if not.
+        #if chunkcount == 0:
+        #    infiler_instance.write_header()
+        #elif chunkcount > 0:
+        #    infiler_instance.write_file()
+        #else:
+        #    logging.error(f' file {infiler_instance.outfile} cannot be written.')
+        #    sys.exit(1)
+
+        write_chunk_file(chunk, chunkcount)
+
+    else:
+        logging.error(f' no content in {infiler_instance.file_name}.')
+        sys.exit(1)
+
+
+def write_chunk_file(chunk, chunkcount):
+    """Write chunk data to a chunk file without header"""
+
+    header_flag = (chunkcount == 0)
+    if isinstance(chunk, pandas.DataFrame):
+        chunk.to_csv(
+            "foo_" + str(chunkcount + 1) + ".txt",
+            header=header_flag,
+            index=False,
+            sep='\t',
+            na_rep='NA',
+            #compression='gzip',
+            float_format='%.6f',
+            mode='w'
+        )
+
 
 class Infiler:
     """This is the cimr processor base class. functions regarding
@@ -474,7 +748,6 @@ class Infiler:
             if col in self.data.columns:
                 check_probability(self.data, col)
 
-
     def write_header(self):
         """Write data to file with header"""
         if isinstance(self.data, pandas.DataFrame):
@@ -488,7 +761,6 @@ class Infiler:
                 float_format='%.6f',
                 mode='w'
             )
-
 
     def write_file(self):
         """Write data to file without header"""
@@ -606,7 +878,6 @@ class Infiler:
         output_columns = list(REQ_COLUMNS) + (nonreq_columns)
         self.data = self.data[output_columns]
 
-
     def process_file(self):
         """A set of main functions in Infiler to process input files.
 
@@ -654,60 +925,31 @@ class Infiler:
 
         logging.info(f'chunksize: {self.chunksize / 1000000} million')  # dhu test line
 
+        ##############################################
+        #       dhu: serial processing:
+        #chunkcount = 0
+        #for chunk in chunks:
+        #    process_chunk(self, chunk, chunkcount)
+        #    chunkcount += 1
+        #return
+        ##############################################
+
+        import multiprocessing as mp
+        pool = mp.Pool(4) # use 4 processes
+
+        # dhu: This function used to be called by self.check_data()
+        #self.find_reference()
+
+        # process each data frame
+        import copy
         chunkcount = 0
-
         for chunk in chunks:
-            logging.debug(f' processing data.head(2): {chunk.head(2)}.')
-            chunk.reset_index(drop=True, inplace=True)
-            logging.info('*' * 100)  # dhu test
-            logging.info(f' processing input chunk {chunkcount}.')
-
-            # check if empty and check header
-            if not chunk.empty:
-                if self.columnset:
-                    self.rename_columns(chunk)
-                    if '#CHROM' in chunk.columns:
-                        logging.debug(f' renaming #CHROM to variant_chrom.')
-                        chunk.rename(
-                            columns={'#CHROM':'variant_chrom'},
-                            inplace=True
-                        )
-                # check each column for variable types,
-                # standardize chromosome and variant ids, etc.
-                self.check_data(chunk)
-                logging.debug(f' processing data type {self.data_type}.')
-
-                if self.data_type == 'eqtl':
-                    features = self.list_features()
-                    # 413 error
-                    # self.call_querier(features)
-                    self.map_features(features)
-
-                logging.info(f' dropping duplicate columns.')
-                dropcols = self.data.columns.duplicated()
-                self.data = self.data.loc[:, ~dropcols]
-
-                # reorder columns so that mandatory fields are listed first.
-                logging.info(f' reordering processed data.')
-                self.order_columns()
-                logging.debug(f' data.head(2): {self.data.head(2)}')
-
-                logging.info(f' writing processed data.')
-
-                # write if first chunk. append if not.
-                if chunkcount == 0:
-                    self.write_header()
-                elif chunkcount > 0:
-                    self.write_file()
-                else:
-                    logging.error(f' file {self.outfile} cannot be written.')
-                    sys.exit(1)
-
-            else:
-                logging.error(f' no content in {self.file_name}.')
-                sys.exit(1)
-
+            #pool.apply_async(process_chunk, [self, chunk, chunkcount])
+            infiler_instance = copy.deepcopy(self)
+            pool.apply_async(process_chunk2, [infiler_instance, chunk, chunkcount])
             chunkcount += 1
+        pool.close()
+        pool.join()
 
 
 class Integrator:

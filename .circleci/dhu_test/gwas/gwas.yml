@@ -1,0 +1,40 @@
+
+data_file:
+    description: >-
+        reported phenotype: Malignant neoplasm of testis; phenotype category: neoplasms; sample size: 400577; number of cases: 2981; number of controls: 401788; number of excluded controls: 4192; url for manhattan plots: https://www.dropbox.com/s/3v2ywux2py7kptg/187.2-Malignantneoplasmoftestis-2981cases-401788controls.mh.pdf?dl=0
+    location:
+        url: ftp://share.sph.umich.edu/UKBB_SAIGE_HRC/PheCode_187.2_SAIGE_MACge20.txt.vcf.gz
+        md5: d6e0c6684c28de6e126e82e8ae3ec9da
+
+    columns:
+        variant_chrom: #CHROM
+        variant_pos: POS
+        rsnum: ID
+        ref: REF
+        alt: ALT
+        effect_allele: ALT
+        non_effect_allele: REF
+        inc_afrq: af
+        effect_size: beta
+        standard_error: sebeta
+        pvalue: pval
+
+data_info:
+    citation: 10.1038/s41588-018-0184-y
+    data_source: https://www.leelabsg.org/resources
+    data_type: gwas
+    context: Malignant neoplasm of testis
+    context_id: PheCode_187.2
+    build: b38
+    sample_size: 400577
+    n_cases: 2981
+    can_be_public: true
+
+method:
+    name: Scalable and Accurate Implementation of GEneralized mixed model
+    tool: SAIGE
+    website: https://github.com/weizhouUMICH/SAIGE/
+
+contributor:
+    email: cimrroot@gmail.com
+

@@ -12,7 +12,7 @@ jobs:
           command: bash .circleci/install_cimr.sh
       - run:
           name: dhu big EQTL test
-          command: bash .circleci/dhu_eqtl.sh
+          command: bash .circleci/dhu_test/gwas/run.sh
 
 workflows:
   version: 2

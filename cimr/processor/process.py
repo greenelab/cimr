@@ -283,28 +283,40 @@ def process_chunk2(infiler_instance, chunk, chunkcount):
         #    logging.error(f' file {infiler_instance.outfile} cannot be written.')
         #    sys.exit(1)
 
-        write_chunk_file(chunk, chunkcount)
+        write_chunk_file(infiler_instance.data, chunkcount)
 
     else:
         logging.error(f' no content in {infiler_instance.file_name}.')
         sys.exit(1)
 
 
-def write_chunk_file(chunk, chunkcount):
+def write_chunk_file(df, chunkcount, is_parallel=True):
     """Write chunk data to a chunk file without header"""
 
     header_flag = (chunkcount == 0)
-    if isinstance(chunk, pandas.DataFrame):
-        chunk.to_csv(
-            "foo_" + str(chunkcount + 1) + ".txt",
-            header=header_flag,
-            index=False,
-            sep='\t',
-            na_rep='NA',
-            #compression='gzip',
-            float_format='%.6f',
-            mode='w'
-        )
+    if isinstance(df, pandas.DataFrame):
+        if is_parallel:  # parallel mode
+            df.to_csv(
+                "foo_" + str(chunkcount + 1) + ".txt",
+                header=header_flag,
+                index=False,
+                sep='\t',
+                na_rep='NA',
+                #compression='gzip',
+                float_format='%.6f',
+                mode='w'
+            )
+        else:            # serial mode
+            df.to_csv(
+                "processed_data/output.txt.gz",
+                header=header_flag,
+                index=False,
+                sep='\t',
+                na_rep='NA',
+                compression='gzip',
+                float_format='%.6f',
+                mode='a'
+            )
 
 
 class Infiler:
@@ -878,7 +890,112 @@ class Infiler:
         output_columns = list(REQ_COLUMNS) + (nonreq_columns)
         self.data = self.data[output_columns]
 
-    def process_file(self):
+
+    def process_file_serial(self):
+        """A set of main functions in Infiler to process input files.
+
+        Following actions are performed:
+
+        01. Check if file exists in the indicated download directory
+        02. Load
+        For each chunk,
+          03. Check if empty.
+          04. Standardize column names.
+          05. Standardize chromosome names.
+          06. If variant_id is not provided or non-standard format,
+              search for chromosome, position, ref, alt and genome_build
+              information to create a standardized variant_id column
+          07. If effect_size, pvalue or zscore columns are not provided,
+              search for necessary information to estimate using
+              convertibles
+          08. Check columns for their expected variable data types.
+          09. If file data_type == eqtl, check feature_id column.
+              Standardize feature_id.
+          10. Drop duplicate columns, if any.
+          11. Reset index and reorder mandatory columns to the front.
+          12. Write to file.
+        """
+        self.file_name = find_file(self.file_name)
+
+        logging.debug(f' looking for column separators.')
+        self.get_sep()
+
+        logging.info(f' loading {self.file_name}.')
+        chunks = pandas.read_csv(
+            self.file_name,
+            # c engine does not support regex
+            # sep=r'\s{,8}',
+            # lots of files are whitespace delimited
+            # default behavior will push all missing columns to last
+            # delim_whitespace=True,
+            # sep='\t| ',
+            sep=self.sep,
+            header=0,
+            iterator=True,
+            index_col=None,
+            chunksize=self.chunksize
+        )
+
+        logging.info(f'chunksize: {self.chunksize / 1000000} million')  # dhu test line
+
+        chunkcount = 0
+
+        for chunk in chunks:
+            logging.debug(f' processing data.head(2): {chunk.head(2)}.')
+            chunk.reset_index(drop=True, inplace=True)
+            logging.info('*' * 100)  # dhu test
+            logging.info(f' processing input chunk {chunkcount}.')
+
+            # check if empty and check header
+            if not chunk.empty:
+                if self.columnset:
+                    self.rename_columns(chunk)
+                    if '#CHROM' in chunk.columns:
+                        logging.debug(f' renaming #CHROM to variant_chrom.')
+                        chunk.rename(
+                            columns={'#CHROM':'variant_chrom'},
+                            inplace=True
+                        )
+                # check each column for variable types,
+                # standardize chromosome and variant ids, etc.
+                self.check_data(chunk)
+                logging.debug(f' processing data type {self.data_type}.')
+
+                if self.data_type == 'eqtl':
+                    features = self.list_features()
+                    # 413 error
+                    # self.call_querier(features)
+                    self.map_features(features)
+
+                logging.info(f' dropping duplicate columns.')
+                dropcols = self.data.columns.duplicated()
+                self.data = self.data.loc[:, ~dropcols]
+
+                # reorder columns so that mandatory fields are listed first.
+                logging.info(f' reordering processed data.')
+                self.order_columns()
+                logging.debug(f' data.head(2): {self.data.head(2)}')
+
+                logging.info(f' writing processed data.')
+
+                # write if first chunk. append if not.
+                #if chunkcount == 0:
+                #    self.write_header()
+                #elif chunkcount > 0:
+                #    self.write_file()
+                #else:
+                #    logging.error(f' file {self.outfile} cannot be written.')
+                #    sys.exit(1)
+                write_chunk_file(chunk, chunkcount, False)
+
+            else:
+                logging.error(f' no content in {self.file_name}.')
+                sys.exit(1)
+
+            chunkcount += 1
+
+
+    def process_file_parallel(self):
         """A set of main functions in Infiler to process input files.
 
         Following actions are performed:
@@ -935,7 +1052,7 @@ class Infiler:
         ##############################################
 
         import multiprocessing as mp
-        pool = mp.Pool(6) # use 4 processes
+        pool = mp.Pool(4) # use 4 processes
 
         # dhu: This function used to be called by self.check_data()
         #self.find_reference()
@@ -944,12 +1061,15 @@ class Infiler:
         import copy
         chunkcount = 0
         for chunk in chunks:
-            #pool.apply_async(process_chunk, [self, chunk, chunkcount])
             infiler_instance = copy.deepcopy(self)
             pool.apply_async(process_chunk2, [infiler_instance, chunk, chunkcount])
             chunkcount += 1
         pool.close()
         pool.join()
+
+    # dhu: test either serial (original) or parallel (new) data processing
+    process_file = process_file_serial
+    #process_file = process_file_parallel
 
 
 class Integrator:

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 cd ~/.circleci/dhu_test/gwas/
 
 # Remove previous output files

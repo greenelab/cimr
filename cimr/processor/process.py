@@ -935,7 +935,7 @@ class Infiler:
         ##############################################
 
         import multiprocessing as mp
-        pool = mp.Pool(4) # use 4 processes
+        pool = mp.Pool(6) # use 4 processes
 
         # dhu: This function used to be called by self.check_data()
         #self.find_reference()

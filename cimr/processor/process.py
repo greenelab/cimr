@@ -1068,8 +1068,8 @@ class Infiler:
         pool.join()
 
     # dhu: test either serial (original) or parallel (new) data processing
-    process_file = process_file_serial
-    #process_file = process_file_parallel
+    #process_file = process_file_serial
+    process_file = process_file_parallel
 
 
 class Integrator:

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd ~/.circleci/dhu_test/gwas/
+
 # Remove previous output files
 rm -rf processed_data/ catalog.txt foo_*
 

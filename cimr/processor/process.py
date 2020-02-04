@@ -471,7 +471,7 @@ class Infiler:
         logging.debug(f' processing data.head(2): {chunk.head(2)}.')
         chunk.reset_index(drop=True, inplace=True)
         logging.info('*' * 80)  # dhu test
-        logging.info(f' processing input chunk {self.chunk_num}.')
+        logging.info(f' processing input chunk {self.chunk_id}.')
 
         # check if empty and check header
         if not chunk.empty:
@@ -514,9 +514,9 @@ class Infiler:
     def write_chunk_file(self):
         """Write chunk data to a chunk file without header"""
 
-        header_flag = (self.chunk_num == 1)
+        header_flag = (self.chunk_id == 1)
         if isinstance(self.data, pandas.DataFrame):
-            chunk_filename = self.chunk_file_prefix + str(self.chunk_num)
+            chunk_filename = self.chunk_file_prefix + str(self.chunk_id)
             self.data.to_csv(
                 chunk_filename,
                 header=header_flag,
@@ -706,19 +706,19 @@ class Infiler:
         for chunk in chunks:
             chunkcount += 1
             chunk_instance = copy.deepcopy(self)
-            chunk_instance.chunk_num = chunkcount
+            chunk_instance.chunk_id = chunkcount
             pool.apply_async(chunk_instance.process_chunk, [chunk])
 
         pool.close()
         pool.join()
 
         # Combine each chunk's output files together into a single output file
-        logging.info(f" Combine chunk output files")
+        logging.info(f" Combine chunk output files ...")
         self.num_chunks = chunkcount
         self.combine_chunks()
 
         # Remove chunk output files
-        logging.info(f" Remove chunk output files")
+        logging.info(f" Remove chunk output files ...")
         self.rm_chunk_files()
 
 

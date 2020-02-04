@@ -11,8 +11,37 @@ jobs:
           name: Install cimr
           command: bash .circleci/install_cimr.sh
       - run:
-          name: dhu big EQTL test
-          command: bash .circleci/dhu_test/gwas/run.sh
+          name: Serial Test - SMALL gwas, default chunksize (5m)
+          working_directory: ~/cimr/.circleci/dhu_test/small_gwas
+          command: |
+            rm -rf submitted_data/ processed_data/ catalog.txt
+            cimr processor -process -yaml-file small_gwas.yml
+            gunzip -k processed_data/gwas/gwas.txt.gz
+            md5sum --check md5.txt
+      - run:
+          name: Serial Test - SMALL gwas, chunksize 500
+          working_directory: ~/cimr/.circleci/dhu_test/small_gwas
+          command: |
+            rm -rf submitted_data/ processed_data/ catalog.txt
+            cimr processor -process -yaml-file small_gwas.yml -chunksize 500
+            gunzip -k processed_data/gwas/gwas.txt.gz
+            md5sum --check md5.txt
+      - run:
+          name: Serial Test - BIG gwas, default chunksize (5m)
+          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          command: |
+            rm -rf submitted_data/ processed_data/ catalog.txt
+            cimr processor -process -yaml-file big_gwas.yml
+            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
+            md5sum --check md5.txt
+      - run:
+          name: Serial Test - BIG gwas, chunksize 1m
+          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          command: |
+            rm -rf submitted_data/ processed_data/ catalog.txt
+            cimr processor -process -yaml-file big_gwas.yml -chunksize 1000000
+            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
+            md5sum --check md5.txt
 
 workflows:
   version: 2

@@ -27,19 +27,19 @@ jobs:
             gunzip -k processed_data/gwas/gwas.txt.gz
             md5sum --check md5.txt
       - run:
-          name: Parallel Test - BIG gwas, default chunksize (5m)
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
-          command: |
-            rm -rf submitted_data/ processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml
-            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
-            md5sum --check md5.txt
-      - run:
           name: Parallel Test - BIG gwas, chunksize 1m
           working_directory: ~/cimr/.circleci/dhu_test/big_gwas
           command: |
             rm -rf submitted_data/ processed_data/ catalog.txt
             cimr processor -process -yaml-file big_gwas.yml -chunksize 1000000
+            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
+            md5sum --check md5.txt
+      - run:
+          name: Parallel Test - BIG gwas, default chunksize (5m)
+          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          command: |
+            rm -rf submitted_data/ processed_data/ catalog.txt
+            cimr processor -process -yaml-file big_gwas.yml
             gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
             md5sum --check md5.txt
 

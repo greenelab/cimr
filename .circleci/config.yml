@@ -11,7 +11,7 @@ jobs:
           name: Install cimr
           command: bash .circleci/install_cimr.sh
       - run:
-          name: Serial Test - SMALL gwas, default chunksize (5m)
+          name: Parallel Test - SMALL gwas, default chunksize (5m)
           working_directory: ~/cimr/.circleci/dhu_test/small_gwas
           command: |
             rm -rf submitted_data/ processed_data/ catalog.txt
@@ -19,7 +19,7 @@ jobs:
             gunzip -k processed_data/gwas/gwas.txt.gz
             md5sum --check md5.txt
       - run:
-          name: Serial Test - SMALL gwas, chunksize 500
+          name: Parallel Test - SMALL gwas, chunksize 500
           working_directory: ~/cimr/.circleci/dhu_test/small_gwas
           command: |
             rm -rf submitted_data/ processed_data/ catalog.txt
@@ -27,7 +27,7 @@ jobs:
             gunzip -k processed_data/gwas/gwas.txt.gz
             md5sum --check md5.txt
       - run:
-          name: Serial Test - BIG gwas, default chunksize (5m)
+          name: Parallel Test - BIG gwas, default chunksize (5m)
           working_directory: ~/cimr/.circleci/dhu_test/big_gwas
           command: |
             rm -rf submitted_data/ processed_data/ catalog.txt
@@ -35,7 +35,7 @@ jobs:
             gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
             md5sum --check md5.txt
       - run:
-          name: Serial Test - BIG gwas, chunksize 1m
+          name: Parallel Test - BIG gwas, chunksize 1m
           working_directory: ~/cimr/.circleci/dhu_test/big_gwas
           command: |
             rm -rf submitted_data/ processed_data/ catalog.txt

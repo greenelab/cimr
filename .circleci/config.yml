@@ -1,10 +1,15 @@
 version: 2.1
-jobs:
+workflows:
+  version: 2
   test:
+    jobs:
+      - test-3.6
+      - test-3.7
+      - test-3.8
+jobs:
+  test-3.6: &test-template
     docker:
       - image: circleci/python:3.6.8
-      - image: circleci/python:3.7.6
-      - image: circleci/python:3.8
     working_directory: ~/cimr
     resource_class: xlarge
     steps:
@@ -31,6 +36,11 @@ jobs:
           name: Test chunksize option
           no_output_timeout: 30m
           command: bash .circleci/test_chunksize.sh
+
+  test-3.7:
+    <<: *test-template
+    docker:
+      - image: circleci/python:3.7.6
 
 
 workflows:

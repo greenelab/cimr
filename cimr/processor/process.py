@@ -6,6 +6,7 @@
 """
 
 import copy
+import gzip
 import sys
 import pandas
 import pathlib
@@ -530,22 +531,13 @@ class Infiler:
     def combine_chunks(self):
         """Combine each chunk's output file into one compressed file."""
 
-        import gzip, shutil
-
-        # First combine all chunk files into one big file
-        combo_filename = self.chunk_file_prefix + ".combined"
-        with open(combo_filename, 'a') as combo_file:
+        # To make compression faster, use compresslevel 6 (instead of the default 9)
+        with gzip.open(str(self.outfile), mode='ab', compresslevel=6) as out_file:
             for i in range(1, self.num_chunks + 1):
                 chunk_filename = self.chunk_file_prefix + str(i)
-                with open(chunk_filename) as in_file:
-                    combo_file.write(in_file.read())
-
-        # Then compress the single combined file into gz format.
-        # "compresslevel=6" is used to save processing time (default is 9).
-        logging.info(f' compressing output file ...')
-        with open(combo_filename, 'rb') as f_in:
-            with gzip.open(str(self.outfile), compresslevel=6, mode='wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
+                logging.info(f" Combining {chunk_filename} ...")
+                with open(chunk_filename) as cf:
+                    out_file.write(cf.read().encode('utf-8'))
 
     def rm_chunk_files(self):
         """Remove each chunk's output file."""

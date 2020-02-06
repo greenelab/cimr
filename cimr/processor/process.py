@@ -301,7 +301,7 @@ class Infiler:
         e.g. ENSG00000143614.7 -> ENSG00000143614
         """
         self.data['original_feature_id'] = self.data['feature_id']
-        ensemblid = self.data['feature_id'].str.split('.').str[0]
+        ensemblid = self.data['feature_id'].str.split(r'\.').str[0]
         self.data['feature_id'] = ensemblid
         logging.info(f' ensembl id has been truncated for database queries.')
 

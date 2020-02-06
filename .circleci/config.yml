@@ -113,6 +113,20 @@ jobs:
             gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
             md5sum --check md5.txt
 
+      - run:
+          name: Serial Test - BIG gwas, chunksize 5m, 1 CPU only
+          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          command: |
+            rm -rf processed_data/ catalog.txt
+            cimr processor -process -yaml-file big_gwas.yml -parallel 1
+      - run:
+          name: md5 check
+          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          command: |
+            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
+            md5sum --check md5.txt
+
+
 workflows:
   version: 2
   test:

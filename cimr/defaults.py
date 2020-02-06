@@ -23,6 +23,9 @@ MAXCHROM = 27
 # Can be overwritten with commandline argument '-chunksize'
 CHUNKSIZE = 5000000
 
+# Number of parallel processes
+PARALLEL = 4
+
 VERY_SMALL_P = 1e-70
 
 # Minimally sufficient information to make unique variant IDs

@@ -28,6 +28,7 @@ import importlib
 import cimr
 
 from .defaults import CHUNKSIZE
+from .defaults import PARALLEL_NUM
 from .defaults import DATA_TYPES
 
 
@@ -160,6 +161,13 @@ def add_subparser_processor(subparsers):
         dest='chunksize',
         type=int,
         help='number of rows in the input file to process at a time',
+    )
+    parser.add_argument(
+        '-parallel',
+        default=PARALLEL,
+        dest='parallel',
+        type=int,
+        help='number of parallel processes',
     )
     parser.add_argument(
         '-yaml-file',
@@ -386,5 +394,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

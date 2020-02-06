@@ -118,6 +118,7 @@ def main(args,
                 args.update_rsid,
                 outfile,
                 args.chunksize,
+                args.parallel,
                 columnset=columnset
             )
 
@@ -211,5 +212,3 @@ def processor_cli(args):
     else:
         logging.error(f' data_type or file_name is not recognized; nothing to do.')
         sys.exit(1)
-
-

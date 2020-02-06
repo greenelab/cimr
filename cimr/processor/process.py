@@ -103,6 +103,7 @@ class Infiler:
                  update_rsid,
                  outfile,
                  chunksize,
+                 parallel,
                  columnset):
 
         if data_type not in DATA_TYPES:
@@ -116,13 +117,19 @@ class Infiler:
         self.update_rsid = update_rsid
         self.outfile = outfile
         self.chunksize = chunksize
+        self.parallel = parallel
         self.columnset = columnset
 
+
+    def log_prefix(self):
+        if hasattr(self, 'chunk_id'):
+            return f'chunk #{self.chunk_id}: '
+        return ''
 
     def get_sep(self):
         """Get column separator, if provided."""
         if 'column_separator' in self.columnset.values():
-            logging.debug(f' column_separator is provided.')
+            logging.debug(f' {self.log_prefix()}column_separator is provided.')
             _keys = list(self.columnset.keys())
             _values = list(self.columnset.values())
             sep = _keys[_values.index('column_separator')]
@@ -131,7 +138,7 @@ class Infiler:
             if sep in SEPARATORS:
                 self.sep = SEPARATORS[sep]
             else:
-                logging.warning(f' using tab as the default.')
+                logging.warning(f' {self.log_prefix()}using tab as the default.')
                 self.sep = '\t'
 
         else:
@@ -147,12 +154,12 @@ class Infiler:
             pass
         if '-' in variant_ids[0]:
             variant_ids = variant_ids.str.replace('-', '_')
-            logging.info(f' variant_id delimiter changed from \'-\' to \'_\'')
+            logging.info(f' {self.log_prefix()}variant_id delimiter changed from \'-\' to \'_\'')
         if ':' in variant_ids[0]:
             variant_ids = variant_ids.str.replace(':', '_')
-            logging.info(f' variant_id delimiter changed from \':\' to \'_\'')
+            logging.info(f' {self.log_prefix()}variant_id delimiter changed from \':\' to \'_\'')
         # else:
-        #     logging.error(f' unknown delimiter used in variant_id')
+        #     logging.error(f' {self.log_prefix()}unknown delimiter used in variant_id')
         #     sys.exit(1)
 
         temp = variant_ids.str.split('_', expand=True)
@@ -165,18 +172,18 @@ class Infiler:
             if len(temp.columns) == 5:
                 self.data['build'] = temp[4]
             else:
-                logging.info(f' updating variant_id to include build')
+                logging.info(f' {self.log_prefix()}updating variant_id to include build')
                 self.data['build'] = self.genome_build
                 self.data['variant_id'] = variant_ids + '_' + self.genome_build
 
 
     def make_variant_id(self):
         """(Re)make variant_id with updated chrom ID, build #, etc."""
-        logging.debug(f' standardizing allele codes...')
+        logging.debug(f' {self.log_prefix()}standardizing allele codes...')
         self.data['ref'] = self.data['ref'].str.upper()
         self.data['alt'] = self.data['alt'].str.upper()
 
-        logging.debug(f' making a new variant_id column.')
+        logging.debug(f' {self.log_prefix()}making a new variant_id column.')
 
         self.data['variant_id'] = self.data['chrom'].astype(str) \
             + '_' \
@@ -187,8 +194,8 @@ class Infiler:
             + self.data['alt'].astype(str) \
             + '_' \
             + self.data['build'].astype(str)
-        logging.debug(f' variant_id column verified.')
-        logging.info(f' variant_id has been standardized.')
+        logging.debug(f' {self.log_prefix()}variant_id column verified.')
+        logging.info(f' {self.log_prefix()}variant_id has been standardized.')
 
 
     def check_chrom(self):
@@ -214,15 +221,15 @@ class Infiler:
             self.data['chrom'] = self.data['chrom'].astype(int)
             self.data['chrom'] = self.data['chrom'].astype(str)
             chroms = self.data['chrom'].drop_duplicates().values
-            logging.debug(f' {chroms}')
+            logging.debug(f' {self.log_prefix()}{chroms}')
 
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
-            logging.info(f' there are {len(chroms)} chromosomes.')
+            logging.info(f' {self.log_prefix()}there are {len(chroms)} chromosomes.')
         elif len(chroms) <= (maxchrom - 2):
-            logging.info(f' chromosome(s) included: %s'%(chroms,))
+            logging.info(f' {self.log_prefix()}chromosome(s) included: %s'%(chroms,))
         else:
-            logging.warning(f' input file more than {maxchrom - 1} chromosomes.')
-            logging.warning(f' chromosome(s) included: %s'%(chroms,))
+            logging.warning(f' {self.log_prefix()}input file more than {maxchrom - 1} chromosomes.')
+            logging.warning(f' {self.log_prefix()}chromosome(s) included: %s'%(chroms,))
 
         if len(set(chroms) & set(chrom_str)) > (maxchrom - 2):
             pass
@@ -231,15 +238,15 @@ class Infiler:
             self.data['chrom'] = self.data['chrom'].map(
                 chrom_dict, na_action='ignore'
             ).fillna(self.data['chrom'])
-            logging.info(f' chromosome ids have been updated.')
+            logging.info(f' {self.log_prefix()}chromosome ids have been updated.')
         else:
-            logging.warning(f' chromosome id needs to be checked.')
+            logging.warning(f' {self.log_prefix()}chromosome id needs to be checked.')
 
         remainder = list(set(chroms) - set(chrom_str) - set(chrom_int))
         if len(remainder) > 0:
-            logging.warning(f' chromosome(s) not used: %s'%(remainder,))
+            logging.warning(f' {self.log_prefix()}chromosome(s) not used: %s'%(remainder,))
 
-        logging.info(f' finished checking chromosome ids.')
+        logging.info(f' {self.log_prefix()}finished checking chromosome ids.')
 
 
     def check_ref(self):
@@ -251,8 +258,8 @@ class Infiler:
         ref_file = resource_filename(
             'cimr', var_ref
             )
-        logging.info(f' using {ref_file} to check variants.')
-        logging.info(f' rs id reference is {ref_id}.')
+        logging.info(f' {self.log_prefix()}using {ref_file} to check variants.')
+        logging.info(f' {self.log_prefix()}rs id reference is {ref_id}.')
         refdf = pandas.read_csv(
             ref_file, sep='\t', header=0, dtype={'chr':'str'}
         )
@@ -271,10 +278,10 @@ class Infiler:
             samplecount = len(samples.index)
             rsrefcount = len(rsnum_ref.index)
             nomatchcount = len(variant_nomatch.index)
-            logging.info(f' {samplecount} sampled from {rsrefcount} total variants with rs ids,')
-            logging.info(f' {nomatchcount} variants do not match the reference.')
+            logging.info(f' {self.log_prefix()}{samplecount} sampled from {rsrefcount} total variants with rs ids,')
+            logging.info(f' {self.log_prefix()}{nomatchcount} variants do not match the reference.')
         else:
-            logging.error(f' there are no matching rs ids.')
+            logging.error(f' {self.log_prefix()}there are no matching rs ids.')
             pass
 
 
@@ -292,7 +299,7 @@ class Infiler:
             self.var_ref_id = 'rs_id_dbSNP150_GRCh38p7'
             self.dbsnp = SNP150HG38
         else:
-            logging.error(f' accepted genome_build values: b37, b38.')
+            logging.error(f' {self.log_prefix()}accepted genome_build values: b37, b38.')
             sys.exit(1)
 
 
@@ -304,13 +311,13 @@ class Infiler:
         """
         ensemblid = self.data['feature_id'].str.split('.').str[0]
         self.data['feature_id'] = ensemblid
-        logging.info(f' ensembl id has been truncated for database queries.')
+        logging.info(f' {self.log_prefix()}ensembl id has been truncated for database queries.')
 
 
     def list_features(self):
         """Find the list of features (e.g. genes)."""
-        logging.debug(f' {self.included_header}')
-        logging.debug(f' {self.data.head(2)}')
+        logging.debug(f' {self.log_prefix()}{self.included_header}')
+        logging.debug(f' {self.log_prefix()}{self.data.head(2)}')
         if 'feature_id' in self.included_header:
             if self.data['feature_id'][0].startswith('ENS'):
                 self.trim_ensembl()
@@ -320,7 +327,7 @@ class Infiler:
         elif 'feature_id' in self.data.columns:
             return self.data.feature_id
         else:
-            logging.error(f' feature_id column is not provided.')
+            logging.error(f' {self.log_prefix()}feature_id column is not provided.')
             sys.exit(1)
 
 
@@ -347,21 +354,21 @@ class Infiler:
         new variant_id column. This option can be activated
         by indicating all variant_id component fields in the yaml.
         """
-        logging.debug(f' processing information needed to make variant_id.')
+        logging.debug(f' {self.log_prefix()}processing information needed to make variant_id.')
 
         if set(VAR_COMPONENTS).issubset(set(self.included_header)):
-            logging.debug(f' checking {VAR_COMPONENTS} for missing values.')
+            logging.debug(f' {self.log_prefix()}checking {VAR_COMPONENTS} for missing values.')
             self.data.dropna(
                 subset=VAR_COMPONENTS, inplace=True
             )
-            logging.debug(f' rows with missing {VAR_COMPONENTS} are dropped.')
+            logging.debug(f' {self.log_prefix()}rows with missing {VAR_COMPONENTS} are dropped.')
 
-            logging.debug(f' making variant_id using {VAR_COMPONENTS}.')
+            logging.debug(f' {self.log_prefix()}making variant_id using {VAR_COMPONENTS}.')
             self.data['chrom'] = self.data['variant_chrom']
             self.check_chrom()
-            logging.info(f' verifying variant positions are int values.')
+            logging.info(f' {self.log_prefix()}verifying variant positions are int values.')
             self.data['variant_pos'] = self.data['variant_pos'].astype(int)
-            logging.debug(f' changing verified values to str.')
+            logging.debug(f' {self.log_prefix()}changing verified values to str.')
             self.data['variant_pos'] = self.data['variant_pos'].astype(str)
 
             self.data['pos'] = self.data['variant_pos']
@@ -378,7 +385,7 @@ class Infiler:
             )
 
         else:
-            logging.error(f' missing columns necessary to make variant_id.')
+            logging.error(f' {self.log_prefix()}missing columns necessary to make variant_id.')
             sys.exit(1)
 
 
@@ -386,12 +393,12 @@ class Infiler:
         """Check different columns for dtype, remove missing rows and
         standardize format to be used for analyses
         """
-        logging.debug(f' HEADER: {HEADER}.')
-        logging.debug(f' columns: {data.columns}.')
+        logging.debug(f' {self.log_prefix()}HEADER: {HEADER}.')
+        logging.debug(f' {self.log_prefix()}columns: {data.columns}.')
         self.included_header = intersect_set(
             HEADER, data.columns
         )
-        logging.debug(f' included header overlapping cimr default set: {self.included_header}.')
+        logging.debug(f' {self.log_prefix()}included header overlapping cimr default set: {self.included_header}.')
 
         self.find_reference()
         data.reset_index(inplace=True, drop=True)
@@ -399,16 +406,16 @@ class Infiler:
 
         # standardize variant_id based on info provided in the input file
         if 'variant_id' not in self.data.columns:
-            logging.info(f' variant_id column is not provided.')
-            logging.info(f' checking columns necessary to make variant_id...')
+            logging.info(f' {self.log_prefix()}variant_id column is not provided.')
+            logging.info(f' {self.log_prefix()}checking columns necessary to make variant_id...')
             self.make_composite_id()
-            logging.debug(f' data.head(2): {self.data.head(2)}')
+            logging.debug(f' {self.log_prefix()}data.head(2): {self.data.head(2)}')
         elif 'variant_id' in self.included_header:
             self.get_pos()
             self.check_chrom()
             self.make_variant_id()
         else:
-            logging.error(f' variant_id column is not provided.')
+            logging.error(f' {self.log_prefix()}variant_id column is not provided.')
             sys.exit(1)
 
         # update map + variant_id if genome_build is not hg38
@@ -423,7 +430,7 @@ class Infiler:
             if self.update_rsid:
                 self.check_ref()
         else:
-            logging.warning(f' rsnum column is not provided.')
+            logging.warning(f' {self.log_prefix()}rsnum column is not provided.')
 
         for col in INT_COLUMNS:
             if col in self.data.columns:
@@ -432,7 +439,7 @@ class Infiler:
         if 'inc_allele' in self.data.columns:
             self.fill_effect_allele()
         else:
-            logging.debug(f' inc_allele column is not available.')
+            logging.debug(f' {self.log_prefix()}inc_allele column is not available.')
 
 
         self.data = remove_palindromic(self.data)
@@ -456,7 +463,7 @@ class Infiler:
 
         for col in REQ_COLUMNS:
             if col not in self.data.columns:
-                logging.error(f' {col} is required.')
+                logging.error(f' {self.log_prefix()}{col} is required.')
                 sys.exit(1)
 
         for col in NUMERIC_COLUMNS:
@@ -469,17 +476,17 @@ class Infiler:
 
 
     def process_chunk(self, chunk):
-        logging.debug(f' processing data.head(2): {chunk.head(2)}.')
+        logging.debug(f' {self.log_prefix()}processing data.head(2): {chunk.head(2)}.')
         chunk.reset_index(drop=True, inplace=True)
-        logging.info('*' * 80)  # dhu test
-        logging.info(f' processing input chunk {self.chunk_id}.')
+        logging.info('*' * 30 + self.log_prefix() + '*' * 30)  # dhu test
+        logging.info(f' {self.log_prefix()}processing input chunk {self.chunk_id}.')
 
         # check if empty and check header
         if not chunk.empty:
             if self.columnset:
                 self.rename_columns(chunk)
                 if '#CHROM' in chunk.columns:
-                    logging.debug(f' renaming #CHROM to variant_chrom.')
+                    logging.debug(f' {self.log_prefix()}renaming #CHROM to variant_chrom.')
                     chunk.rename(
                         columns={'#CHROM':'variant_chrom'},
                         inplace=True
@@ -487,7 +494,7 @@ class Infiler:
             # check each column for variable types,
             # standardize chromosome and variant ids, etc.
             self.check_data(chunk)
-            logging.debug(f' processing data type {self.data_type}.')
+            logging.debug(f' {self.log_prefix()}processing data type {self.data_type}.')
 
             if self.data_type == 'eqtl':
                 features = self.list_features()
@@ -495,20 +502,20 @@ class Infiler:
                 # self.call_querier(features)
                 self.map_features(features)
 
-            logging.info(f' dropping duplicate columns.')
+            logging.info(f' {self.log_prefix()}dropping duplicate columns.')
             dropcols = self.data.columns.duplicated()
             self.data = self.data.loc[:, ~dropcols]
 
             # reorder columns so that mandatory fields are listed first.
-            logging.info(f' reordering processed data.')
+            logging.info(f' {self.log_prefix()}reordering processed data.')
             self.order_columns()
-            logging.debug(f' data.head(2): {self.data.head(2)}')
+            logging.debug(f' {self.log_prefix()}data.head(2): {self.data.head(2)}')
 
-            logging.info(f' writing processed data.')
+            logging.info(f' {self.log_prefix()}writing processed data.')
             self.write_chunk_file()
 
         else:
-            logging.error(f' no content in {self.file_name}.')
+            logging.error(f' n{self.log_prefix()}o content in {self.file_name}.')
             sys.exit(1)
 
 
@@ -535,7 +542,7 @@ class Infiler:
         with gzip.open(str(self.outfile), mode='ab', compresslevel=6) as out_file:
             for i in range(1, self.num_chunks + 1):
                 chunk_filename = self.chunk_file_prefix + str(i)
-                logging.info(f" Combining {chunk_filename} ...")
+                logging.info(f" {self.log_prefix()}Combining {chunk_filename} ...")
                 with open(chunk_filename) as cf:
                     out_file.write(cf.read().encode('utf-8'))
 
@@ -585,9 +592,9 @@ class Infiler:
         """Given a pandas dataframe and a dictionary, rename columns
         Primarily used for yaml column-set-based renaming in cimr.
         """
-        logging.info(f' renaming columns based on column dictionary.')
+        logging.info(f' {self.log_prefix()}renaming columns based on column dictionary.')
         dataframe.rename(self.columnset, axis=1, inplace=True)
-        logging.debug(f' renamed data.head(2): {dataframe.head(2)}')
+        logging.debug(f' {self.log_prefix()}renamed data.head(2): {dataframe.head(2)}')
 
 
     def call_querier(self, genes):
@@ -609,10 +616,10 @@ class Infiler:
         elif is_numeric_dtype(features):
             self.feature_type = 'entrezgene'
         else:
-            logging.error(f' feature reference cannot be determined.')
+            logging.error(f' {self.log_prefix()}feature reference cannot be determined.')
             sys.exit(1)
 
-        logging.debug(f' reading {self.gene_ref}.')
+        logging.debug(f' {self.log_prefix()}reading {self.gene_ref}.')
 
         if not 'feature_name' in self.included_header:
             gene_annot = pandas.read_csv(
@@ -624,8 +631,8 @@ class Infiler:
             gene_annot = gene_annot[cols]
             gene_annot.rename(columns={self.feature_type:'feature_id'}, inplace=True)
 
-            logging.debug(f' current dataframe: {self.data.head(2)}')
-            logging.debug(f' selected annotations: {gene_annot.head(2)}')
+            logging.debug(f' {self.log_prefix()}current dataframe: {self.data.head(2)}')
+            logging.debug(f' {self.log_prefix()}selected annotations: {gene_annot.head(2)}')
 
             self.data = self.data.merge(
                 gene_annot,
@@ -634,11 +641,11 @@ class Infiler:
                 left_index=False,
                 right_index=False
             )
-            logging.debug(f' dropping duplicates, if any...')
+            logging.debug(f' {self.log_prefix()}dropping duplicates, if any...')
             self.data.drop_duplicates(inplace=True)
             self.data.reset_index(inplace=True, drop=True)
-            logging.debug(f' dataframe has been annotated.')
-            logging.debug(f' {self.data.head(2)}')
+            logging.debug(f' {self.log_prefix()}dataframe has been annotated.')
+            logging.debug(f' {self.log_prefix()}{self.data.head(2)}')
 
 
     def order_columns(self):
@@ -674,10 +681,10 @@ class Infiler:
         """
         self.file_name = find_file(self.file_name)
 
-        logging.debug(f' looking for column separators.')
+        logging.debug(f' {self.log_prefix()}looking for column separators.')
         self.get_sep()
 
-        logging.info(f' loading {self.file_name}.')
+        logging.info(f' {self.log_prefix()}loading {self.file_name}.')
         chunks = pandas.read_csv(
             self.file_name,
             # c engine does not support regex
@@ -693,10 +700,10 @@ class Infiler:
             chunksize=self.chunksize
         )
 
-        logging.info(f'chunksize: {self.chunksize / 1000000} million')  # dhu test line
-
+        logging.info(f' {self.log_prefix()}chunksize: {self.chunksize / 1000000} million')
+        logging.info(f' {self.log_prefix()}number of parallel processes: {self.parallel}')
         import multiprocessing as mp
-        pool = mp.Pool(8) # use 8 processes
+        pool = mp.Pool(self.parallel) # set number of parallel processes
 
         # process each data frame
         tokens = str(self.outfile).split('.')
@@ -713,12 +720,12 @@ class Infiler:
         pool.join()
 
         # Combine each chunk's output files together into a single output file
-        logging.info(f" Combine chunk output files ...")
+        logging.info(f" {self.log_prefix()}Combine chunk output files ...")
         self.num_chunks = chunkcount
         self.combine_chunks()
 
         # Remove chunk output files
-        logging.info(f" Remove chunk output files ...")
+        logging.info(f" {self.log_prefix()}Remove chunk output files ...")
         self.rm_chunk_files()
 
 
@@ -765,8 +772,8 @@ class Integrator:
                 executable='/bin/bash'
             )
             cloned = cloner.communicate()
-            logging.info(f' {cloned}')
-            logging.info(f' downloaded the existing database for Integrator')
+            logging.info(f' {self.log_prefix()}{cloned}')
+            logging.info(f' {self.log_prefix()}downloaded the existing database for Integrator')
         except OSError as e:
             print(e.errno)
             print(e.strerror)

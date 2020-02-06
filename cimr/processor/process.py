@@ -696,7 +696,7 @@ class Infiler:
         logging.info(f'chunksize: {self.chunksize / 1000000} million')  # dhu test line
 
         import multiprocessing as mp
-        pool = mp.Pool(6) # use 6 processes
+        pool = mp.Pool(8) # use 8 processes
 
         # process each data frame
         tokens = str(self.outfile).split('.')

@@ -1,1 +1,1 @@
-65b07085fb658651858554925404b0d7  processed_data/gwas/PheCode_187.2_SAIGE_MACge20.txt.vcf.gz.tsv
+3ac2ecae6d487b174dc7173754732b62  processed_data/gwas/PheCode_187.2_SAIGE_MACge20.txt.vcf.gz.tsv

@@ -65,7 +65,7 @@ setuptools.setup(
     install_requires=[
         'scikit-learn',
         'numpy',
-        'pandas',
+        'pandas>=1.0.1',
         'pathlib',
         'setuptools',
         'requests',

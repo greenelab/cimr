@@ -28,7 +28,7 @@ import importlib
 import cimr
 
 from .defaults import CHUNKSIZE
-from .defaults import PARALLEL_NUM
+from .defaults import PARALLEL
 from .defaults import DATA_TYPES
 
 

@@ -1,0 +1,1 @@
+d6e0c6684c28de6e126e82e8ae3ec9da  submitted_data/gwas/PheCode_187.2_SAIGE_MACge20.txt.vcf.gz

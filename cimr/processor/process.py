@@ -7,6 +7,7 @@
 
 import copy
 import gzip
+import multiprocessing as mp
 import sys
 import pandas
 import pathlib
@@ -476,10 +477,9 @@ class Infiler:
 
 
     def process_chunk(self, chunk):
+        logging.info(f' {self.log_prefix()}processing input chunk {self.chunk_id}.')
         logging.debug(f' {self.log_prefix()}processing data.head(2): {chunk.head(2)}.')
         chunk.reset_index(drop=True, inplace=True)
-        logging.info('*' * 30 + self.log_prefix() + '*' * 30)  # dhu test
-        logging.info(f' {self.log_prefix()}processing input chunk {self.chunk_id}.')
 
         # check if empty and check header
         if not chunk.empty:
@@ -700,15 +700,16 @@ class Infiler:
             chunksize=self.chunksize
         )
 
-        logging.info(f' {self.log_prefix()}chunksize: {self.chunksize / 1000000} million')
-        logging.info(f' {self.log_prefix()}number of parallel processes: {self.parallel}')
-        import multiprocessing as mp
-        pool = mp.Pool(self.parallel) # set number of parallel processes
+        logging.info(f' chunksize: {self.chunksize / 1000000} million')
+        logging.info(f' number of parallel processes: {self.parallel}')
 
-        # process each data frame
         tokens = str(self.outfile).split('.')
         tokens[-1] = "chunk"
         self.chunk_file_prefix = ".".join(tokens)
+
+        # Process data frames in parallel
+        pool = mp.Pool(self.parallel)
+
         chunkcount = 0
         for chunk in chunks:
             chunkcount += 1
@@ -720,12 +721,12 @@ class Infiler:
         pool.join()
 
         # Combine each chunk's output files together into a single output file
-        logging.info(f" {self.log_prefix()}Combine chunk output files ...")
+        logging.info(f" combine chunk output files ...")
         self.num_chunks = chunkcount
         self.combine_chunks()
 
         # Remove chunk output files
-        logging.info(f" {self.log_prefix()}Remove chunk output files ...")
+        logging.info(f" remove chunk output files ...")
         self.rm_chunk_files()
 
 

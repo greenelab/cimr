@@ -27,19 +27,43 @@ jobs:
             gunzip -k processed_data/gwas/gwas.txt.gz
             md5sum --check md5.txt
       - run:
-          name: Parallel Test - BIG gwas, chunksize 1m
+          name: Download big GWAS file
           working_directory: ~/cimr/.circleci/dhu_test/big_gwas
           command: |
-            rm -rf submitted_data/ processed_data/ catalog.txt
+            wget ftp://share.sph.umich.edu/UKBB_SAIGE_HRC/PheCode_187.2_SAIGE_MACge20.txt.vcf.gz
+            mkdir -p submitted_data/gwas/
+            mv PheCode_187.2_SAIGE_MACge20.txt.vcf.gz submitted_data/gwas/
+            md5sum --check input_md5.txt
+      - run:
+          name: Parallel Test - BIG gwas, chunksize 1m, 4 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          command: |
+            rm -rf processed_data/ catalog.txt
             cimr processor -process -yaml-file big_gwas.yml -chunksize 1000000
             gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
             md5sum --check md5.txt
       - run:
-          name: Parallel Test - BIG gwas, default chunksize (5m)
+          name: Parallel Test - BIG gwas, chunksize 1m, 8 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/big_gwas
           command: |
-            rm -rf submitted_data/ processed_data/ catalog.txt
+            rm -rf processed_data/ catalog.txt
+            cimr processor -process -yaml-file big_gwas.yml -chunksize 1000000 -parallel 8
+            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
+            md5sum --check md5.txt
+      - run:
+          name: Parallel Test - BIG gwas, chunksize 5m, 4 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          command: |
+            rm -rf processed_data/ catalog.txt
             cimr processor -process -yaml-file big_gwas.yml
+            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
+            md5sum --check md5.txt
+      - run:
+          name: Parallel Test - BIG gwas, chunksize 5m, 8 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          command: |
+            rm -rf processed_data/ catalog.txt
+            cimr processor -process -yaml-file big_gwas.yml -parallel 8
             gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
             md5sum --check md5.txt
 

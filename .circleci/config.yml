@@ -3,6 +3,8 @@ jobs:
   test:
     docker:
       - image: circleci/python:3.6.8
+      - image: circleci/python:3.7.6
+      - image: circleci/python:3.8
     working_directory: ~/cimr
     resource_class: xlarge
     steps:
@@ -25,6 +27,11 @@ jobs:
           name: Test missing data checkers
           no_output_timeout: 30m
           command: bash .circleci/test_missing.sh
+      - run:
+          name: Test chunksize option
+          no_output_timeout: 30m
+          command: bash .circleci/test_chunksize.sh
+
 
 workflows:
   version: 2

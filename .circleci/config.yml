@@ -34,6 +34,7 @@ jobs:
             mkdir -p submitted_data/gwas/
             mv PheCode_187.2_SAIGE_MACge20.txt.vcf.gz submitted_data/gwas/
             md5sum --check input_md5.txt
+
       - run:
           name: Parallel Test - BIG gwas, chunksize 1m, 4 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/big_gwas
@@ -46,6 +47,7 @@ jobs:
           command: |
             gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
             md5sum --check md5.txt
+
       - run:
           name: Parallel Test - BIG gwas, chunksize 1m, 8 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/big_gwas
@@ -58,6 +60,7 @@ jobs:
           command: |
             gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
             md5sum --check md5.txt
+
       - run:
           name: Parallel Test - BIG gwas, chunksize 2m, 4 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/big_gwas
@@ -70,6 +73,7 @@ jobs:
           command: |
             gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
             md5sum --check md5.txt
+
       - run:
           name: Parallel Test - BIG gwas, chunksize 2m, 8 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/big_gwas
@@ -82,6 +86,7 @@ jobs:
           command: |
             gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
             md5sum --check md5.txt
+
       - run:
           name: Parallel Test - BIG gwas, chunksize 5m, 4 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/big_gwas
@@ -94,6 +99,7 @@ jobs:
           command: |
             gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
             md5sum --check md5.txt
+
       - run:
           name: Parallel Test - BIG gwas, chunksize 5m, 8 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/big_gwas

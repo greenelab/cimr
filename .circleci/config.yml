@@ -62,7 +62,7 @@ jobs:
             cimr processor -process -yaml-file big_gwas.yml -chunksize 1000000 -parallel 8
       - run:
           name: md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
           command: |
             gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
             md5sum --check md5.txt

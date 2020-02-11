@@ -1,10 +1,12 @@
 """Set of default values used in cimr"""
 
+
+import os
 from collections import namedtuple
 
-
-ANNOTURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/annotation/'
-CHAINURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/chain/'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ANNOT_DIR = os.path.join(BASE_DIR, 'data', 'annotation')
+CHAIN_DIR = os.path.join(BASE_DIR, 'data', 'chain')
 
 # Current maximum is set with human chromosomes:
 # 1 - 22 autosomal chromosomes
@@ -59,8 +61,8 @@ SNP130HG18 = '/data/refs/dbsnp/snp130_hg18.txt.gz'
 SNP150HG19 = '/data/refs/dbsnp/snp150_hg19.txt.gz'
 SNP150HG38 = '/data/refs/dbsnp/snp150_hg38.txt.gz'
 
-HG19TO38 = CHAINURL + 'hg19ToHg38.over.chain.gz'
-HG18TO38 = CHAINURL + 'hg18ToHg38.over.chain.gz'
+HG19TO38 = os.path.join(CHAIN_DIR, 'hg19ToHg38.over.chain.gz')
+HG18TO38 = os.path.join(CHAIN_DIR, 'hg18ToHg38.over.chain.gz')
 
 DBSNP_HEADER = namedtuple('DBSNP',
   ['binary_index', 'chromosome', 'start', 'end', 'name', 'score',

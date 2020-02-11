@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-"""General prompt for the cimr processor subprocess.
+"""General prompt for the cimr processor subprocess."""
 
-(c) YoSon Park
-"""
-
+__author__ = "yoson park"
 
 import sys
 import pathlib
@@ -92,24 +90,24 @@ def main(args,
         if file_name:
             if not str(out_path).endswith(FILE_EXTENSION):
                 outfile = pathlib.Path(str(out_path) + '.tsv.gz')
-                # phecode file workaround
-                if 'PheCode' in str(out_path):
-                    if str(out_path).endswith('.txt.vcf.gz.tsv.gz'):
-                        outfile = pathlib.Path(str(out_path).replace(
-                            '.txt.vcf.gz.tsv.gz', '.tsv.gz'
-                        ))
-                elif str(out_path).endswith('.tbl.rsid.gz.tsv.gz'):
-                    outfile = pathlib.Path(str(out_path).replace(
-                        '.tbl.rsid.gz.tsv.gz', '.tsv.gz'
-                    ))
-                elif str(out_path).endswith('.rsid.tbl.gz.tsv.gz'):
-                    outfile = pathlib.Path(str(out_path).replace(
-                        '.rsid.tbl.gz.tsv.gz', '.tsv.gz'
-                    ))
-                else:
-                    pass
             else:
                 outfile = pathlib.Path(out_path)
+
+            # phecode file workaround
+            if str(outfile).endswith('.txt.vcf.gz.tsv.gz'):
+                outfile = pathlib.Path(str(outfile).replace(
+                    '.txt.vcf.gz.tsv.gz', '.tsv.gz'
+                ))
+            elif str(outfile).endswith('.tbl.rsid.gz.tsv.gz'):
+                outfile = pathlib.Path(str(outfile).replace(
+                    '.tbl.rsid.gz.tsv.gz', '.tsv.gz'
+                ))
+            elif str(outfile).endswith('.rsid.tbl.gz.tsv.gz'):
+                outfile = pathlib.Path(str(outfile).replace(
+                    '.rsid.tbl.gz.tsv.gz', '.tsv.gz'
+                ))
+            else:     # dhu: why we need this "else" block?
+                pass
 
             infile = Infiler(
                 data_type,

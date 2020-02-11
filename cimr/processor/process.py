@@ -8,6 +8,7 @@
 import copy
 import gzip
 import multiprocessing as mp
+import os
 import sys
 import pandas
 import pathlib
@@ -28,7 +29,7 @@ from .utils import (set_chrom_dict, find_file, intersect_set,
     check_numeric, check_probability, remove_palindromic)
 
 # default values
-from ..defaults import (COMPRESSION_EXTENSION, ANNOTURL,
+from ..defaults import (COMPRESSION_EXTENSION, ANNOT_DIR,
     DATA_TYPES, GENOME_BUILDS, VAR_COMPONENTS, SEPARATORS,
     MAXCHROM, HEADER, REQ_COLUMNS, NUMERIC_COLUMNS,
     PROB_COLUMNS, INT_COLUMNS,
@@ -195,7 +196,6 @@ class Infiler:
             + self.data['alt'].astype(str) \
             + '_' \
             + self.data['build'].astype(str)
-        logging.debug(f' {self.log_prefix()}variant_id column verified.')
         logging.info(f' {self.log_prefix()}variant_id has been standardized.')
 
 
@@ -289,14 +289,14 @@ class Infiler:
     def find_reference(self):
         """Find variant and gene references for map checking"""
         if self.genome_build == 'b37':
-            self.gene_ref = ANNOTURL + 'gene_grch37_gencode_v26.tsv.gz'
-            self.var_ref = ANNOTURL + 'variant_grch37_subset.txt.gz'
+            self.gene_ref = os.path.join(ANNOT_DIR, 'gene_grch37_gencode_v26.tsv.gz')
+            self.var_ref = os.path.join(ANNOT_DIR, 'variant_grch37_subset.txt.gz')
             self.var_ref_id = 'rs_id_dbSNP147_GRCh37p13'
             self.dbsnp = SNP150HG19
             self.chain = HG19TO38
         elif self.genome_build == 'b38':
-            self.gene_ref = ANNOTURL + 'gene_grch38_gencode_v29.tsv.gz'
-            self.var_ref = ANNOTURL + 'variant_grch38_subset.txt.gz'
+            self.gene_ref = os.path.join(ANNOT_DIR, 'gene_grch38_gencode_v29.tsv.gz')
+            self.var_ref = os.path.join(ANNOT_DIR, 'variant_grch38_subset.txt.gz')
             self.var_ref_id = 'rs_id_dbSNP150_GRCh38p7'
             self.dbsnp = SNP150HG38
         else:
@@ -310,7 +310,8 @@ class Infiler:
 
         e.g. ENSG00000143614.7 -> ENSG00000143614
         """
-        ensemblid = self.data['feature_id'].str.split('.').str[0]
+        self.data['original_feature_id'] = self.data['feature_id']
+        ensemblid = self.data['feature_id'].str.split(r'\.').str[0]
         self.data['feature_id'] = ensemblid
         logging.info(f' {self.log_prefix()}ensembl id has been truncated for database queries.')
 
@@ -320,7 +321,7 @@ class Infiler:
         logging.debug(f' {self.log_prefix()}{self.included_header}')
         logging.debug(f' {self.log_prefix()}{self.data.head(2)}')
         if 'feature_id' in self.included_header:
-            if self.data['feature_id'][0].startswith('ENS'):
+            if self.data['feature_id'].iloc[0].startswith('ENS'):
                 self.trim_ensembl()
 
         if 'ensemblgene' in self.data.columns:
@@ -401,7 +402,6 @@ class Infiler:
         )
         logging.debug(f' {self.log_prefix()}included header overlapping cimr default set: {self.included_header}.')
 
-        self.find_reference()
         data.reset_index(inplace=True, drop=True)
         self.data = data.copy()
 
@@ -423,8 +423,6 @@ class Infiler:
         if (self.genome_build != 'hg38') and (self.genome_build != 'b38'):
             from .lift import call_liftover
             self.data = call_liftover(self.data)
-            # with the updated map, genome_build variable can be updated
-            self.genome_build = 'b38'
             self.make_variant_id()
 
         if 'rsnum' in self.data.columns:
@@ -532,7 +530,8 @@ class Infiler:
                 sep='\t',
                 na_rep='NA',
                 float_format='%.6f',
-                mode='w'
+                mode='w',
+                encoding='utf-8'
             )
 
     def combine_chunks(self):
@@ -548,7 +547,7 @@ class Infiler:
 
     def rm_chunk_files(self):
         """Remove each chunk's output file."""
-        import os
+
         for i in range(1, self.num_chunks + 1):
             chunk_filename = self.chunk_file_prefix + str(i)
             os.remove(chunk_filename)
@@ -557,36 +556,6 @@ class Infiler:
         """Check file extension for h5 output"""
         if not str(self.outfile).endswith('.h5.bz2'):
             self.outfile = str(self.outfile) + '.h5.bz2'
-
-
-    def write_h5_header(self):
-        """Write data as PyTable in an h5 file system with header"""
-        if isinstance(self.data, pandas.DataFrame):
-            self.data.to_hdf(
-                str(self.outfile),
-                header=True,
-                index=False,
-                format='table',
-                complevel=9,
-                complib='bzip2',
-                key=self.data_type,
-                mode='w'
-            )
-
-    def write_h5_file(self):
-        """Append data as PyTable in an h5 file system"""
-        if isinstance(self.data, pandas.DataFrame):
-            self.data.to_hdf(
-                str(self.outfile),
-                header=True,
-                index=False,
-                format='table',
-                complevel=9,
-                complib='bzip2',
-                key=self.data_type,
-                mode='a'
-            )
-
 
     def rename_columns(self, dataframe):
         """Given a pandas dataframe and a dictionary, rename columns
@@ -679,7 +648,9 @@ class Infiler:
           11. Reset index and reorder mandatory columns to the front.
           12. Write to file.
         """
+
         self.file_name = find_file(self.file_name)
+        self.find_reference()  # dhu: moved from check_data()
 
         logging.debug(f' {self.log_prefix()}looking for column separators.')
         self.get_sep()

@@ -77,11 +77,11 @@ jobs:
             #md5sum --check input_md5.txt
 
       - run:
-          name: Parallel Test - BIG EQTL, chunksize 1m, 16 CPUs
+          name: Parallel Test - BIG EQTL, chunksize 5m, 8 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_eqtl.yml -chunksize 1000000 -parallel 16
+            cimr processor -process -yaml-file big_eqtl.yml -chunksize 5000000 -parallel 8
           no_output_timeout: 30m
       - run:
           name: EQTL md5 check

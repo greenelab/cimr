@@ -511,9 +511,9 @@ class Infiler:
 
             logging.info(f' {self.log_prefix()}writing processed data.')
             self.write_chunk_file()
-
+            logging.info(f' {self.log_prefix()}finished writing')
         else:
-            logging.error(f' n{self.log_prefix()}o content in {self.file_name}.')
+            logging.error(f' {self.log_prefix()}no content in {self.file_name}.')
             sys.exit(1)
 
 
@@ -533,6 +533,7 @@ class Infiler:
                 mode='w',
                 encoding='utf-8'
             )
+            del self.data  # dhu: free up memory now
 
     def combine_chunks(self):
         """Combine each chunk's output file into one compressed file."""
@@ -688,7 +689,9 @@ class Infiler:
             chunk_instance.chunk_id = chunkcount
             pool.apply_async(chunk_instance.process_chunk, [chunk])
 
+        logging.info(" dhu: pool.close()")
         pool.close()
+        logging.info(" dhu: pool.join()")
         pool.join()
 
         # Combine each chunk's output files together into a single output file

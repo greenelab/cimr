@@ -10,9 +10,10 @@ jobs:
       - run:
           name: Install cimr
           command: bash .circleci/install_cimr.sh
+
       - run:
           name: Parallel Test - SMALL gwas, default chunksize (5m)
-          working_directory: ~/cimr/.circleci/dhu_test/small_gwas
+          working_directory: ~/cimr/.circleci/dhu_test/gwas/small/
           command: |
             rm -rf submitted_data/ processed_data/ catalog.txt
             cimr processor -process -yaml-file small_gwas.yml
@@ -20,15 +21,33 @@ jobs:
             md5sum --check md5.txt
       - run:
           name: Parallel Test - SMALL gwas, chunksize 500
-          working_directory: ~/cimr/.circleci/dhu_test/small_gwas
+          working_directory: ~/cimr/.circleci/dhu_test/gwas/small/
           command: |
             rm -rf submitted_data/ processed_data/ catalog.txt
             cimr processor -process -yaml-file small_gwas.yml -chunksize 500
             gunzip -k processed_data/gwas/gwas.txt.gz
             md5sum --check md5.txt
+
+      - run:
+          name: Parallel Test - SMALL EQTL, default chunksize (5m)
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/small/
+          command: |
+            rm -rf submitted_data/ processed_data/ catalog.txt
+            cimr processor -process -yaml-file eqtl.yml
+            gunzip -k processed_data/eqtl/eqtl.txt.gz
+            md5sum --check md5.txt
+      - run:
+          name: Parallel Test - SMALL EQTL, chunksize 5,000
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/small/
+          command: |
+            rm -rf submitted_data/ processed_data/ catalog.txt
+            cimr processor -process -yaml-file eqtl.yml -chunksize 5000
+            gunzip -k processed_data/eqtl/eqtl.txt.gz
+            md5sum --check md5.txt
+
       - run:
           name: Download big GWAS file
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
           command: |
             wget ftp://share.sph.umich.edu/UKBB_SAIGE_HRC/PheCode_187.2_SAIGE_MACge20.txt.vcf.gz
             mkdir -p submitted_data/gwas/
@@ -36,21 +55,8 @@ jobs:
             md5sum --check input_md5.txt
 
       - run:
-          name: Parallel Test - BIG gwas, chunksize 1m, 4 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
-          command: |
-            rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml -chunksize 1000000
-      - run:
-          name: md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
-          command: |
-            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
-            md5sum --check md5.txt
-
-      - run:
           name: Parallel Test - BIG gwas, chunksize 1m, 8 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
           command: |
             rm -rf processed_data/ catalog.txt
             cimr processor -process -yaml-file big_gwas.yml -chunksize 1000000 -parallel 8
@@ -62,68 +68,26 @@ jobs:
             md5sum --check md5.txt
 
       - run:
-          name: Parallel Test - BIG gwas, chunksize 2m, 4 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          name: Download big EQTL file
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
-            rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml -chunksize 2000000
-      - run:
-          name: md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
-          command: |
-            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
-            md5sum --check md5.txt
+            wget https://storage.googleapis.com/gtex_analysis_v7/single_tissue_eqtl_data/all_snp_gene_associations/Brain_Substantia_nigra.allpairs.txt.gz
+            mkdir -p submitted_data/eqtl/
+            mv Brain_Substantia_nigra.allpairs.txt.gz submitted_data/eqtl/
+            md5sum --check input_md5.txt
 
       - run:
-          name: Parallel Test - BIG gwas, chunksize 2m, 8 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          name: Parallel Test - BIG EQTL, chunksize 1m, 8 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml -chunksize 2000000 -parallel 8
+            cimr processor -process -yaml-file big_eqtl.yml -chunksize 1000000 -parallel 8
+          no_output_timeout: 30m
       - run:
           name: md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
-            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
-            md5sum --check md5.txt
-
-      - run:
-          name: Parallel Test - BIG gwas, chunksize 5m, 4 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
-          command: |
-            rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml
-      - run:
-          name: md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
-          command: |
-            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
-            md5sum --check md5.txt
-
-      - run:
-          name: Parallel Test - BIG gwas, chunksize 5m, 8 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
-          command: |
-            rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml -parallel 8
-      - run:
-          name: md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
-          command: |
-            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
-            md5sum --check md5.txt
-
-      - run:
-          name: Serial Test - BIG gwas, chunksize 5m, 1 CPU only
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
-          command: |
-            rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml -parallel 1
-      - run:
-          name: md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/big_gwas
-          command: |
-            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_*.gz
+            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
             md5sum --check md5.txt
 
 

@@ -45,28 +45,27 @@ jobs:
             gunzip -k processed_data/eqtl/eqtl.txt.gz
             md5sum --check md5.txt
 
+      - run:
+          name: Download big GWAS file
+          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          command: |
+            wget ftp://share.sph.umich.edu/UKBB_SAIGE_HRC/PheCode_187.2_SAIGE_MACge20.txt.vcf.gz
+            mkdir -p submitted_data/gwas/
+            mv PheCode_187.2_SAIGE_MACge20.txt.vcf.gz submitted_data/gwas/
+            md5sum --check input_md5.txt
 
-      #- run:
-      #    name: Download big GWAS file
-      #    working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
-      #    command: |
-      #      wget ftp://share.sph.umich.edu/UKBB_SAIGE_HRC/PheCode_187.2_SAIGE_MACge20.txt.vcf.gz
-      #      mkdir -p submitted_data/gwas/
-      #      mv PheCode_187.2_SAIGE_MACge20.txt.vcf.gz submitted_data/gwas/
-      #      md5sum --check input_md5.txt
-
-      #- run:
-      #    name: Parallel Test - BIG gwas, chunksize 1m, 8 CPUs
-      #    working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
-      #    command: |
-      #      rm -rf processed_data/ catalog.txt
-      #      cimr processor -process -yaml-file big_gwas.yml -chunksize 1000000 -parallel 8
-      #- run:
-      #    name: GWAS md5 check
-      #    working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
-      #    command: |
-      #      gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_MACge20.tsv.gz
-      #      md5sum --check md5.txt
+      - run:
+          name: Parallel Test - BIG gwas, chunksize 1m, 8 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          command: |
+            rm -rf processed_data/ catalog.txt
+            cimr processor -process -yaml-file big_gwas.yml -chunksize 1000000 -parallel 8
+      - run:
+          name: GWAS md5 check
+          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          command: |
+            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_MACge20.tsv.gz
+            md5sum --check md5.txt
 
       - run:
           name: Download big EQTL file
@@ -83,7 +82,7 @@ jobs:
           command: |
             rm -rf processed_data/ catalog.txt
             cimr processor -process -yaml-file big_eqtl.yml -chunksize 2000000 -parallel 8
-          no_output_timeout: 2h
+          no_output_timeout: 10m
       - run:
           name: EQTL md5 check
           working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/

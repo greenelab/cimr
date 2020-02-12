@@ -536,17 +536,6 @@ class Infiler:
             )
             del self.data  # dhu: free up memory now
 
-    def combine_chunks_old(self):
-        """Combine each chunk's output file into one compressed file."""
-
-        # To make compression faster, use compresslevel 6 (instead of the default 9)
-        with gzip.open(str(self.outfile), mode='ab', compresslevel=6) as out_file:
-            for i in range(1, self.num_chunks + 1):
-                chunk_filename = self.chunk_file_prefix + str(i)
-                logging.info(f" {self.log_prefix()}Combining {chunk_filename} ...")
-                with open(chunk_filename) as cf:
-                    out_file.write(cf.read().encode('utf-8'))
-
     def combine_chunks(self):  # dhu: new method
         import shutil
         with open(str(self.outfile), 'wb') as out_file:
@@ -685,9 +674,7 @@ class Infiler:
         logging.info(f' chunksize: {self.chunksize / 1000000} million')
         logging.info(f' number of parallel processes: {self.parallel}')
 
-        tokens = str(self.outfile).split('.')
-        tokens[-1] = "chunk"
-        self.chunk_file_prefix = ".".join(tokens)
+        self.chunk_file_prefix = str(self.outfile) + ".chunk"
 
         # Process data frames in parallel
         pool = mp.Pool(self.parallel)
@@ -699,9 +686,7 @@ class Infiler:
             chunk_instance.chunk_id = chunkcount
             pool.apply_async(chunk_instance.process_chunk, [chunk])
 
-        logging.info(" dhu: pool.close()")
         pool.close()
-        logging.info(" dhu: pool.join()")
         pool.join()
 
         # Combine each chunk's output files together into a single output file

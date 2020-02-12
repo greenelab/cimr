@@ -6,6 +6,7 @@
 """
 
 import copy
+import gc  # dhu test
 import gzip
 import multiprocessing as mp
 import os
@@ -534,23 +535,17 @@ class Infiler:
                 mode='w',
                 encoding='utf-8'
             )
-            del self.data  # dhu: free up memory now
+            # dhu: free up memory now
+            #del self.data
+            #gc.collect()
 
     def combine_chunks(self):  # dhu: new method
-        import shutil
         with open(str(self.outfile), 'wb') as out_file:
             for i in range(1, self.num_chunks + 1):
                 chunk_filename = self.chunk_file_prefix + str(i)
                 with open(chunk_filename, 'rb') as in_file:
-                    #out_file.write(in_file.read())
-                    shutil.copyfileobj(in_file, out_file)
-
-    def rm_chunk_files(self):
-        """Remove each chunk's output file."""
-
-        for i in range(1, self.num_chunks + 1):
-            chunk_filename = self.chunk_file_prefix + str(i)
-            os.remove(chunk_filename)
+                    out_file.write(in_file.read())
+                os.remove(chunk_filename)  # remove chunk output file
 
     def check_h5_outfile(self):
         """Check file extension for h5 output"""
@@ -693,10 +688,6 @@ class Infiler:
         logging.info(f" combine chunk output files ...")
         self.num_chunks = chunkcount
         self.combine_chunks()
-
-        # Remove chunk output files
-        logging.info(f" remove chunk output files ...")
-        self.rm_chunk_files()
 
 
 class Integrator:

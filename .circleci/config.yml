@@ -55,11 +55,11 @@ jobs:
             md5sum --check input_md5.txt
 
       - run:
-          name: Parallel Test - BIG gwas, chunksize 2m, 4 CPUs
+          name: Parallel Test - BIG gwas, chunksize 500k, 8 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml -chunksize 2000000 -parallel 4
+            cimr processor -process -yaml-file big_gwas.yml -chunksize 500000 -parallel 8
       - run:
           name: GWAS md5 check
           working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
@@ -77,11 +77,11 @@ jobs:
             #md5sum --check input_md5.txt
 
       - run:
-          name: Parallel Test - BIG EQTL, chunksize 1m, 6 CPUs
+          name: Parallel Test - BIG EQTL, chunksize 500k, 8 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_eqtl.yml -chunksize 1000000 -parallel 6
+            cimr processor -process -yaml-file big_eqtl.yml -chunksize 500000 -parallel 8
           no_output_timeout: 20m
       - run:
           name: EQTL md5 check

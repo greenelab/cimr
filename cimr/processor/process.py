@@ -529,13 +529,14 @@ class Infiler:
                 index=False,
                 sep='\t',
                 na_rep='NA',
+                compression='gzip',  # dhu: write gz file for each chunk directly
                 float_format='%.6f',
                 mode='w',
                 encoding='utf-8'
             )
             del self.data  # dhu: free up memory now
 
-    def combine_chunks(self):
+    def combine_chunks_old(self):
         """Combine each chunk's output file into one compressed file."""
 
         # To make compression faster, use compresslevel 6 (instead of the default 9)
@@ -545,6 +546,15 @@ class Infiler:
                 logging.info(f" {self.log_prefix()}Combining {chunk_filename} ...")
                 with open(chunk_filename) as cf:
                     out_file.write(cf.read().encode('utf-8'))
+
+    def combine_chunks(self):  # dhu: new method
+        import shutil
+        with open(str(self.outfile), 'wb') as out_file:
+            for i in range(1, self.num_chunks + 1):
+                chunk_filename = self.chunk_file_prefix + str(i)
+                with open(chunk_filename, 'rb') as in_file:
+                    #out_file.write(in_file.read())
+                    shutil.copyfileobj(in_file, out_file)
 
     def rm_chunk_files(self):
         """Remove each chunk's output file."""

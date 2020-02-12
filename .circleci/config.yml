@@ -45,6 +45,7 @@ jobs:
             gunzip -k processed_data/eqtl/eqtl.txt.gz
             md5sum --check md5.txt
 
+
       #- run:
       #    name: Download big GWAS file
       #    working_directory: ~/cimr/.circleci/dhu_test/gwas/big/

@@ -46,77 +46,133 @@ jobs:
             md5sum --check md5.txt
 
       - run:
-          name: Download big GWAS file
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          name: Download big EQTL file
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
-            wget ftp://share.sph.umich.edu/UKBB_SAIGE_HRC/PheCode_187.2_SAIGE_MACge20.txt.vcf.gz
-            mkdir -p submitted_data/gwas/
-            mv PheCode_187.2_SAIGE_MACge20.txt.vcf.gz submitted_data/gwas/
+            wget https://storage.googleapis.com/gtex_analysis_v7/single_tissue_eqtl_data/all_snp_gene_associations/Brain_Substantia_nigra.allpairs.txt.gz
+            mkdir -p submitted_data/eqtl/
+            mv Brain_Substantia_nigra.allpairs.txt.gz submitted_data/eqtl/
 
       - run:
-          name: Parallel Test - BIG gwas, chunksize 200k, 16 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          name: Parallel Test - BIG EQTL, chunksize 200k, 32 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml -chunksize 200000 -parallel 16
+            cimr processor -process -yaml-file big_eqtl.yml -chunksize 200000 -parallel 32
+          no_output_timeout: 20m
       - run:
-          name: GWAS md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          name: EQTL md5 check
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
-            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_MACge20.tsv.gz
+            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
             md5sum --check md5.txt
 
       - run:
-          name: Parallel Test - BIG gwas, chunksize 200k, 32 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          name: Parallel Test - BIG EQTL, chunksize 200k, 48 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml -chunksize 200000 -parallel 32
+            cimr processor -process -yaml-file big_eqtl.yml -chunksize 200000 -parallel 48
+          no_output_timeout: 20m
       - run:
-          name: GWAS md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          name: EQTL md5 check
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
-            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_MACge20.tsv.gz
+            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
             md5sum --check md5.txt
 
       - run:
-          name: Parallel Test - BIG gwas, chunksize 200k, 64 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          name: Parallel Test - BIG EQTL, chunksize 200k, 64 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml -chunksize 200000 -parallel 64
+            cimr processor -process -yaml-file big_eqtl.yml -chunksize 200000 -parallel 64
+          no_output_timeout: 20m
       - run:
-          name: GWAS md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          name: EQTL md5 check
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
-            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_MACge20.tsv.gz
+            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
             md5sum --check md5.txt
 
       - run:
-          name: Parallel Test - BIG gwas, chunksize 100k, 32 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          name: Parallel Test - BIG EQTL, chunksize 100k, 48 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml -chunksize 100000 -parallel 32
+            cimr processor -process -yaml-file big_eqtl.yml -chunksize 100000 -parallel 48
+          no_output_timeout: 20m
       - run:
-          name: GWAS md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          name: EQTL md5 check
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
-            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_MACge20.tsv.gz
+            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
             md5sum --check md5.txt
 
       - run:
-          name: Parallel Test - BIG gwas, chunksize 100k, 64 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          name: Parallel Test - BIG EQTL, chunksize 100k, 64 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_gwas.yml -chunksize 100000 -parallel 64
+            cimr processor -process -yaml-file big_eqtl.yml -chunksize 100000 -parallel 64
+          no_output_timeout: 20m
       - run:
-          name: GWAS md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/big/
+          name: EQTL md5 check
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
           command: |
-            gunzip -k processed_data/gwas/PheCode_187.2_SAIGE_MACge20.tsv.gz
+            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
             md5sum --check md5.txt
+
+      - run:
+          name: Parallel Test - BIG EQTL, chunksize 50k, 32 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          command: |
+            rm -rf processed_data/ catalog.txt
+            cimr processor -process -yaml-file big_eqtl.yml -chunksize 50000 -parallel 32
+          no_output_timeout: 20m
+      - run:
+          name: EQTL md5 check
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          command: |
+            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            md5sum --check md5.txt
+
+      - run:
+          name: Parallel Test - BIG EQTL, chunksize 50k, 48 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          command: |
+            rm -rf processed_data/ catalog.txt
+            cimr processor -process -yaml-file big_eqtl.yml -chunksize 50000 -parallel 48
+          no_output_timeout: 20m
+      - run:
+          name: EQTL md5 check
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          command: |
+            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            md5sum --check md5.txt
+
+      - run:
+          name: Parallel Test - BIG EQTL, chunksize 50k, 64 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          command: |
+            rm -rf processed_data/ catalog.txt
+            cimr processor -process -yaml-file big_eqtl.yml -chunksize 50000 -parallel 64
+          no_output_timeout: 20m
+      - run:
+          name: EQTL md5 check
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          command: |
+            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            md5sum --check md5.txt
+
 
 workflows:
   version: 2

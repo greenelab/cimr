@@ -46,133 +46,163 @@ jobs:
             md5sum --check md5.txt
 
       - run:
-          name: Download big EQTL file
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          name: Download super EQTL file
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
-            wget https://storage.googleapis.com/gtex_analysis_v7/single_tissue_eqtl_data/all_snp_gene_associations/Brain_Substantia_nigra.allpairs.txt.gz
+            wget https://storage.googleapis.com/gtex_analysis_v7/single_tissue_eqtl_data/all_snp_gene_associations/Testis.allpairs.txt.gz
             mkdir -p submitted_data/eqtl/
-            mv Brain_Substantia_nigra.allpairs.txt.gz submitted_data/eqtl/
+            mv  submitted_data/eqtl/
 
       - run:
-          name: Parallel Test - BIG EQTL, chunksize 200k, 32 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          name: Parallel Test - SUPER EQTL, chunksize 500k, 16 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_eqtl.yml -chunksize 200000 -parallel 32
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 500000 -parallel 16
           no_output_timeout: 20m
       - run:
           name: EQTL md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
-            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
-            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
             md5sum --check md5.txt
 
-      - run:
-          name: Parallel Test - BIG EQTL, chunksize 200k, 48 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+       - run:
+          name: Parallel Test - SUPER EQTL, chunksize 500k, 32 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_eqtl.yml -chunksize 200000 -parallel 48
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 500000 -parallel 32
           no_output_timeout: 20m
       - run:
           name: EQTL md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
-            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
-            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
             md5sum --check md5.txt
 
       - run:
-          name: Parallel Test - BIG EQTL, chunksize 200k, 64 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          name: Parallel Test - SUPER EQTL, chunksize 200k, 32 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_eqtl.yml -chunksize 200000 -parallel 64
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 200000 -parallel 32
           no_output_timeout: 20m
       - run:
           name: EQTL md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
-            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
-            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
             md5sum --check md5.txt
 
       - run:
-          name: Parallel Test - BIG EQTL, chunksize 100k, 48 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          name: Parallel Test - SUPER EQTL, chunksize 200k, 48 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_eqtl.yml -chunksize 100000 -parallel 48
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 200000 -parallel 48
           no_output_timeout: 20m
       - run:
           name: EQTL md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
-            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
-            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
             md5sum --check md5.txt
 
       - run:
-          name: Parallel Test - BIG EQTL, chunksize 100k, 64 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          name: Parallel Test - SUPER EQTL, chunksize 200k, 64 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_eqtl.yml -chunksize 100000 -parallel 64
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 200000 -parallel 64
           no_output_timeout: 20m
       - run:
           name: EQTL md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
-            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
-            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
             md5sum --check md5.txt
 
       - run:
-          name: Parallel Test - BIG EQTL, chunksize 50k, 32 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          name: Parallel Test - SUPER EQTL, chunksize 100k, 48 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_eqtl.yml -chunksize 50000 -parallel 32
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 100000 -parallel 48
           no_output_timeout: 20m
       - run:
           name: EQTL md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
-            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
-            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
             md5sum --check md5.txt
 
       - run:
-          name: Parallel Test - BIG EQTL, chunksize 50k, 48 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          name: Parallel Test - SUPER EQTL, chunksize 100k, 64 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_eqtl.yml -chunksize 50000 -parallel 48
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 100000 -parallel 64
           no_output_timeout: 20m
       - run:
           name: EQTL md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
-            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
-            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
             md5sum --check md5.txt
 
       - run:
-          name: Parallel Test - BIG EQTL, chunksize 50k, 64 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          name: Parallel Test - SUPER EQTL, chunksize 50k, 32 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file big_eqtl.yml -chunksize 50000 -parallel 64
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 50000 -parallel 32
           no_output_timeout: 20m
       - run:
           name: EQTL md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/big/
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
-            du -sk processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
-            gunzip -k processed_data/eqtl/Brain_Substantia_nigra.allpairs.txt.gz
+            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
             md5sum --check md5.txt
 
+      - run:
+          name: Parallel Test - SUPER EQTL, chunksize 50k, 48 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
+          command: |
+            rm -rf processed_data/ catalog.txt
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 50000 -parallel 48
+          no_output_timeout: 20m
+      - run:
+          name: EQTL md5 check
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
+          command: |
+            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
+            gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
+            md5sum --check md5.txt
+
+      - run:
+          name: Parallel Test - SUPER EQTL, chunksize 50k, 64 CPUs
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
+          command: |
+            rm -rf processed_data/ catalog.txt
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 50000 -parallel 64
+          no_output_timeout: 20m
+      - run:
+          name: EQTL md5 check
+          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
+          command: |
+            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
+            date; gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
+            date; md5sum --check md5.txt
+            date
 
 workflows:
   version: 2

@@ -52,36 +52,6 @@ jobs:
             mv Testis.allpairs.txt.gz submitted_data/eqtl/
 
       - run:
-          name: Parallel Test - SUPER EQTL, chunksize 500k, 16 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
-          command: |
-            rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file super_eqtl.yml -chunksize 500000 -parallel 16
-          no_output_timeout: 20m
-      - run:
-          name: EQTL md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
-          command: |
-            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
-            gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
-            md5sum --check md5.txt
-
-      - run:
-          name: Parallel Test - SUPER EQTL, chunksize 500k, 32 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
-          command: |
-            rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file super_eqtl.yml -chunksize 500000 -parallel 32
-          no_output_timeout: 20m
-      - run:
-          name: EQTL md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
-          command: |
-            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
-            gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
-            md5sum --check md5.txt
-
-      - run:
           name: Parallel Test - SUPER EQTL, chunksize 200k, 32 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |

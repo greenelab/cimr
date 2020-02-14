@@ -10,7 +10,6 @@ jobs:
       - run:
           name: Install cimr
           command: bash .circleci/install_cimr.sh
-
       - run:
           name: Parallel Test - SMALL gwas, default chunksize (5m)
           working_directory: ~/cimr/.circleci/dhu_test/gwas/small/
@@ -27,7 +26,6 @@ jobs:
             cimr processor -process -yaml-file small_gwas.yml -chunksize 500
             gunzip -k processed_data/gwas/gwas.txt.gz
             md5sum --check md5.txt
-
       - run:
           name: Parallel Test - SMALL EQTL, default chunksize (5m)
           working_directory: ~/cimr/.circleci/dhu_test/eqtl/small/
@@ -68,7 +66,7 @@ jobs:
             gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
             md5sum --check md5.txt
 
-       - run:
+      - run:
           name: Parallel Test - SUPER EQTL, chunksize 500k, 32 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |

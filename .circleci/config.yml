@@ -49,7 +49,7 @@ jobs:
           command: |
             wget https://storage.googleapis.com/gtex_analysis_v7/single_tissue_eqtl_data/all_snp_gene_associations/Testis.allpairs.txt.gz
             mkdir -p submitted_data/eqtl/
-            mv  submitted_data/eqtl/
+            mv Testis.allpairs.txt.gz submitted_data/eqtl/
 
       - run:
           name: Parallel Test - SUPER EQTL, chunksize 500k, 16 CPUs

@@ -67,11 +67,11 @@ jobs:
             md5sum --check md5.txt
 
       - run:
-          name: Serial Test - SUPER EQTL, chunksize 5 million
+          name: Serial Test - SUPER EQTL, chunksize 2 million
           working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file super_eqtl.yml -parallel 0
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 2000000 -parallel 0
           no_output_timeout: 2h
       - run:
           name: EQTL md5 check

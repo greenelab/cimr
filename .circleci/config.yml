@@ -52,11 +52,11 @@ jobs:
             mv Testis.allpairs.txt.gz submitted_data/eqtl/
 
       - run:
-          name: Parallel Test - SUPER EQTL, chunksize 250k, 32 CPUs
+          name: Parallel Test - SUPER EQTL, chunksize 200k, 32 CPUs
           working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file super_eqtl.yml -chunksize 250000 -parallel 32
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 200000 -parallel 32
           no_output_timeout: 20m
       - run:
           name: EQTL md5 check
@@ -67,11 +67,11 @@ jobs:
             md5sum --check md5.txt
 
       - run:
-          name: Serial Test - SUPER EQTL, chunksize 500k
+          name: Serial Test - SUPER EQTL, chunksize 250k
           working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
           command: |
             rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file super_eqtl.yml -chunksize 500000 -parallel 0
+            cimr processor -process -yaml-file super_eqtl.yml -chunksize 250000 -parallel 0
           no_output_timeout: 2h
       - run:
           name: EQTL md5 check

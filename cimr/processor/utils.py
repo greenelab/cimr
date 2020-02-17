@@ -109,9 +109,13 @@ def remove_palindromic(df):
     # downstream applications where accurate strand prediction is
     # necessary. e.g. imputation or haplotype-based analysis.
     # A and T or G and C pairs are removed from the data.
-    logging.info(f' variant counts before filtering palindromic variants: {df.shape[0]}')
+    logging.info(
+        f' variant counts before filtering palindromic variants: {df.shape[0]}'
+    )
     df = df.loc[~((df.g == 'AT') | (df.g == 'TA') | (df.g == 'CG') | (df.g == 'GC'))]
-    logging.info(f' variant counts after filtering palindromic variants: {df.shape[0]}')
+    logging.info(
+        f' variant counts after filtering palindromic variants: {df.shape[0]}'
+    )
     return df.drop('g', axis=1)
 
 

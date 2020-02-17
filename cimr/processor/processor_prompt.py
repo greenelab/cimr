@@ -106,7 +106,7 @@ def main(args,
                 outfile = pathlib.Path(str(outfile).replace(
                     '.rsid.tbl.gz.tsv.gz', '.tsv.gz'
                 ))
-            else:     # dhu: why we need this "else" block?
+            else:
                 pass
 
             infile = Infiler(

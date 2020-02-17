@@ -164,10 +164,10 @@ class Infiler:
                 f' chunk #{self.chunk_id}:' +
                 f' variant_id delimiter changed from \':\' to \'_\''
             )
-        #else:
-        #    logging.error(
-        #        f'unknown delimiter used in variant_id'
-        #    )
+        # else:
+        #     logging.error(
+        #        f' unknown delimiter used in variant_id'
+        #     )
         #     sys.exit(1)
 
         temp = variant_ids.str.split('_', expand=True)

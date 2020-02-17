@@ -2,9 +2,7 @@
 
 """General prompt for the cimr processor subprocess."""
 
-
 __author__ = "yoson park"
-
 
 import sys
 import pathlib
@@ -108,7 +106,7 @@ def main(args,
                 outfile = pathlib.Path(str(outfile).replace(
                     '.rsid.tbl.gz.tsv.gz', '.tsv.gz'
                 ))
-            else:
+            else:     # dhu: why we need this "else" block?
                 pass
 
             infile = Infiler(
@@ -118,6 +116,7 @@ def main(args,
                 args.update_rsid,
                 outfile,
                 args.chunksize,
+                args.parallel,
                 columnset=columnset
             )
 
@@ -211,5 +210,3 @@ def processor_cli(args):
     else:
         logging.error(f' data_type or file_name is not recognized; nothing to do.')
         sys.exit(1)
-
-

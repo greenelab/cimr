@@ -105,9 +105,13 @@ class Infiler:
                  columnset):
 
         if data_type not in DATA_TYPES:
-            raise ValueError(' %s is not a valid data_type supported' % data_type)
+            raise ValueError(
+                ' %s is not a valid data_type supported' % data_type
+            )
         if genome_build not in GENOME_BUILDS:
-            raise ValueError(' %s is not a valid genome_build supported' % genome_build)
+            raise ValueError(
+                ' %s is not a valid genome_build supported' % genome_build
+            )
         self.data = pandas.DataFrame()
         self.data_type = data_type
         self.file_name = file_name
@@ -146,12 +150,18 @@ class Infiler:
             pass
         if '-' in variant_ids[0]:
             variant_ids = variant_ids.str.replace('-', '_')
-            logging.info(f' variant_id delimiter changed from \'-\' to \'_\'')
+            logging.info(
+                f' variant_id delimiter changed from \'-\' to \'_\''
+            )
         if ':' in variant_ids[0]:
             variant_ids = variant_ids.str.replace(':', '_')
-            logging.info(f' variant_id delimiter changed from \':\' to \'_\'')
+            logging.info(
+                f' variant_id delimiter changed from \':\' to \'_\''
+            )
         # else:
-        #     logging.error(f' unknown delimiter used in variant_id')
+        #     logging.error(
+        #         f' unknown delimiter used in variant_id'
+        #     )
         #     sys.exit(1)
 
         temp = variant_ids.str.split('_', expand=True)
@@ -171,7 +181,9 @@ class Infiler:
 
     def make_variant_id(self):
         """(Re)make variant_id with updated chrom ID, build #, etc."""
-        logging.debug(f' standardizing allele codes...')
+        logging.debug(
+            f' standardizing allele codes...'
+        )
         self.data['ref'] = self.data['ref'].str.upper()
         self.data['alt'] = self.data['alt'].str.upper()
 
@@ -186,7 +198,9 @@ class Infiler:
             + self.data['alt'].astype(str) \
             + '_' \
             + self.data['build'].astype(str)
-        logging.info(f' variant_id has been standardized.')
+        logging.info(
+            f' variant_id has been standardized.'
+        )
 
 
     def check_chrom(self):
@@ -215,12 +229,20 @@ class Infiler:
             logging.debug(f' {chroms}')
 
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
-            logging.info(f' there are {len(chroms)} chromosomes.')
+            logging.info(
+                f' there are {len(chroms)} chromosomes.'
+            )
         elif len(chroms) <= (maxchrom - 2):
-            logging.info(f' chromosome(s) included: %s'%(chroms,))
+            logging.info(
+                f' chromosome(s) included: %s'%(chroms,)
+            )
         else:
-            logging.warning(f' input file more than {maxchrom - 1} chromosomes.')
-            logging.warning(f' chromosome(s) included: %s'%(chroms,))
+            logging.warning(
+                f' input file more than {maxchrom - 1} chromosomes.'
+            )
+            logging.warning(
+                f' chromosome(s) included: %s'%(chroms,)
+            )
 
         if len(set(chroms) & set(chrom_str)) > (maxchrom - 2):
             pass
@@ -229,15 +251,21 @@ class Infiler:
             self.data['chrom'] = self.data['chrom'].map(
                 chrom_dict, na_action='ignore'
             ).fillna(self.data['chrom'])
-            logging.info(f' chromosome ids have been updated.')
+            logging.info(
+                f' chromosome ids have been updated.'
+            )
         else:
-            logging.warning(f' chromosome id needs to be checked.')
+            logging.warning(
+                f' chromosome id needs to be checked.'
+            )
 
         remainder = list(set(chroms) - set(chrom_str) - set(chrom_int))
         if len(remainder) > 0:
             logging.warning(f' chromosome(s) not used: %s'%(remainder,))
 
-        logging.info(f' finished checking chromosome ids.')
+        logging.info(
+            f' finished checking chromosome ids.'
+        )
 
 
     def check_ref(self):
@@ -249,7 +277,9 @@ class Infiler:
         ref_file = resource_filename(
             'cimr', var_ref
             )
-        logging.info(f' using {ref_file} to check variants.')
+        logging.info(
+            f' using {ref_file} to check variants.'
+        )
         logging.info(f' rs id reference is {ref_id}.')
         refdf = pandas.read_csv(
             ref_file, sep='\t', header=0, dtype={'chr':'str'}
@@ -303,7 +333,9 @@ class Infiler:
         self.data['original_feature_id'] = self.data['feature_id']
         ensemblid = self.data['feature_id'].str.split(r'\.').str[0]
         self.data['feature_id'] = ensemblid
-        logging.info(f' ensembl id has been truncated for database queries.')
+        logging.info(
+            f' ensembl id has been truncated for database queries.'
+        )
 
 
     def list_features(self):
@@ -346,21 +378,33 @@ class Infiler:
         new variant_id column. This option can be activated
         by indicating all variant_id component fields in the yaml.
         """
-        logging.debug(f' processing information needed to make variant_id.')
+        logging.debug(
+            f' processing information needed to make variant_id.'
+        )
 
         if set(VAR_COMPONENTS).issubset(set(self.included_header)):
-            logging.debug(f' checking {VAR_COMPONENTS} for missing values.')
+            logging.debug(
+                f' checking {VAR_COMPONENTS} for missing values.'
+            )
             self.data.dropna(
                 subset=VAR_COMPONENTS, inplace=True
             )
-            logging.debug(f' rows with missing {VAR_COMPONENTS} are dropped.')
+            logging.debug(
+                f' rows with missing {VAR_COMPONENTS} are dropped.'
+            )
 
-            logging.debug(f' making variant_id using {VAR_COMPONENTS}.')
+            logging.debug(
+                f' making variant_id using {VAR_COMPONENTS}.'
+            )
             self.data['chrom'] = self.data['variant_chrom']
             self.check_chrom()
-            logging.info(f' verifying variant positions are int values.')
+            logging.info(
+                f' verifying variant positions are int values.'
+            )
             self.data['variant_pos'] = self.data['variant_pos'].astype(int)
-            logging.debug(f' changing verified values to str.')
+            logging.debug(
+                f' changing verified values to str.'
+            )
             self.data['variant_pos'] = self.data['variant_pos'].astype(str)
 
             self.data['pos'] = self.data['variant_pos']
@@ -377,7 +421,9 @@ class Infiler:
             )
 
         else:
-            logging.error(f' missing columns necessary to make variant_id.')
+            logging.error(
+                f' missing columns necessary to make variant_id.'
+            )
             sys.exit(1)
 
 
@@ -537,9 +583,13 @@ class Infiler:
         """Given a pandas dataframe and a dictionary, rename columns
         Primarily used for yaml column-set-based renaming in cimr.
         """
-        logging.info(f' renaming columns based on column dictionary.')
+        logging.info(
+            f' renaming columns based on column dictionary.'
+        )
         dataframe.rename(self.columnset, axis=1, inplace=True)
-        logging.debug(f' renamed data.head(2): {dataframe.head(2)}')
+        logging.debug(
+            f' renamed data.head(2): {dataframe.head(2)}'
+        )
 
 
     def call_querier(self, genes):
@@ -561,7 +611,9 @@ class Infiler:
         elif is_numeric_dtype(features):
             self.feature_type = 'entrezgene'
         else:
-            logging.error(f' feature reference cannot be determined.')
+            logging.error(
+                f' feature reference cannot be determined.'
+            )
             sys.exit(1)
 
         logging.debug(f' reading {self.gene_ref}.')
@@ -576,8 +628,12 @@ class Infiler:
             gene_annot = gene_annot[cols]
             gene_annot.rename(columns={self.feature_type:'feature_id'}, inplace=True)
 
-            logging.debug(f' current dataframe: {self.data.head(2)}')
-            logging.debug(f' selected annotations: {gene_annot.head(2)}')
+            logging.debug(
+                f' current dataframe: {self.data.head(2)}'
+            )
+            logging.debug(
+                f' selected annotations: {gene_annot.head(2)}'
+            )
 
             self.data = self.data.merge(
                 gene_annot,

@@ -11,61 +11,23 @@ jobs:
           name: Install cimr
           command: bash .circleci/install_cimr.sh
       - run:
-          name: Parallel Test - SMALL gwas, default chunksize (5m)
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/small/
-          command: |
-            rm -rf submitted_data/ processed_data/ catalog.txt
-            cimr processor -process -yaml-file small_gwas.yml
-            gunzip -k processed_data/gwas/gwas.txt.gz
-            md5sum --check md5.txt
+          name: Test GWAS with different chunksize and parallel parameters
+          command: bash examples/gwas/test_gwas.sh
       - run:
-          name: Parallel Test - SMALL gwas, chunksize 500
-          working_directory: ~/cimr/.circleci/dhu_test/gwas/small/
-          command: |
-            rm -rf submitted_data/ processed_data/ catalog.txt
-            cimr processor -process -yaml-file small_gwas.yml -chunksize 500
-            gunzip -k processed_data/gwas/gwas.txt.gz
-            md5sum --check md5.txt
+          name: Test EQTL with different chunksize and parallel parameters
+          command: bash examples/eqtl/test_eqtl.sh
       - run:
-          name: Parallel Test - SMALL EQTL, default chunksize (5m)
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/small/
-          command: |
-            rm -rf submitted_data/ processed_data/ catalog.txt
-            cimr processor -process -yaml-file eqtl.yml
-            gunzip -k processed_data/eqtl/eqtl.txt.gz
-            md5sum --check md5.txt
+          name: Test gwas tarball file
+          no_output_timeout: 30m
+          command: bash .circleci/test_tgz.sh
       - run:
-          name: Parallel Test - SMALL EQTL, chunksize 5,000
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/small/
-          command: |
-            rm -rf submitted_data/ processed_data/ catalog.txt
-            cimr processor -process -yaml-file eqtl.yml -chunksize 5000
-            gunzip -k processed_data/eqtl/eqtl.txt.gz
-            md5sum --check md5.txt
-
+          name: Test dropbox link file
+          no_output_timeout: 30m
+          command: bash .circleci/test_dbox.sh
       - run:
-          name: Download super EQTL file
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
-          command: |
-            wget https://storage.googleapis.com/gtex_analysis_v7/single_tissue_eqtl_data/all_snp_gene_associations/Testis.allpairs.txt.gz
-            mkdir -p submitted_data/eqtl/
-            mv Testis.allpairs.txt.gz submitted_data/eqtl/
-
-      - run:
-          name: Parallel Test - SUPER EQTL, chunksize 200k, 32 CPUs
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
-          command: |
-            rm -rf processed_data/ catalog.txt
-            cimr processor -process -yaml-file super_eqtl.yml -chunksize 250000 -parallel 32
-          no_output_timeout: 20m
-      - run:
-          name: EQTL md5 check
-          working_directory: ~/cimr/.circleci/dhu_test/eqtl/super/
-          command: |
-            du -sk processed_data/eqtl/Testis.allpairs.txt.gz
-            gunzip -k processed_data/eqtl/Testis.allpairs.txt.gz
-            md5sum --check md5.txt
-
+          name: Test missing data checkers
+          no_output_timeout: 30m
+          command: bash .circleci/test_missing.sh
 
 workflows:
   version: 2

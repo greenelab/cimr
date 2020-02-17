@@ -23,9 +23,10 @@ MAXCHROM = 27
 # (with dtype=object columns in pandas)
 # in CI environment with limited memory
 # Can be overwritten with commandline argument '-chunksize'
-CHUNKSIZE = 5000000
+CHUNKSIZE = 2000000
 
-# Number of parallel processes
+# Default number of parallel processes,
+# can be overwritten with commandline argument '-parallel'
 PARALLEL = 4
 
 VERY_SMALL_P = 1e-70

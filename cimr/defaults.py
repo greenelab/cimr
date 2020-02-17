@@ -1,5 +1,6 @@
 """Set of default values used in cimr"""
 
+
 from collections import namedtuple
 
 
@@ -21,7 +22,7 @@ MAXCHROM = 27
 # (with dtype=object columns in pandas)
 # in CI environment with limited memory
 # Can be overwritten with commandline argument '-chunksize'
-CHUNKSIZE = 5000000
+CHUNKSIZE = 2000000
 
 VERY_SMALL_P = 1e-70
 
@@ -116,6 +117,12 @@ CONFIG_FILE_EXTENSION = ('yml', 'yaml')
 COMPRESSION_EXTENSION = ('gz', 'bz2', 'xz')
 BULK_EXTENSION = ('tgz', 'tar.gz', 'tar.bz2', 'tar.xz')
 FILE_EXTENSION = ('txt.gz', 'tsv.gz', 'tsv', 'txt')
+# shortening some common file extensions that are not meaningful
+# CONCAT_FILE_EXTENSION = (
+#     '.txt.vcf.gz.tsv.gz',
+#     '.tbl.rsid.gz.tsv.gz',
+#     '.rsid.tbl.gz.tsv.gz'
+# )
 
 META_HEADER = [
     'data_type', 'context', 'context_id',

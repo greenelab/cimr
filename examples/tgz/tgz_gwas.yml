@@ -1,6 +1,6 @@
 data_file:
     description: >-
-        Dummary gwas datasets packed in a tarball for cimr testing.
+        Dummy gwas datasets packed in a tarball for cimr testing.
     location:
         url: https://zenodo.org/record/3382294/files/tgz_gwas.tar.gz?download=1
         md5: 85c8a7e3d973b90749894ddc52c42ee6

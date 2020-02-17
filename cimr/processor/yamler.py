@@ -644,6 +644,7 @@ class Yamler:
             metadata.reset_index(inplace=True, drop=True)
 
             metadata = metadata[META_HEADER]
+            metadata.replace('na', 'NA', inplace=True, regex=False)
 
             metadata.to_csv(
                 catalog_name,

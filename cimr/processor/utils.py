@@ -95,9 +95,6 @@ def add_line_in_log():
 
 def remove_palindromic(df):
     """Removing palindromic variants from processed data."""
-    df = df.copy()
-    logging.debug(f'{df.head(2)}')
-    logging.debug(f'{df.columns}')
     if 'ref' in df.columns:
         df['g'] = df['alt'].str.upper() + df['ref'].str.upper()
     elif 'effect_allele' in df.columns:
@@ -106,14 +103,19 @@ def remove_palindromic(df):
         logging.error(f' alleles need to be indicated.')
         sys.exit(1)
 
-
     # Check the genotype column to remove palindromic alleles.
     # Palindromic alleles are pairs of complementary nucleotides.
     # Strand flips cannot be distinguished and may bias results in
     # downstream applications where accurate strand prediction is
     # necessary. e.g. imputation or haplotype-based analysis.
     # A and T or G and C pairs are removed from the data.
+    logging.info(
+        f' variant counts before filtering palindromic variants: {df.shape[0]}'
+    )
     df = df.loc[~((df.g == 'AT') | (df.g == 'TA') | (df.g == 'CG') | (df.g == 'GC'))]
+    logging.info(
+        f' variant counts after filtering palindromic variants: {df.shape[0]}'
+    )
     return df.drop('g', axis=1)
 
 

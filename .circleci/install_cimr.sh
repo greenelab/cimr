@@ -3,6 +3,7 @@
 set -e -x
 
 cd ~/cimr/
+pip install -r requirements.txt
 python3 setup.py build
 sudo python3 setup.py install
 

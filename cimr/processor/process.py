@@ -821,10 +821,11 @@ class Infiler:
             pool.close()
             pool.join()
 
-            # Combine each chunk's output files together into a single output file
+            # Combine all chunk output files into a single output file
             logging.info(f" combine chunk output files ...")
             self.num_chunks = chunkcount
             self.combine_chunks()
+
         else:  # serial data processing
             chunkcount = 0
             for chunk in chunks:

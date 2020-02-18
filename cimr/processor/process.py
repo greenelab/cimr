@@ -485,8 +485,8 @@ class Infiler:
             f' {self.included_header}.'
         )
 
-        chunk.reset_index(inplace=True, drop=True)
-        self.data = chunk.copy()
+        self.data = chunk.copy()  # self.data is a deep copy of chunk
+        self.data.reset_index(inplace=True, drop=True)
 
         # standardize variant_id based on info provided in the input file
         if 'variant_id' not in self.data.columns:

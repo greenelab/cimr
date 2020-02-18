@@ -115,7 +115,7 @@ class Infiler:
             raise ValueError(
                 ' %s is not a valid genome_build supported' % genome_build
             )
-        self.data = None
+        self.data = pandas.DataFrame()
         self.data_type = data_type
         self.file_name = file_name
         self.genome_build = genome_build
@@ -486,7 +486,7 @@ class Infiler:
         )
 
         chunk.reset_index(inplace=True, drop=True)
-        self.data = chunk  # shallow copy, because chunk won't be used any more
+        self.data = chunk.copy()
 
         # standardize variant_id based on info provided in the input file
         if 'variant_id' not in self.data.columns:

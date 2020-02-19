@@ -1,11 +1,12 @@
 """Set of default values used in cimr"""
 
 
+import os
 from collections import namedtuple
 
-
-ANNOTURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/annotation/'
-CHAINURL = 'https://raw.githubusercontent.com/greenelab/cimr/master/cimr/data/chain/'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ANNOT_DIR = os.path.join(BASE_DIR, 'data', 'annotation')
+CHAIN_DIR = os.path.join(BASE_DIR, 'data', 'chain')
 
 # Current maximum is set with human chromosomes:
 # 1 - 22 autosomal chromosomes
@@ -23,6 +24,10 @@ MAXCHROM = 27
 # in CI environment with limited memory
 # Can be overwritten with commandline argument '-chunksize'
 CHUNKSIZE = 2000000
+
+# Default number of parallel processes,
+# can be overwritten with commandline argument '-parallel'
+PARALLEL = 4
 
 VERY_SMALL_P = 1e-70
 
@@ -57,8 +62,8 @@ SNP130HG18 = '/data/refs/dbsnp/snp130_hg18.txt.gz'
 SNP150HG19 = '/data/refs/dbsnp/snp150_hg19.txt.gz'
 SNP150HG38 = '/data/refs/dbsnp/snp150_hg38.txt.gz'
 
-HG19TO38 = CHAINURL + 'hg19ToHg38.over.chain.gz'
-HG18TO38 = CHAINURL + 'hg18ToHg38.over.chain.gz'
+HG19TO38 = os.path.join(CHAIN_DIR, 'hg19ToHg38.over.chain.gz')
+HG18TO38 = os.path.join(CHAIN_DIR, 'hg18ToHg38.over.chain.gz')
 
 DBSNP_HEADER = namedtuple('DBSNP',
   ['binary_index', 'chromosome', 'start', 'end', 'name', 'score',
@@ -117,12 +122,6 @@ CONFIG_FILE_EXTENSION = ('yml', 'yaml')
 COMPRESSION_EXTENSION = ('gz', 'bz2', 'xz')
 BULK_EXTENSION = ('tgz', 'tar.gz', 'tar.bz2', 'tar.xz')
 FILE_EXTENSION = ('txt.gz', 'tsv.gz', 'tsv', 'txt')
-# shortening some common file extensions that are not meaningful
-# CONCAT_FILE_EXTENSION = (
-#     '.txt.vcf.gz.tsv.gz',
-#     '.tbl.rsid.gz.tsv.gz',
-#     '.rsid.tbl.gz.tsv.gz'
-# )
 
 META_HEADER = [
     'data_type', 'context', 'context_id',

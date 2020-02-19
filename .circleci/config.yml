@@ -11,8 +11,11 @@ jobs:
           name: Install cimr
           command: bash .circleci/install_cimr.sh
       - run:
-          name: Test different data_type files and resulting catalog.txt
-          command: bash .circleci/test_data_type.sh
+          name: Test GWAS with different chunksize and parallel parameters
+          command: bash examples/gwas/test_gwas.sh
+      - run:
+          name: Test EQTL with different chunksize and parallel parameters
+          command: bash examples/eqtl/test_eqtl.sh
       - run:
           name: Test gwas tarball file
           no_output_timeout: 30m
@@ -25,10 +28,6 @@ jobs:
           name: Test missing data checkers
           no_output_timeout: 30m
           command: bash .circleci/test_missing.sh
-      - run:
-          name: Test chunksize option
-          no_output_timeout: 30m
-          command: bash .circleci/test_chunksize.sh
 
 workflows:
   version: 2

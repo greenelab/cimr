@@ -38,37 +38,18 @@ def convert_coords(lifting, t):
     return _lifted_chrom, _lifted_pos
 
 
-def download_file(path):
-    """Use wget to download file."""
-
-    filename = path.split('/')[-1]
-
-    if os.path.isfile(filename):
-        return filename
-    else:
-        try:
-            run_cmd = 'wget ' + path
-            os.system(run_cmd)
-            return filename
-        except:
-            logging.error(f' chain file is not available.')
-            sys.exit(1)
-
-
 def call_liftover(df):
     """Call pyliftover.LiftOver to update genomic coordinates."""
     logging.info(f' updating genomic coordinates.')
     build = df['build'][0]
 
     if (build == 'hg37') | (build == 'hg19') | (build == 'b37'):
-        chainlink = HG19TO38
+        chain = HG19TO38
     elif (build == 'hg18') | (build == 'b18'):
-        chainlink = HG18TO38
+        chain = HG18TO38
     else:
         logging.error(f' genome build information is not available.')
         sys.exit(1)
-
-    chain = download_file(chainlink)
 
     lifting = pyliftover.LiftOver(chain)
     new_chrom = []
@@ -83,11 +64,9 @@ def call_liftover(df):
 
     df = df.assign(chrom=new_chrom)
     df = df.assign(pos=new_pos)
+
     # update build information in the dataframe
     df['build'] = 'b38'
     logging.info(f' {str(df.shape[0])} variants after liftover')
-    # os.remove(chain)
-    # logging.info(f' {chain} file is removed.')
+
     return df
-
-

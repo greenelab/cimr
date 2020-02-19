@@ -85,6 +85,7 @@ clone the repository from git::
 
     git clone https://github.com/greenelab/cimr.git
     cd cimr
+    pip3 install -r requirements.txt
     python3 setup.py build
     python3 setup.py install
 
@@ -150,5 +151,3 @@ Details can be found in the
 Once the yaml file is prepared, you can run cimr locally::
 
     cimr processor -process -yaml-file example.yaml
-
-

@@ -61,19 +61,6 @@ setuptools.setup(
     # Specify python version
     python_requires='>=3.6',
 
-    # Run-time dependencies
-    install_requires=[
-        'scikit-learn',
-        'numpy',
-        'pandas',
-        'pathlib',
-        'setuptools',
-        'requests',
-        'pyyaml',
-        'tqdm',
-        'pyliftover',
-    ],
-
     # Additional groups of dependencies
     extras_require={
     },
@@ -88,4 +75,3 @@ setuptools.setup(
     # Include package data files from MANIFEST.in
     include_package_data=True,
 )
-

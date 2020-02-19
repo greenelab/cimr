@@ -5,6 +5,9 @@
 (c) YoSon Park
 """
 
+import copy
+import multiprocessing as mp
+import os
 import sys
 import pandas
 import pathlib
@@ -25,12 +28,11 @@ from .utils import (set_chrom_dict, find_file, intersect_set,
     check_numeric, check_probability, remove_palindromic)
 
 # default values
-from ..defaults import (COMPRESSION_EXTENSION, ANNOTURL,
+from ..defaults import (COMPRESSION_EXTENSION, ANNOT_DIR,
     DATA_TYPES, GENOME_BUILDS, VAR_COMPONENTS, SEPARATORS,
     MAXCHROM, HEADER, REQ_COLUMNS, NUMERIC_COLUMNS,
     PROB_COLUMNS, INT_COLUMNS,
     SNP125HG17, SNP130HG18, SNP150HG19, SNP150HG38, HG19TO38)
-
 
 
 class Infiler:
@@ -102,6 +104,7 @@ class Infiler:
                  update_rsid,
                  outfile,
                  chunksize,
+                 parallel,
                  columnset):
 
         if data_type not in DATA_TYPES:
@@ -119,6 +122,7 @@ class Infiler:
         self.update_rsid = update_rsid
         self.outfile = outfile
         self.chunksize = chunksize
+        self.parallel = parallel
         self.columnset = columnset
 
 
@@ -151,16 +155,18 @@ class Infiler:
         if '-' in variant_ids[0]:
             variant_ids = variant_ids.str.replace('-', '_')
             logging.info(
+                f' chunk #{self.chunk_id}:' +
                 f' variant_id delimiter changed from \'-\' to \'_\''
             )
         if ':' in variant_ids[0]:
             variant_ids = variant_ids.str.replace(':', '_')
             logging.info(
+                f' chunk #{self.chunk_id}:' +
                 f' variant_id delimiter changed from \':\' to \'_\''
             )
         # else:
         #     logging.error(
-        #         f' unknown delimiter used in variant_id'
+        #        f' unknown delimiter used in variant_id'
         #     )
         #     sys.exit(1)
 
@@ -174,7 +180,10 @@ class Infiler:
             if len(temp.columns) == 5:
                 self.data['build'] = temp[4]
             else:
-                logging.info(f' updating variant_id to include build')
+                logging.info(
+                    f' chunk #{self.chunk_id}:' +
+                    f' updating variant_id to include build'
+                )
                 self.data['build'] = self.genome_build
                 self.data['variant_id'] = variant_ids + '_' + self.genome_build
 
@@ -182,12 +191,14 @@ class Infiler:
     def make_variant_id(self):
         """(Re)make variant_id with updated chrom ID, build #, etc."""
         logging.debug(
-            f' standardizing allele codes...'
+            f' chunk #{self.chunk_id}: standardizing allele codes...'
         )
         self.data['ref'] = self.data['ref'].str.upper()
         self.data['alt'] = self.data['alt'].str.upper()
 
-        logging.debug(f' making a new variant_id column.')
+        logging.debug(
+            f' chunk #{self.chunk_id}: making a new variant_id column.'
+        )
 
         self.data['variant_id'] = self.data['chrom'].astype(str) \
             + '_' \
@@ -199,7 +210,7 @@ class Infiler:
             + '_' \
             + self.data['build'].astype(str)
         logging.info(
-            f' variant_id has been standardized.'
+            f' chunk #{self.chunk_id}: variant_id has been standardized.'
         )
 
 
@@ -226,22 +237,24 @@ class Infiler:
             self.data['chrom'] = self.data['chrom'].astype(int)
             self.data['chrom'] = self.data['chrom'].astype(str)
             chroms = self.data['chrom'].drop_duplicates().values
-            logging.debug(f' {chroms}')
+            logging.debug(f' chunk #{self.chunk_id}: {chroms}')
 
         if len(chroms) > (maxchrom - 2) and len(chroms) < (maxchrom + 2):
             logging.info(
-                f' there are {len(chroms)} chromosomes.'
+                f' chunk #{self.chunk_id}: there are {len(chroms)} chromosomes.'
             )
         elif len(chroms) <= (maxchrom - 2):
             logging.info(
-                f' chromosome(s) included: %s'%(chroms,)
+                f' chunk #{self.chunk_id}:' +
+                f' chromosome(s) included: %s' % (chroms,)
             )
         else:
             logging.warning(
+                f' chunk #{self.chunk_id}:' +
                 f' input file more than {maxchrom - 1} chromosomes.'
             )
             logging.warning(
-                f' chromosome(s) included: %s'%(chroms,)
+                f' chunk #{self.chunk_id}: chromosome(s) included: %s'%(chroms,)
             )
 
         if len(set(chroms) & set(chrom_str)) > (maxchrom - 2):
@@ -252,19 +265,22 @@ class Infiler:
                 chrom_dict, na_action='ignore'
             ).fillna(self.data['chrom'])
             logging.info(
-                f' chromosome ids have been updated.'
+                f' chunk #{self.chunk_id}: chromosome ids have been updated.'
             )
         else:
             logging.warning(
-                f' chromosome id needs to be checked.'
+                f' chunk #{self.chunk_id}: chromosome id needs to be checked.'
             )
 
         remainder = list(set(chroms) - set(chrom_str) - set(chrom_int))
         if len(remainder) > 0:
-            logging.warning(f' chromosome(s) not used: %s'%(remainder,))
+            logging.warning(
+                f' chunk #{self.chunk_id}:' +
+                f' chromosome(s) not used: %s' % (remainder,)
+            )
 
         logging.info(
-            f' finished checking chromosome ids.'
+            f' chunk #{self.chunk_id}: finished checking chromosome ids.'
         )
 
 
@@ -278,9 +294,9 @@ class Infiler:
             'cimr', var_ref
             )
         logging.info(
-            f' using {ref_file} to check variants.'
+            f' chunk #{self.chunk_id}: using {ref_file} to check variants.'
         )
-        logging.info(f' rs id reference is {ref_id}.')
+        logging.info(f' chunk #{self.chunk_id}: rs id reference is {ref_id}.')
         refdf = pandas.read_csv(
             ref_file, sep='\t', header=0, dtype={'chr':'str'}
         )
@@ -295,28 +311,47 @@ class Infiler:
                 left_index=False, right_index=False, how='left'
             )
             merged.drop_duplicates(inplace=True)
-            variant_nomatch = merged.loc[~(merged['variant_id']==merged['variant_id_reference'])]
+            variant_nomatch = merged.loc[
+                ~(merged['variant_id']==merged['variant_id_reference'])
+            ]
             samplecount = len(samples.index)
             rsrefcount = len(rsnum_ref.index)
             nomatchcount = len(variant_nomatch.index)
-            logging.info(f' {samplecount} sampled from {rsrefcount} total variants with rs ids,')
-            logging.info(f' {nomatchcount} variants do not match the reference.')
+            logging.info(
+                f' chunk #{self.chunk_id}:' +
+                f' {samplecount} sampled from {rsrefcount} total' +
+                f' variants with rs ids,'
+            )
+            logging.info(
+                f' chunk #{self.chunk_id}:' +
+                f' {nomatchcount} variants do not match the reference.'
+            )
         else:
-            logging.error(f' there are no matching rs ids.')
+            logging.error(
+                f' chunk #{self.chunk_id}: there are no matching rs ids.'
+            )
             pass
 
 
     def find_reference(self):
         """Find variant and gene references for map checking"""
         if self.genome_build == 'b37':
-            self.gene_ref = ANNOTURL + 'gene_grch37_gencode_v26.tsv.gz'
-            self.var_ref = ANNOTURL + 'variant_grch37_subset.txt.gz'
+            self.gene_ref = os.path.join(
+                ANNOT_DIR, 'gene_grch37_gencode_v26.tsv.gz'
+            )
+            self.var_ref = os.path.join(
+                ANNOT_DIR, 'variant_grch37_subset.txt.gz'
+            )
             self.var_ref_id = 'rs_id_dbSNP147_GRCh37p13'
             self.dbsnp = SNP150HG19
             self.chain = HG19TO38
         elif self.genome_build == 'b38':
-            self.gene_ref = ANNOTURL + 'gene_grch38_gencode_v29.tsv.gz'
-            self.var_ref = ANNOTURL + 'variant_grch38_subset.txt.gz'
+            self.gene_ref = os.path.join(
+                ANNOT_DIR, 'gene_grch38_gencode_v29.tsv.gz'
+            )
+            self.var_ref = os.path.join(
+                ANNOT_DIR, 'variant_grch38_subset.txt.gz'
+            )
             self.var_ref_id = 'rs_id_dbSNP150_GRCh38p7'
             self.dbsnp = SNP150HG38
         else:
@@ -334,16 +369,17 @@ class Infiler:
         ensemblid = self.data['feature_id'].str.split(r'\.').str[0]
         self.data['feature_id'] = ensemblid
         logging.info(
+            f' chunk #{self.chunk_id}:' +
             f' ensembl id has been truncated for database queries.'
         )
 
 
     def list_features(self):
         """Find the list of features (e.g. genes)."""
-        logging.debug(f' {self.included_header}')
-        logging.debug(f' {self.data.head(2)}')
+        logging.debug(f' chunk #{self.chunk_id}: {self.included_header}')
+        logging.debug(f' chunk #{self.chunk_id}: {self.data.head(2)}')
         if 'feature_id' in self.included_header:
-            if self.data['feature_id'][0].startswith('ENS'):
+            if self.data['feature_id'].iloc[0].startswith('ENS'):
                 self.trim_ensembl()
 
         if 'ensemblgene' in self.data.columns:
@@ -351,7 +387,9 @@ class Infiler:
         elif 'feature_id' in self.data.columns:
             return self.data.feature_id
         else:
-            logging.error(f' feature_id column is not provided.')
+            logging.error(
+                f' chunk #{self.chunk_id}: feature_id column is not provided.'
+            )
             sys.exit(1)
 
 
@@ -379,30 +417,34 @@ class Infiler:
         by indicating all variant_id component fields in the yaml.
         """
         logging.debug(
+            f' chunk #{self.chunk_id}:' +
             f' processing information needed to make variant_id.'
         )
 
         if set(VAR_COMPONENTS).issubset(set(self.included_header)):
             logging.debug(
+                f' chunk #{self.chunk_id}:' +
                 f' checking {VAR_COMPONENTS} for missing values.'
             )
-            self.data.dropna(
-                subset=VAR_COMPONENTS, inplace=True
-            )
+            self.data.dropna(subset=VAR_COMPONENTS, inplace=True)
             logging.debug(
+                f' chunk #{self.chunk_id}:' +
                 f' rows with missing {VAR_COMPONENTS} are dropped.'
             )
 
             logging.debug(
+                f' chunk #{self.chunk_id}:' +
                 f' making variant_id using {VAR_COMPONENTS}.'
             )
             self.data['chrom'] = self.data['variant_chrom']
             self.check_chrom()
             logging.info(
+                f' chunk #{self.chunk_id}:' +
                 f' verifying variant positions are int values.'
             )
             self.data['variant_pos'] = self.data['variant_pos'].astype(int)
             logging.debug(
+                f' chunk #{self.chunk_id}:' +
                 f' changing verified values to str.'
             )
             self.data['variant_pos'] = self.data['variant_pos'].astype(str)
@@ -422,53 +464,66 @@ class Infiler:
 
         else:
             logging.error(
+                f' chunk #{self.chunk_id}:' +
                 f' missing columns necessary to make variant_id.'
             )
             sys.exit(1)
 
 
-    def check_data(self, data):
+    def check_data(self, chunk):
         """Check different columns for dtype, remove missing rows and
         standardize format to be used for analyses
         """
-        logging.debug(f' HEADER: {HEADER}.')
-        logging.debug(f' columns: {data.columns}.')
+        logging.debug(f' chunk #{self.chunk_id}: HEADER: {HEADER}.')
+        logging.debug(f' chunk #{self.chunk_id}: columns: {chunk.columns}.')
         self.included_header = intersect_set(
-            HEADER, data.columns
+            HEADER, chunk.columns
         )
-        logging.debug(f' included header overlapping cimr default set: {self.included_header}.')
+        logging.debug(
+            f' chunk #{self.chunk_id}:' +
+            f' included header overlapping cimr default set:' +
+            f' {self.included_header}.'
+        )
 
-        self.find_reference()
-        data.reset_index(inplace=True, drop=True)
-        self.data = data.copy()
+        self.data = chunk.copy()  # self.data is a deep copy of chunk
+        self.data.reset_index(inplace=True, drop=True)
 
         # standardize variant_id based on info provided in the input file
         if 'variant_id' not in self.data.columns:
-            logging.info(f' variant_id column is not provided.')
-            logging.info(f' checking columns necessary to make variant_id...')
+            logging.info(
+                f' chunk #{self.chunk_id}: variant_id column is not provided.'
+            )
+            logging.info(
+                f' chunk #{self.chunk_id}: ' +
+                'checking columns necessary to make variant_id...'
+            )
             self.make_composite_id()
-            logging.debug(f' data.head(2): {self.data.head(2)}')
+            logging.debug(
+                f' chunk #{self.chunk_id}: chunk.head(2): {self.data.head(2)}'
+            )
         elif 'variant_id' in self.included_header:
             self.get_pos()
             self.check_chrom()
             self.make_variant_id()
         else:
-            logging.error(f' variant_id column is not provided.')
+            logging.error(
+                f' chunk #{self.chunk_id}: variant_id column is not provided.'
+            )
             sys.exit(1)
 
         # update map + variant_id if genome_build is not hg38
         if (self.genome_build != 'hg38') and (self.genome_build != 'b38'):
             from .lift import call_liftover
             self.data = call_liftover(self.data)
-            # with the updated map, genome_build variable can be updated
-            self.genome_build = 'b38'
             self.make_variant_id()
 
         if 'rsnum' in self.data.columns:
             if self.update_rsid:
                 self.check_ref()
         else:
-            logging.warning(f' rsnum column is not provided.')
+            logging.warning(
+                f' chunk #{self.chunk_id}: rsnum column is not provided.'
+            )
 
         for col in INT_COLUMNS:
             if col in self.data.columns:
@@ -477,7 +532,9 @@ class Infiler:
         if 'inc_allele' in self.data.columns:
             self.fill_effect_allele()
         else:
-            logging.debug(f' inc_allele column is not available.')
+            logging.debug(
+                f' chunk #{self.chunk_id}: inc_allele column is not available.'
+            )
 
 
         self.data = remove_palindromic(self.data)
@@ -501,7 +558,7 @@ class Infiler:
 
         for col in REQ_COLUMNS:
             if col not in self.data.columns:
-                logging.error(f' {col} is required.')
+                logging.error(f' chunk #{self.chunk_id}: {col} is required.')
                 sys.exit(1)
 
         for col in NUMERIC_COLUMNS:
@@ -513,82 +570,118 @@ class Infiler:
                 check_probability(self.data, col)
 
 
-    def write_header(self):
-        """Write data to file with header"""
+    def process_chunk(self, chunk, in_parallel):
+        logging.info(f' chunk #{self.chunk_id}: start processing ...')
+        logging.debug(
+            f' chunk #{self.chunk_id}:' +
+            f' processing data.head(2): {chunk.head(2)}.'
+        )
+        chunk.reset_index(drop=True, inplace=True)
+
+        # check if empty and check header
+        if not chunk.empty:
+            if self.columnset:
+                self.rename_columns(chunk)
+                if '#CHROM' in chunk.columns:
+                    logging.debug(
+                        f' chunk #{self.chunk_id}:' +
+                        f' renaming #CHROM to variant_chrom.'
+                    )
+                    chunk.rename(
+                        columns={'#CHROM':'variant_chrom'},
+                        inplace=True
+                    )
+            # check each column for variable types,
+            # standardize chromosome and variant ids, etc.
+            self.check_data(chunk)
+            logging.debug(
+                f' chunk #{self.chunk_id}:' +
+                f' processing data type {self.data_type}.'
+            )
+
+            if self.data_type == 'eqtl':
+                features = self.list_features()
+                # 413 error
+                # self.call_querier(features)
+                self.map_features(features)
+
+            logging.info(
+                f' chunk #{self.chunk_id}: dropping duplicate columns.'
+            )
+            dropcols = self.data.columns.duplicated()
+            self.data = self.data.loc[:, ~dropcols]
+
+            # reorder columns so that mandatory fields are listed first.
+            logging.info(f' chunk #{self.chunk_id}: reordering processed data.')
+            self.order_columns()
+            logging.debug(
+                f' chunk #{self.chunk_id}: data.head(2): {self.data.head(2)}'
+            )
+
+            logging.info(f' chunk #{self.chunk_id}: writing processed data.')
+            self.write_chunk(in_parallel)
+            logging.info(
+                f' chunk #{self.chunk_id}: ' + '-' * 22 + ' DONE ' + '-' * 22
+            )
+        else:
+            logging.error(
+                f' chunk #{self.chunk_id}: no content in {self.file_name}.'
+            )
+            sys.exit(1)
+
+
+    def write_chunk(self, in_parallel):
+        """Write chunk data to a chunk file without header"""
+
+        is_chunk1 = (self.chunk_id == 1)
+        if is_chunk1 or in_parallel:
+            mode = 'w'
+        else:
+            mode = 'a'
+
+        if in_parallel:
+            out_filename = self.chunk_file_prefix + str(self.chunk_id)
+        else:
+            out_filename = str(self.outfile)
+
         if isinstance(self.data, pandas.DataFrame):
             self.data.to_csv(
-                str(self.outfile),
-                header=True,
+                out_filename,
+                header=is_chunk1,
                 index=False,
                 sep='\t',
                 na_rep='NA',
                 compression='gzip',
                 float_format='%.6f',
-                mode='w',
+                mode=mode,
                 encoding='utf-8'
             )
 
 
-    def write_file(self):
-        """Write data to file without header"""
-        if isinstance(self.data, pandas.DataFrame):
-            self.data.to_csv(
-                str(self.outfile),
-                header=False,
-                index=False,
-                sep='\t',
-                na_rep='NA',
-                compression='gzip',
-                float_format='%.6f',
-                mode='a',
-                encoding='utf-8'
-            )
+    def combine_chunks(self):
+        with open(str(self.outfile), 'wb') as out_file:
+            for i in range(1, self.num_chunks + 1):
+                chunk_filename = self.chunk_file_prefix + str(i)
+                with open(chunk_filename, 'rb') as in_file:
+                    out_file.write(in_file.read())
+                os.remove(chunk_filename)  # remove chunk output file
 
     def check_h5_outfile(self):
         """Check file extension for h5 output"""
         if not str(self.outfile).endswith('.h5.bz2'):
             self.outfile = str(self.outfile) + '.h5.bz2'
 
-
-    def write_h5_header(self):
-        """Write data as PyTable in an h5 file system with header"""
-        if isinstance(self.data, pandas.DataFrame):
-            self.data.to_hdf(
-                str(self.outfile),
-                header=True,
-                index=False,
-                format='table',
-                complevel=9,
-                complib='bzip2',
-                key=self.data_type,
-                mode='w'
-            )
-
-    def write_h5_file(self):
-        """Append data as PyTable in an h5 file system"""
-        if isinstance(self.data, pandas.DataFrame):
-            self.data.to_hdf(
-                str(self.outfile),
-                header=True,
-                index=False,
-                format='table',
-                complevel=9,
-                complib='bzip2',
-                key=self.data_type,
-                mode='a'
-            )
-
-
-    def rename_columns(self, dataframe):
+    def rename_columns(self, chunk):
         """Given a pandas dataframe and a dictionary, rename columns
         Primarily used for yaml column-set-based renaming in cimr.
         """
         logging.info(
+            f' chunk #{self.chunk_id}:' +
             f' renaming columns based on column dictionary.'
         )
-        dataframe.rename(self.columnset, axis=1, inplace=True)
+        chunk.rename(self.columnset, axis=1, inplace=True)
         logging.debug(
-            f' renamed data.head(2): {dataframe.head(2)}'
+            f' chunk #{self.chunk_id}: renamed data.head(2): {chunk.head(2)}'
         )
 
 
@@ -612,11 +705,12 @@ class Infiler:
             self.feature_type = 'entrezgene'
         else:
             logging.error(
+                f' chunk #{self.chunk_id}:' +
                 f' feature reference cannot be determined.'
             )
             sys.exit(1)
 
-        logging.debug(f' reading {self.gene_ref}.')
+        logging.debug(f' chunk #{self.chunk_id}: reading {self.gene_ref}.')
 
         if not 'feature_name' in self.included_header:
             gene_annot = pandas.read_csv(
@@ -626,12 +720,16 @@ class Infiler:
             )
             cols = ['feature_name', self.feature_type, 'feature_type']
             gene_annot = gene_annot[cols]
-            gene_annot.rename(columns={self.feature_type:'feature_id'}, inplace=True)
+            gene_annot.rename(
+                columns={self.feature_type:'feature_id'}, inplace=True
+            )
 
             logging.debug(
-                f' current dataframe: {self.data.head(2)}'
+                f' chunk #{self.chunk_id}: ' +
+                f'current dataframe: {self.data.head(2)}'
             )
             logging.debug(
+                f' chunk #{self.chunk_id}:' +
                 f' selected annotations: {gene_annot.head(2)}'
             )
 
@@ -642,11 +740,15 @@ class Infiler:
                 left_index=False,
                 right_index=False
             )
-            logging.debug(f' dropping duplicates, if any...')
+            logging.debug(
+                f' chunk #{self.chunk_id}: dropping duplicates, if any...'
+            )
             self.data.drop_duplicates(inplace=True)
             self.data.reset_index(inplace=True, drop=True)
-            logging.debug(f' dataframe has been annotated.')
-            logging.debug(f' {self.data.head(2)}')
+            logging.debug(
+                f' chunk #{self.chunk_id}: dataframe has been annotated.'
+            )
+            logging.debug(f' chunk #{self.chunk_id}: {self.data.head(2)}')
 
 
     def order_columns(self):
@@ -655,7 +757,6 @@ class Infiler:
         nonreq_columns = self.data.columns.drop(REQ_COLUMNS).tolist()
         output_columns = list(REQ_COLUMNS) + (nonreq_columns)
         self.data = self.data[output_columns]
-
 
     def process_file(self):
         """A set of main functions in Infiler to process input files.
@@ -681,7 +782,9 @@ class Infiler:
           11. Reset index and reorder mandatory columns to the front.
           12. Write to file.
         """
+
         self.file_name = find_file(self.file_name)
+        self.find_reference()
 
         logging.debug(f' looking for column separators.')
         self.get_sep()
@@ -702,60 +805,33 @@ class Infiler:
             chunksize=self.chunksize
         )
 
+        logging.info(f' chunksize: {self.chunksize / 1000000} million')
+        logging.info(f' number of parallel processes: {self.parallel}')
+
         chunkcount = 0
+        if self.parallel > 0:  # parallel data processing
+            self.chunk_file_prefix = str(self.outfile) + ".chunk"
+            pool = mp.Pool(self.parallel)
+            for chunk in chunks:
+                chunkcount += 1
+                self.chunk_id = chunkcount
+                cloned_instance = copy.deepcopy(self)
+                pool.apply_async(cloned_instance.process_chunk, [chunk, True])
 
-        for chunk in chunks:
-            logging.debug(f' processing data.head(2): {chunk.head(2)}.')
-            chunk.reset_index(drop=True, inplace=True)
-            logging.info(f' processing input chunk {chunkcount}.')
+            pool.close()
+            pool.join()
 
-            # check if empty and check header
-            if not chunk.empty:
-                if self.columnset:
-                    self.rename_columns(chunk)
-                    if '#CHROM' in chunk.columns:
-                        logging.debug(f' renaming #CHROM to variant_chrom.')
-                        chunk.rename(
-                            columns={'#CHROM':'variant_chrom'},
-                            inplace=True
-                        )
-                # check each column for variable types,
-                # standardize chromosome and variant ids, etc.
-                self.check_data(chunk)
-                logging.debug(f' processing data type {self.data_type}.')
+            # Combine all chunk output files into a single output file
+            logging.info(f" combine chunk output files ...")
+            self.num_chunks = chunkcount
+            self.combine_chunks()
 
-                if self.data_type == 'eqtl':
-                    features = self.list_features()
-                    # 413 error
-                    # self.call_querier(features)
-                    self.map_features(features)
-
-                logging.info(f' dropping duplicate columns.')
-                dropcols = self.data.columns.duplicated()
-                self.data = self.data.loc[:, ~dropcols]
-
-                # reorder columns so that mandatory fields are listed first.
-                logging.info(f' reordering processed data.')
-                self.order_columns()
-                logging.debug(f' data.head(2): {self.data.head(2)}')
-
-                logging.info(f' writing processed data.')
-
-                # write if first chunk. append if not.
-                if chunkcount == 0:
-                    self.write_header()
-                elif chunkcount > 0:
-                    self.write_file()
-                else:
-                    logging.error(f' file {self.outfile} cannot be written.')
-                    sys.exit(1)
-
-            else:
-                logging.error(f' no content in {self.file_name}.')
-                sys.exit(1)
-
-            chunkcount += 1
-
+        else:  # serial (non-parallel) data processing
+            chunkcount = 0
+            for chunk in chunks:
+                chunkcount += 1
+                self.chunk_id = chunkcount
+                self.process_chunk(chunk, False)
 
 class Integrator:
     """cimr integrator class connecting contributed data to cimr-d
@@ -791,7 +867,9 @@ class Integrator:
         # TODO: change into public repo after testing
         self.tempdir = tempdir
         try:
-            clonercmd = 'git clone git@github.com:greenelab/cimr-d.git ' + self.tempdir
+            clonercmd = (
+                'git clone git@github.com:greenelab/cimr-d.git ' + self.tempdir
+            )
             cloner = subprocess.Popen(
                 clonercmd.split(),
                 stdout=subprocess.PIPE,
@@ -808,5 +886,3 @@ class Integrator:
         except:
             print(sys.exc_info()[0])
         return 0
-
-

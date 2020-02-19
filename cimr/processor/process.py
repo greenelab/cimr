@@ -826,7 +826,7 @@ class Infiler:
             self.num_chunks = chunkcount
             self.combine_chunks()
 
-        else:  # serial data processing
+        else:  # serial (non-parallel) data processing
             chunkcount = 0
             for chunk in chunks:
                 chunkcount += 1

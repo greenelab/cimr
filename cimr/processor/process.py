@@ -621,7 +621,7 @@ class Infiler:
             logging.info(f' chunk #{self.chunk_id}: writing processed data.')
             self.write_chunk(in_parallel)
             logging.info(
-                f' chunk #{self.chunk_id}: ' + '-' * 20 + ' DONE ' + '-' * 20
+                f' chunk #{self.chunk_id}: ' + '-' * 22 + ' DONE ' + '-' * 22
             )
         else:
             logging.error(

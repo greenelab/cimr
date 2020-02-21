@@ -570,7 +570,7 @@ class Infiler:
                 check_probability(self.data, col)
 
 
-    def process_chunk(self, chunk, error_queue=None):
+    def process_chunk(self, chunk, err_queue=None):
         try:
             logging.info(f' chunk #{self.chunk_id}: start processing ...')
             logging.debug(
@@ -639,7 +639,7 @@ class Infiler:
             err_message = f' chunk #{self.chunk_id}: error'
             if self.parallel > 0:
                 import traceback
-                error_queue.put(err_message + '\n' + traceback.format_exc())
+                err_queue.put(err_message + '\n' + traceback.format_exc())
             else:
                 # In non-parallel mode, log the error message, and propagate
                 # the exception to upper level of the program.
@@ -829,26 +829,25 @@ class Infiler:
         if self.parallel > 0:  # parallel data processing
             self.chunk_file_prefix = str(self.outfile) + ".chunk"
             pool = mp.Pool(self.parallel)
-            # Create a queue that will be shared by all processes
-            error_queue = mp.Manager().Queue()
+            err_queue = mp.Manager().Queue()  # a queue shared by all processes
             for chunk in chunks:
-                if not error_queue.empty():
-                    break    # break immediately if error_queue is not empty
+                if not err_queue.empty():
+                    break    # break immediately if err_queue is not empty
                 chunkcount += 1
                 self.chunk_id = chunkcount
                 cloned_instance = copy.deepcopy(self)
                 pool.apply_async(
                     cloned_instance.process_chunk,
-                    [chunk, error_queue]
+                    [chunk, err_queue]
                 )
             pool.close()
             pool.join()
 
             # Terminate the whole program if error is found in child processes.
-            # Because child processes are launched in parallel, error_queue may
+            # Because child processes are launched in parallel, err_queue may
             # have multiple entries, but we only care the first error.
-            if not error_queue.empty():
-                logging.error(error_queue.get())
+            if not err_queue.empty():
+                logging.error(err_queue.get())
                 sys.exit(1)
 
             # Combine all chunk output files into a single output file

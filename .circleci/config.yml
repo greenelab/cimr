@@ -28,11 +28,6 @@ jobs:
           name: Test missing data checkers
           no_output_timeout: 30m
           command: bash .circleci/test_missing.sh
-      - run:
-          name: Test YoSon big EQTL
-          working_directory: ~/cimr/examples/foo/
-          command: |
-            cimr processor -process -yaml-file yoson_eqtl.yml -chunksize 200000 -parallel 32
 
 workflows:
   version: 2

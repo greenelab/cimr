@@ -570,7 +570,7 @@ class Infiler:
                 check_probability(self.data, col)
 
 
-    def process_chunk(self, chunk, in_parallel, error_queue=None):
+    def process_chunk(self, chunk, error_queue=None):
         try:
             logging.info(f' chunk #{self.chunk_id}: start processing ...')
             logging.debug(
@@ -625,7 +625,7 @@ class Infiler:
                 logging.info(
                     f' chunk #{self.chunk_id}: writing processed data.'
                 )
-                self.write_chunk(in_parallel)
+                self.write_chunk()
                 logging.info(
                     f' chunk #{self.chunk_id}: ' +
                     '-' * 22 + ' DONE ' + '-' * 22
@@ -636,26 +636,27 @@ class Infiler:
                 )
                 sys.exit(1)
         except Exception as e:
-            logging.error(f' chunk #{self.chunk_id}: error\n')
-            if in_parallel:
+            err_message = f' chunk #{self.chunk_id}: error'
+            if self.parallel > 0:
                 import traceback
-                error_queue.put(
-                    f' Error on chunk #{self.chunk_id}:\n' +
-                    traceback.format_exc()
-                )
-            else:     # In non-parallel mode, leave the exception to the system
+                error_queue.put(err_message + '\n' + traceback.format_exc())
+            else:
+                # In non-parallel mode, log the error message, and propagate
+                # the exception to upper level of the program.
+                logging.error(err_message)
                 raise
 
-    def write_chunk(self, in_parallel):
+
+    def write_chunk(self):
         """Write chunk data to a chunk file without header"""
 
         is_chunk1 = (self.chunk_id == 1)
-        if is_chunk1 or in_parallel:
+        if is_chunk1 or self.parallel > 0:
             mode = 'w'
         else:
             mode = 'a'
 
-        if in_parallel:
+        if self.parallel > 0:
             out_filename = self.chunk_file_prefix + str(self.chunk_id)
         else:
             out_filename = str(self.outfile)
@@ -838,12 +839,14 @@ class Infiler:
                 cloned_instance = copy.deepcopy(self)
                 pool.apply_async(
                     cloned_instance.process_chunk,
-                    [chunk, True, error_queue]
+                    [chunk, error_queue]
                 )
             pool.close()
             pool.join()
 
-            # Terminate the whole program if error is found in child processes
+            # Terminate the whole program if error is found in child processes.
+            # Because child processes are launched in parallel, error_queue may
+            # have multiple entries, but we only care the first error.
             if not error_queue.empty():
                 logging.error(error_queue.get())
                 sys.exit(1)
@@ -858,7 +861,7 @@ class Infiler:
             for chunk in chunks:
                 chunkcount += 1
                 self.chunk_id = chunkcount
-                self.process_chunk(chunk, False)
+                self.process_chunk(chunk)
 
 
 class Integrator:

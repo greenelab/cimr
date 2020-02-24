@@ -4,18 +4,17 @@ __pycache__/
 
 # emacs
 .venv
+*~
 
 # vscode
 .vscode
 
 # distributions
-.eggs/
-eggs/
-lib/
-lib64/
+/build/
+/dist/
 *.egg-info/
 *.egg
-dist/
+eggs/
 
 # tests
 *.pytest_cache/
@@ -43,12 +42,8 @@ doc/source/savefig/
 *.utf8.md
 *.knit.md
 
-# os
+# macOS
 .DS_Store
 Icon?
 Thumbs.db
 .directory
-
-
-# emacs
-*~

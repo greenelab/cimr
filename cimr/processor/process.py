@@ -570,76 +570,93 @@ class Infiler:
                 check_probability(self.data, col)
 
 
-    def process_chunk(self, chunk, in_parallel):
-        logging.info(f' chunk #{self.chunk_id}: start processing ...')
-        logging.debug(
-            f' chunk #{self.chunk_id}:' +
-            f' processing data.head(2): {chunk.head(2)}.'
-        )
-        chunk.reset_index(drop=True, inplace=True)
-
-        # check if empty and check header
-        if not chunk.empty:
-            if self.columnset:
-                self.rename_columns(chunk)
-                if '#CHROM' in chunk.columns:
-                    logging.debug(
-                        f' chunk #{self.chunk_id}:' +
-                        f' renaming #CHROM to variant_chrom.'
-                    )
-                    chunk.rename(
-                        columns={'#CHROM':'variant_chrom'},
-                        inplace=True
-                    )
-            # check each column for variable types,
-            # standardize chromosome and variant ids, etc.
-            self.check_data(chunk)
+    def process_chunk(self, chunk, err_queue=None):
+        try:
+            logging.info(f' chunk #{self.chunk_id}: start processing ...')
             logging.debug(
                 f' chunk #{self.chunk_id}:' +
-                f' processing data type {self.data_type}.'
+                f' processing data.head(2): {chunk.head(2)}.'
             )
+            chunk.reset_index(drop=True, inplace=True)
 
-            if self.data_type == 'eqtl':
-                features = self.list_features()
-                # 413 error
-                # self.call_querier(features)
-                self.map_features(features)
+            # check if empty and check header
+            if not chunk.empty:
+                if self.columnset:
+                    self.rename_columns(chunk)
+                    if '#CHROM' in chunk.columns:
+                        logging.debug(
+                            f' chunk #{self.chunk_id}:' +
+                            f' renaming #CHROM to variant_chrom.'
+                        )
+                        chunk.rename(
+                            columns={'#CHROM':'variant_chrom'},
+                            inplace=True
+                        )
+                # check each column for variable types,
+                # standardize chromosome and variant ids, etc.
+                self.check_data(chunk)
+                logging.debug(
+                    f' chunk #{self.chunk_id}:' +
+                    f' processing data type {self.data_type}.'
+                )
 
-            logging.info(
-                f' chunk #{self.chunk_id}: dropping duplicate columns.'
-            )
-            dropcols = self.data.columns.duplicated()
-            self.data = self.data.loc[:, ~dropcols]
+                if self.data_type == 'eqtl':
+                    features = self.list_features()
+                    # 413 error
+                    # self.call_querier(features)
+                    self.map_features(features)
 
-            # reorder columns so that mandatory fields are listed first.
-            logging.info(f' chunk #{self.chunk_id}: reordering processed data.')
-            self.order_columns()
-            logging.debug(
-                f' chunk #{self.chunk_id}: data.head(2): {self.data.head(2)}'
-            )
+                logging.info(
+                    f' chunk #{self.chunk_id}: dropping duplicate columns.'
+                )
+                dropcols = self.data.columns.duplicated()
+                self.data = self.data.loc[:, ~dropcols]
 
-            logging.info(f' chunk #{self.chunk_id}: writing processed data.')
-            self.write_chunk(in_parallel)
-            logging.info(
-                f' chunk #{self.chunk_id}: ' + '-' * 22 + ' DONE ' + '-' * 22
-            )
-        else:
-            logging.error(
-                f' chunk #{self.chunk_id}: no content in {self.file_name}.'
-            )
-            sys.exit(1)
+                # reorder columns so that mandatory fields are listed first.
+                logging.info(
+                    f' chunk #{self.chunk_id}: reordering processed data.'
+                )
+                self.order_columns()
+                logging.debug(
+                    f' chunk #{self.chunk_id}:'
+                    f' data.head(2): {self.data.head(2)}'
+                )
+
+                logging.info(
+                    f' chunk #{self.chunk_id}: writing processed data.'
+                )
+                self.write_chunk()
+                logging.info(
+                    f' chunk #{self.chunk_id}: ' +
+                    '-' * 22 + ' DONE ' + '-' * 22
+                )
+            else:
+                logging.error(
+                    f' chunk #{self.chunk_id}: no content in {self.file_name}.'
+                )
+                sys.exit(1)
+        except Exception as e:
+            err_message = f' chunk #{self.chunk_id}: error'
+            if self.parallel > 0:
+                import traceback
+                err_queue.put(err_message + '\n' + traceback.format_exc())
+            else:
+                # In non-parallel mode, log the error message, and propagate
+                # the exception to upper level of the program.
+                logging.error(err_message)
+                raise
 
 
-    def write_chunk(self, in_parallel):
+    def write_chunk(self):
         """Write chunk data to a chunk file without header"""
 
         is_chunk1 = (self.chunk_id == 1)
-        if is_chunk1 or in_parallel:
+        if is_chunk1 or self.parallel > 0:
             mode = 'w'
         else:
             mode = 'a'
 
-        if in_parallel:
+        if self.parallel > 0:
             out_filename = self.chunk_file_prefix + str(self.chunk_id)
         else:
             out_filename = str(self.outfile)
@@ -812,14 +829,26 @@ class Infiler:
         if self.parallel > 0:  # parallel data processing
             self.chunk_file_prefix = str(self.outfile) + ".chunk"
             pool = mp.Pool(self.parallel)
+            err_queue = mp.Manager().Queue()  # a queue shared by all processes
             for chunk in chunks:
+                if not err_queue.empty():
+                    break    # break immediately if err_queue is not empty
                 chunkcount += 1
                 self.chunk_id = chunkcount
                 cloned_instance = copy.deepcopy(self)
-                pool.apply_async(cloned_instance.process_chunk, [chunk, True])
-
+                pool.apply_async(
+                    cloned_instance.process_chunk,
+                    [chunk, err_queue]
+                )
             pool.close()
             pool.join()
+
+            # Terminate the whole program if error is found in child processes.
+            # Because child processes are launched in parallel, err_queue may
+            # have multiple entries, but we only care the first error.
+            if not err_queue.empty():
+                logging.error(err_queue.get())
+                sys.exit(1)
 
             # Combine all chunk output files into a single output file
             logging.info(f" combine chunk output files ...")
@@ -831,7 +860,8 @@ class Infiler:
             for chunk in chunks:
                 chunkcount += 1
                 self.chunk_id = chunkcount
-                self.process_chunk(chunk, False)
+                self.process_chunk(chunk)
+
 
 class Integrator:
     """cimr integrator class connecting contributed data to cimr-d

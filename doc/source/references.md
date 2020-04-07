@@ -1,7 +1,4 @@
 
-
-
-
 # Guidelines for references and acknowledgements
 
 
@@ -11,7 +8,7 @@ any other relevant information used to make cimr-d work.
 
 
 
-# cimr
+## cimr
 
 
 If you use cimr python package, cite:
@@ -21,7 +18,7 @@ YoSon Park (2019), cimr, https://github.com/greenelab/cimr
 
 
 
-# cimr-d
+## cimr-d
 
 
 If you use cimr-d client and database, cite:
@@ -31,7 +28,7 @@ YoSon Park, Dongbo Hu and Casey Greene (2020). "cimr-d: a continuously integrate
 
 
 
-# Publications for datasets in cimr-d
+## Publications for datasets in cimr-d
 
 
 We recommend that if any specific data are used in your research,

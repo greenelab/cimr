@@ -2,25 +2,6 @@
 
 
 
-# Table of Contents
-
-
-- [Guidelines for references and acknowledgements](#guidelines-for-references-and-acknowledgements)
-
-- [cimr](#cimr)
-
-- [cimr-d](#cimr-d)
-
-- [Publications for datasets in cimr-d](#publications-for-datasets-in-cimr-d)
-
-
-
-------------
-
-
-
-
-
 # Guidelines for references and acknowledgements
 
 

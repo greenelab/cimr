@@ -39,8 +39,7 @@ accepted.
 ## Do you have data?
 
 Ensure that the data is publicly available or contains a license to
-share with attribution (e.g. CC BY 4.0). Briefly, any variant- or
-gene-based association summary statistics passing the automated checks
+share with attribution (e.g. CC BY 4.0). Briefly, any variant-based association summary statistics passing the automated checks
 via cimr may be elligible to be integrated into cimr-d, which would
 allow faster, more convenient use by others in the community.
 
@@ -61,31 +60,35 @@ input formatting requirements.
 Following are required for all association summary statistics:
 
 ```
+column_separator: column separator used in the file. Default is
+    tab-delimited and do not need to be indicated. Other options
+    such as space, multispace, comma, tabspace and 8space need
+    to be indicated in the yaml file.
 rsnum : rs id of the variant
 variant_id : variant id in the following format
-    chromosome_position_referenceallele_alternateallele_genomebuild
-pval / pvalue: p-value of the beta estimate
+    chromosome_position_referenceallele_alternateallele_genomebuild.
+pval / pvalue: p-value of the beta estimate.
 beta / effect_size : beta coefficient estimate for the effect
-    of the variant on the gene
-se / standard_error : standard error of the beta
-zscore: standardized or imputed statistic
+    of the variant on the gene.
+se / standard_error : standard error of the beta.
+zscore: standardized or imputed statistic.
 sample_size : sample size for the variant underlying the
     effect_size and pvalue estimates. If not available per-variant,
     the total sample size used for the study is accepted.
 n_cases : **required for binary phenotypic traits only.**
-    n_cases are necessary
-    for downstream analyses such as coloc colocalization.
+    n_cases are necessary for downstream analyses and
+    proper interpretation and use of the submitted data.
 build: if not included in variant_id, genome build can be provided
-    as a yaml parameter
+    as a yaml parameter.
 ```
 
 Following are required for quantitative trait loci:
 
 ```
-feature_id : feature may be gene (eQTL), transcript (sQTL)
+feature_id : feature may be gene (eQTL), transcript (sQTL), etc.
 ```
 
-Following are optional:
+Following are optional but highly recommended for reuse of data:
 
 ```
 tss_distance : distance to the transcription start site of the

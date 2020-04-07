@@ -39,6 +39,6 @@ summary statistics and to conduct gene-based tests.
    processing/variant.rst
    processing/data.rst
    feature_analyses/gene.rst
-   citations.rst
+   references.md
 
 
